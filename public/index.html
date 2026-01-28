@@ -1,0 +1,3897 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Schedule & Allowance Adventure</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#6b5bff" />
+    <link rel="icon" href="/assets/icons/icon-32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/assets/icons/icon-180.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js");
+        });
+      }
+      const HOUSEHOLD_ID = "fletcher-island";
+      const HOUSEHOLD_NAME = "Fletcher Island";
+      const PERSON_ID = "avery";
+      const DEFAULT_GROUP_ID = "ashley-avery";
+      const HOUSEHOLD_GROUPS = [
+        { id: "ashley-avery", name: "Ashley and Avery" },
+        { id: "sam-kids", name: "Sam and kids" },
+        { id: "mimi-papa", name: "Mimi and Papa" },
+      ];
+
+      const FUNCTIONS_BASE_URL = localStorage.getItem("functionsBaseUrl") || "";
+      const API_BASE = FUNCTIONS_BASE_URL
+        ? FUNCTIONS_BASE_URL.replace(/\/$/, "")
+        : "/api";
+
+      async function apiFetch(path, options = {}) {
+        const headers = {
+          ...(options.headers || {}),
+        };
+        if (!options.body || options.body instanceof FormData) {
+          // leave content-type alone for FormData
+        } else if (!headers["Content-Type"]) {
+          headers["Content-Type"] = "application/json";
+        }
+        const resp = await fetch(`${API_BASE}${path}`, {
+          ...options,
+          headers,
+        });
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(text || "Request failed");
+        }
+        return resp;
+      }
+
+      async function apiGetJson(path) {
+        const resp = await apiFetch(path);
+        return resp.json();
+      }
+
+      async function apiPostJson(path, body) {
+        const resp = await apiFetch(path, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        return resp.json();
+      }
+
+      async function ensureHouseholdMeta() {
+        return apiPostJson("/ensureHousehold", {
+          householdId: HOUSEHOLD_ID,
+          name: HOUSEHOLD_NAME,
+          groups: HOUSEHOLD_GROUPS,
+          people: [
+            {
+              personId: PERSON_ID,
+              name: "Avery",
+              role: "member",
+              groupId: DEFAULT_GROUP_ID,
+            },
+          ],
+        });
+      }
+
+      function loadPointsFromServer() {
+        return apiGetJson(
+          `/points?householdId=${encodeURIComponent(
+            HOUSEHOLD_ID
+          )}&personId=${encodeURIComponent(PERSON_ID)}`
+        )
+          .then((data) => {
+            userPoints = parseInt(data.totalPoints, 10) || 0;
+            updatePointsDisplay();
+          })
+          .catch(() => {
+            // Ignore load errors to allow offline usage.
+          });
+      }
+
+      function savePointsToServer() {
+        return apiPostJson("/points", {
+          householdId: HOUSEHOLD_ID,
+          personId: PERSON_ID,
+          totalPoints: userPoints,
+        }).catch(() => {
+          // Ignore save errors to allow offline usage.
+        });
+      }
+
+      function saveCompletedTasks() {
+        const completed = getScheduleItemsForDate(getTodayString()).map(
+          (item) => ({
+            id: item.id,
+            task: item.task,
+            time: item.time,
+            endTime: item.endTime || "",
+            type: item.type,
+            completed: item.completed,
+            actualActivity: item.actualActivity || "",
+            pendingApproval: !!item.pendingApproval,
+            pendingRelease: !!item.pendingRelease,
+            proofImage: item.proofImage || "",
+            autoReviewStatus: item.autoReviewStatus || "",
+            groupId: item.groupId || DEFAULT_GROUP_ID,
+          })
+        );
+        return apiPostJson("/completedTasks", {
+          householdId: HOUSEHOLD_ID,
+          personId: PERSON_ID,
+          date: getTodayString(),
+          tasks: completed,
+        }).catch(() => {
+          // Ignore save errors to allow offline usage.
+        });
+      }
+
+      function saveDailyNotes() {
+        return apiPostJson("/dailyNotes", {
+          householdId: HOUSEHOLD_ID,
+          personId: PERSON_ID,
+          date: getTodayString(),
+          notes: dailyNotes,
+        }).catch(() => {
+          // Ignore save errors to allow offline usage.
+        });
+      }
+
+      function loadDailyNotes() {
+        return apiGetJson(
+          `/dailyNotes?householdId=${encodeURIComponent(
+            HOUSEHOLD_ID
+          )}&personId=${encodeURIComponent(
+            PERSON_ID
+          )}&date=${encodeURIComponent(getTodayString())}`
+        )
+          .then((data) => {
+            dailyNotes = data.notes || "";
+            dailyNotesEl.value = dailyNotes;
+          })
+          .catch(() => {
+            // Ignore load errors to allow offline usage.
+          });
+      }
+
+      function loadTodayTasks() {
+        return apiGetJson(
+          `/completedTasks?householdId=${encodeURIComponent(
+            HOUSEHOLD_ID
+          )}&personId=${encodeURIComponent(
+            PERSON_ID
+          )}&date=${encodeURIComponent(getTodayString())}`
+        )
+          .then((data) => {
+            const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+            tasks.forEach((saved) => {
+              let target = scheduleItems.find((item) => item.id === saved.id);
+              if (!target) {
+                target = scheduleItems.find(
+                  (item) => item.time === saved.time && item.task === saved.task
+                );
+              }
+              if (target) {
+                target.completed = !!saved.completed;
+                target.actualActivity = saved.actualActivity || "";
+                target.pendingApproval = !!saved.pendingApproval;
+                target.pendingRelease = !!saved.pendingRelease;
+                target.proofImage = saved.proofImage || "";
+                target.autoReviewStatus = saved.autoReviewStatus || "";
+              }
+            });
+            if (settings.pointsEnabled) {
+              pendingPoints = getScheduleItemsForDate(getTodayString()).reduce(
+                (total, item) => {
+                  if (item.pendingApproval || item.pendingRelease) {
+                    return total + getEffectivePoints(item);
+                  }
+                  return total;
+                },
+                0
+              );
+              updatePointsDisplay();
+            }
+          })
+          .catch(() => {
+            // Ignore load errors to allow offline usage.
+          });
+      }
+
+      function formatTaskType(type) {
+        const labels = {
+          focus: "Focus Block",
+          break: "Break",
+          chore: "Mission",
+          personal: "Personal",
+        };
+        return labels[type] || type;
+      }
+
+      async function loadDefaultTasks() {
+        try {
+          const resp = await fetch("/data/default-tasks.json", {
+            headers: { "cache-control": "no-cache" },
+          });
+          if (!resp.ok) {
+            throw new Error("Failed to load default tasks");
+          }
+          const data = await resp.json();
+          scheduleItems = Array.isArray(data.scheduleItems)
+            ? data.scheduleItems
+            : [];
+          weeklyChores = Array.isArray(data.weeklyChores)
+            ? data.weeklyChores
+            : [];
+          monthlyChores = Array.isArray(data.monthlyChores)
+            ? data.monthlyChores
+            : [];
+        } catch (error) {
+          console.warn("Unable to load default tasks", error);
+        }
+      }
+
+      function loadHistoryData(date) {
+        const dataBox = document.getElementById("history-content");
+        dataBox.innerHTML = '<p class="text-gray-500">Loading...</p>';
+
+        Promise.all([
+          apiGetJson(
+            `/dailyNotes?householdId=${encodeURIComponent(
+              HOUSEHOLD_ID
+            )}&personId=${encodeURIComponent(
+              PERSON_ID
+            )}&date=${encodeURIComponent(date)}`
+          ),
+          apiGetJson(
+            `/completedTasks?householdId=${encodeURIComponent(
+              HOUSEHOLD_ID
+            )}&personId=${encodeURIComponent(
+              PERSON_ID
+            )}&date=${encodeURIComponent(date)}`
+          ),
+        ])
+          .then(([notesData, tasksData]) => {
+            const notes = notesData?.notes || "";
+            const tasks = Array.isArray(tasksData?.tasks)
+              ? tasksData.tasks
+              : [];
+            let html = "";
+
+            if (tasks.length > 0) {
+              html +=
+                '<div><h3 class="font-semibold text-gray-800 mb-1">Daily Timeline:</h3><ul class="list-disc list-inside text-gray-700">';
+              tasks.forEach((t) => {
+                const status = t.completed ? "✅" : "⏳";
+                const actual = t.actualActivity
+                  ? ` — Actual: ${t.actualActivity}`
+                  : "";
+                html += `<li>${status} <strong>${
+                  t.time || "Anytime"
+                }</strong> – ${t.task} (${formatTaskType(
+                  t.type
+                )})${actual}</li>`;
+              });
+              html += "</ul></div>";
+            } else {
+              html +=
+                '<p class="text-gray-500">No completed tasks for this day.</p>';
+            }
+
+            if (notes) {
+              html +=
+                '<div class="mt-4"><h3 class="font-semibold text-gray-800 mb-1">Notes:</h3>';
+              html += `<p class="text-gray-700 whitespace-pre-line">${notes}</p></div>`;
+            }
+
+            dataBox.innerHTML = html;
+          })
+          .catch(() => {
+            dataBox.innerHTML =
+              '<p class="text-red-500">Failed to load history data.</p>';
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const historyInput = document.getElementById("history-date");
+        if (historyInput) {
+          historyInput.addEventListener("change", () => {
+            const selectedDate = historyInput.value;
+            if (selectedDate) loadHistoryData(selectedDate);
+          });
+        }
+      });
+    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Nunito", sans-serif;
+        background-color: #f0f9ff;
+      }
+      .task-card {
+        transition: all 0.3s ease;
+      }
+      .task-card:hover {
+        transform: translateY(-3px);
+      }
+      .task-card.collapsed .task-details {
+        display: none;
+      }
+      .completed {
+        opacity: 0.6;
+        text-decoration: line-through;
+      }
+      .current-task {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+        }
+      }
+      .confetti {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        opacity: 0;
+      }
+      .focus-block {
+        border-left: 4px solid #3b82f6;
+      }
+      .break-block {
+        border-left: 4px solid #10b981;
+      }
+      .chore-block {
+        border-left: 4px solid #f59e0b;
+      }
+      .personal-block {
+        border-left: 4px solid #8b5cf6;
+      }
+      .toggle-checkbox:checked {
+        right: 0;
+        border-color: #68d391;
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: #68d391;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-600">
+              My Daily Adventure
+            </h1>
+            <span
+              class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-800"
+              >✨ Allowance Quest</span
+            >
+          </div>
+          <p class="text-gray-600" id="current-date">Loading date...</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex flex-col items-end gap-2">
+          <div class="flex items-center gap-3 text-sm"></div>
+          <button
+            id="admin-toggle"
+            class="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            Admin Sign In
+          </button>
+          <div class="bg-white p-4 rounded-lg shadow-md">
+            <p class="text-xl font-bold text-center" id="current-time">
+              Loading time...
+            </p>
+            <p class="text-sm text-gray-500 text-center">Current Time</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mb-8">
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-blue-700"
+            >Adventure Progress</span
+          >
+          <span class="text-sm font-medium text-blue-700" id="progress-text"
+            >0%</span
+          >
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-4">
+          <div
+            class="bg-blue-600 h-4 rounded-full transition-all duration-500"
+            id="progress-bar"
+            style="width: 0%"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="mb-6">
+        <div class="flex border-b border-gray-200">
+          <button
+            class="tab-btn py-2 px-4 font-semibold border-b-2 border-blue-500 text-blue-600"
+            data-tab="schedule"
+          >
+            Daily Adventure
+          </button>
+          <button
+            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
+            data-tab="weekly"
+          >
+            Weekly Missions
+          </button>
+          <button
+            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
+            data-tab="monthly"
+          >
+            Monthly Missions
+          </button>
+          <button
+            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
+            data-tab="habits"
+          >
+            Habits & Tasks
+          </button>
+          <button
+            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
+            data-tab="rewards"
+          >
+            Allowance & Rewards
+          </button>
+        </div>
+      </div>
+
+      <!-- Schedule Tab Content -->
+      <div id="schedule-tab" class="tab-content">
+        <div class="text-center mb-10">
+          <span
+            class="text-blue-600 font-semibold text-sm uppercase tracking-wide"
+            >Today's Work</span
+          >
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mt-2 mb-3">
+            Live Schedule &amp; Unfinished Tasks
+          </h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            The schedule updates automatically based on the current time.
+            Unfinished tasks collect anything earlier today that isn't marked
+            complete, plus anytime tasks.
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-2 mt-5">
+            <button
+              id="refactor-schedule"
+              class="bg-white text-blue-600 px-3 py-1 rounded-md border border-blue-200 hover:bg-blue-50 transition"
+            >
+              Refactor Schedule
+            </button>
+            <button
+              id="edit-schedule"
+              class="admin-only bg-blue-100 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-200 transition"
+            >
+              Edit Adventure
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2">
+            <div class="bg-white p-4 rounded-lg shadow-md">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                Schedule (Today)
+              </h3>
+              <div id="schedule-container" class="space-y-3"></div>
+              <div id="anytime-section" class="mt-6 hidden">
+                <h4 class="text-lg font-semibold text-gray-800 mb-2">
+                  Anytime Tasks
+                </h4>
+                <div id="anytime-container" class="space-y-3"></div>
+              </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="mt-6 bg-white p-4 rounded-lg shadow-md">
+              <h3 class="text-lg font-semibold text-gray-800 mb-2">
+                Today's Notes
+              </h3>
+              <textarea
+                id="daily-notes"
+                class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Write your notes here..."
+              ></textarea>
+              <div class="mt-2 text-right">
+                <button
+                  id="save-notes"
+                  class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition"
+                >
+                  Save Notes
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="lg:col-span-1">
+            <div class="bg-white p-4 rounded-lg shadow-md">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3">
+                Unfinished Tasks
+              </h3>
+              <div id="unfinished-container" class="space-y-2"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly Missions Tab Content -->
+      <div id="weekly-tab" class="tab-content hidden">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Weekly Missions</h2>
+          <button
+            id="add-weekly-chore"
+            class="admin-only bg-green-100 text-green-600 px-3 py-1 rounded-md hover:bg-green-200 transition"
+          >
+            Add Mission
+          </button>
+        </div>
+        <div class="grid grid-cols-1 gap-4" id="weekly-container">
+          <!-- Days of the week will be populated here -->
+        </div>
+      </div>
+
+      <!-- Monthly Missions Tab Content -->
+      <div id="monthly-tab" class="tab-content hidden">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Monthly Missions</h2>
+          <button
+            id="add-monthly-chore"
+            class="admin-only bg-purple-100 text-purple-600 px-3 py-1 rounded-md hover:bg-purple-200 transition"
+          >
+            Add Mission
+          </button>
+        </div>
+        <div class="grid grid-cols-1 gap-4" id="monthly-container">
+          <!-- Weeks will be populated here -->
+        </div>
+      </div>
+
+      <!-- Habits Tab Content -->
+      <div id="habits-tab" class="tab-content hidden">
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Habit Tracker</h2>
+          <p class="text-sm text-gray-500">
+            Track micro tasks by category and add new ones as needed.
+          </p>
+        </div>
+        <div class="mb-4 flex flex-wrap gap-2">
+          <input
+            id="habit-category-input"
+            type="text"
+            class="flex-1 min-w-[180px] border border-gray-300 rounded-md px-3 py-2 text-sm"
+            placeholder="Category (e.g., Personal)"
+          />
+          <input
+            id="habit-item-input"
+            type="text"
+            class="flex-1 min-w-[180px] border border-gray-300 rounded-md px-3 py-2 text-sm"
+            placeholder="New habit (e.g., Brush teeth)"
+          />
+          <button
+            id="habit-item-add"
+            class="bg-blue-100 text-blue-600 px-3 py-2 rounded-md hover:bg-blue-200 transition"
+          >
+            Add Habit
+          </button>
+        </div>
+        <div id="habits-container" class="space-y-4"></div>
+      </div>
+
+      <!-- Rewards Tab Content -->
+      <div id="rewards-tab" class="tab-content hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-800">Allowance & Rewards</h2>
+          <button
+            id="point-settings"
+            class="bg-blue-100 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-200 transition"
+          >
+            Allowance Settings
+          </button>
+        </div>
+
+        <div
+          id="points-display-container"
+          class="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-lg shadow-md mb-6"
+        >
+          <h2 class="text-xl font-bold text-purple-800 mb-2">
+            Allowance Stars: <span id="points-display">0</span>
+          </h2>
+          <div class="w-full bg-white rounded-full h-4 mb-2">
+            <div
+              class="bg-purple-600 h-4 rounded-full transition-all duration-500"
+              id="points-progress"
+              style="width: 0%"
+            ></div>
+          </div>
+          <div
+            class="flex flex-wrap items-center justify-between gap-2 text-sm text-purple-700"
+          >
+            <span>Collect stars to trade for rewards!</span>
+            <span class="font-semibold text-amber-700"
+              >Pending approval:
+              <span id="pending-points-display">0</span> ⭐</span
+            >
+          </div>
+          <p class="text-xs text-purple-600 mt-2">
+            Homework rewards stay pending until a parent approves the photo
+            proof.
+          </p>
+        </div>
+
+        <div class="flex justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800">Reward Shop</h3>
+          <button
+            id="add-reward"
+            class="bg-purple-100 text-purple-600 px-3 py-1 rounded-md hover:bg-purple-200 transition"
+          >
+            Add Reward
+          </button>
+        </div>
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 gap-4"
+          id="rewards-container"
+        ></div>
+      </div>
+
+      <!-- Edit Schedule Modal -->
+      <div
+        id="edit-modal"
+        class="admin-only fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div
+          class="bg-white rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto"
+        >
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Edit Adventure</h3>
+            <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div id="edit-schedule-container" class="space-y-4"></div>
+          <div class="mt-6 flex justify-between">
+            <button
+              id="add-schedule-item"
+              class="bg-blue-100 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-200 transition"
+            >
+              Add Item
+            </button>
+            <button
+              id="save-schedule"
+              class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Mission Modal -->
+      <div
+        id="chore-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800" id="chore-modal-title">
+              Add New Mission
+            </h3>
+            <button
+              id="close-chore-modal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-1">Mission Name</label>
+              <input
+                type="text"
+                id="chore-name"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div id="chore-points-container">
+              <label class="block text-gray-700 mb-1">Stars</label>
+              <input
+                type="number"
+                id="chore-points"
+                min="1"
+                value="5"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label class="flex items-center text-gray-700 mb-1">
+                <input type="checkbox" id="chore-requires-photo" class="mr-2" />
+                Requires photo proof
+              </label>
+              <p class="text-xs text-gray-500">
+                Upload a photo or screenshot for approval.
+              </p>
+            </div>
+            <div>
+              <label class="flex items-center text-gray-700 mb-1">
+                <input type="checkbox" id="chore-basic" class="mr-2" />
+                Basic requirement (unlocks paid tasks)
+              </label>
+              <p class="text-xs text-gray-500">
+                Complete this before stars can be released.
+              </p>
+            </div>
+            <div id="chore-day-container" class="hidden">
+              <label class="block text-gray-700 mb-1">Day</label>
+              <select
+                id="chore-day"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+            <div id="chore-week-container" class="hidden">
+              <label class="block text-gray-700 mb-1">Week</label>
+              <select
+                id="chore-week"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Week 1">Week 1</option>
+                <option value="Week 2">Week 2</option>
+                <option value="Week 3">Week 3</option>
+                <option value="Week 4">Week 4</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-6">
+            <button
+              id="save-chore"
+              class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            >
+              Add Mission
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Reward Modal -->
+      <div
+        id="reward-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Add New Reward</h3>
+            <button
+              id="close-reward-modal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-1">Reward Name</label>
+              <input
+                type="text"
+                id="reward-name"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Stars Required</label>
+              <input
+                type="number"
+                id="reward-points"
+                min="1"
+                value="20"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Icon (emoji)</label>
+              <input
+                type="text"
+                id="reward-icon"
+                value="🎁"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div class="mt-6">
+            <button
+              id="save-reward"
+              class="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition"
+            >
+              Add Reward
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Point Settings Modal -->
+      <div
+        id="points-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Allowance Settings</h3>
+            <button
+              id="close-points-modal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-6">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-gray-700 font-medium"
+                  >Enable Allowance Stars</span
+                >
+                <div
+                  class="relative inline-block w-12 align-middle select-none"
+                >
+                  <input
+                    type="checkbox"
+                    id="points-toggle"
+                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                    checked
+                  />
+                  <label
+                    for="points-toggle"
+                    class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+                  ></label>
+                </div>
+              </div>
+              <p class="text-sm text-gray-500">
+                Turn off to hide stars and rewards but still track mission
+                completion.
+              </p>
+            </div>
+
+            <div id="point-values-container">
+              <h4 class="font-semibold text-gray-700 mb-2">
+                Default Star Values
+              </h4>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <label class="text-gray-600">Daily Adventure Tasks</label>
+                  <input
+                    type="number"
+                    id="daily-task-points"
+                    min="0"
+                    value="5"
+                    class="w-20 border border-gray-300 rounded-md px-2 py-1 text-center"
+                  />
+                </div>
+                <div class="flex items-center justify-between">
+                  <label class="text-gray-600">Weekly Missions</label>
+                  <input
+                    type="number"
+                    id="weekly-chore-points"
+                    min="0"
+                    value="10"
+                    class="w-20 border border-gray-300 rounded-md px-2 py-1 text-center"
+                  />
+                </div>
+                <div class="flex items-center justify-between">
+                  <label class="text-gray-600">Monthly Missions</label>
+                  <input
+                    type="number"
+                    id="monthly-chore-points"
+                    min="0"
+                    value="20"
+                    class="w-20 border border-gray-300 rounded-md px-2 py-1 text-center"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                id="reset-points"
+                class="text-red-600 hover:text-red-800 text-sm"
+              >
+                Reset all stars to zero
+              </button>
+            </div>
+          </div>
+          <div class="mt-6">
+            <button
+              id="save-points-settings"
+              class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+            >
+              Save Settings
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Meal Input Modal -->
+      <div
+        id="meal-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">What did you eat?</h3>
+            <button
+              id="close-meal-modal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-1">Today's Meal</label>
+              <textarea
+                id="meal-notes"
+                class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Write what you ate here..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="mt-6">
+            <button
+              id="save-meal"
+              class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Celebration Modal -->
+      <div
+        id="celebration-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md text-center">
+          <div class="mb-4">
+            <div class="text-5xl mb-2">🎉</div>
+            <h3 class="text-2xl font-bold text-purple-800">Great Job!</h3>
+            <p class="text-gray-600 mt-2" id="celebration-message">
+              You've completed a task!
+            </p>
+          </div>
+          <div class="mt-6">
+            <button
+              id="close-celebration"
+              class="bg-purple-600 text-white px-6 py-2 rounded-md hover:bg-purple-700 transition"
+            >
+              Awesome!
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Proof Upload Modal -->
+      <div
+        id="proof-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800" id="proof-modal-title">
+              Upload Proof
+            </h3>
+            <button
+              id="close-proof-modal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <p class="text-sm text-gray-600 mb-4" id="proof-modal-description">
+            Add a photo or screenshot to request approval.
+          </p>
+          <div class="space-y-4">
+            <input
+              type="file"
+              id="proof-file"
+              accept="image/*"
+              capture="environment"
+              class="w-full"
+            />
+            <div id="proof-preview-wrapper" class="hidden">
+              <p class="text-sm text-gray-600 mb-2">Preview</p>
+              <img
+                id="proof-preview"
+                class="w-full rounded-md border border-gray-200"
+                alt="Proof preview"
+              />
+            </div>
+          </div>
+          <div class="mt-6 flex gap-2">
+            <button
+              id="submit-proof"
+              class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+            >
+              Submit for Approval
+            </button>
+            <button
+              id="cancel-proof"
+              class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Login Modal -->
+      <div
+        id="admin-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Admin Access</h3>
+            <button
+              id="close-admin-modal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <p class="text-sm text-gray-600 mb-4">
+            Enter the parent/admin passcode to manage tasks and approvals.
+          </p>
+          <div class="space-y-4">
+            <input
+              type="password"
+              id="admin-passcode"
+              class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Passcode"
+            />
+            <p id="admin-error" class="text-sm text-red-600 hidden">
+              Incorrect passcode. Try again.
+            </p>
+          </div>
+          <div class="mt-6 flex gap-2">
+            <button
+              id="admin-login"
+              class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+            >
+              Unlock Admin
+            </button>
+            <button
+              id="admin-cancel"
+              class="flex-1 bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
+    <script>
+      // Initial data (loaded from /data/default-tasks.json)
+      let scheduleItems = [];
+      let weeklyChores = [];
+      let monthlyChores = [];
+
+      let rewards = [
+        { id: 1, name: "30 minutes extra screen time", points: 20, icon: "📱" },
+        { id: 2, name: "Choose dinner one night", points: 50, icon: "🍕" },
+        { id: 3, name: "New craft supplies", points: 75, icon: "🧶" },
+        { id: 4, name: "Trip to favorite store", points: 100, icon: "🛍️" },
+      ];
+
+      let habitCategories = [
+        {
+          name: "Personal",
+          items: [
+            { id: "personal-brush-teeth-am", label: "Brush teeth (AM)" },
+            { id: "personal-brush-teeth-pm", label: "Brush teeth (PM)" },
+            { id: "personal-wash-face-am", label: "Wash face (AM)" },
+            { id: "personal-wash-face-pm", label: "Wash face (PM)" },
+            { id: "personal-shower", label: "Shower" },
+          ],
+        },
+        {
+          name: "Room",
+          items: [
+            {
+              id: "room-removed-dishes-trash",
+              label: "Removed dishes & trash",
+            },
+            { id: "room-put-laundry-away", label: "Put laundry away" },
+            {
+              id: "room-removed-dirty-laundry",
+              label: "Removed dirty laundry",
+            },
+            { id: "room-put-crafts-away", label: "Put crafts away" },
+            { id: "room-made-bed", label: "Made bed" },
+            { id: "room-washed-bedding", label: "Washed bedding" },
+            { id: "room-vacuumed", label: "Vacuumed" },
+          ],
+        },
+        {
+          name: "House",
+          items: [
+            { id: "house-dogs-water-am", label: "Gave dogs water (AM)" },
+            { id: "house-dogs-water-pm", label: "Gave dogs water (PM)" },
+            { id: "house-picked-up-kids", label: "Picked up the kids" },
+            { id: "house-folded-laundry", label: "Folded laundry" },
+            {
+              id: "house-watched-kids",
+              label: "Watched the kids",
+              requiresDuration: true,
+            },
+            { id: "house-swept-kitchen", label: "Swept the kitchen" },
+            { id: "house-swept-bonus-room", label: "Swept the bonus room" },
+            { id: "house-put-dishes-away", label: "Put dishes away" },
+            { id: "house-loaded-dishwasher", label: "Loaded dishwasher" },
+            { id: "house-washed-pots-pans", label: "Washed pots/pans" },
+            { id: "house-wiped-counters", label: "Wiped the counters" },
+            { id: "house-cleaned-table", label: "Cleaned up the table" },
+            {
+              id: "house-cleaned-bonus-room",
+              label: "Cleaned up the bonus room",
+            },
+            { id: "house-vacuumed-rug", label: "Vacuumed the rug" },
+            { id: "house-cleaned-back-door", label: "Cleaned the back door" },
+            { id: "house-cleaned-front-door", label: "Cleaned the front door" },
+            {
+              id: "house-downstairs-bathroom-mirror",
+              label: "Downstairs bathroom mirror",
+            },
+            {
+              id: "house-upstairs-bathroom-mirror",
+              label: "Upstairs bathroom mirror",
+            },
+            {
+              id: "house-wiped-bathroom-counter-upstairs",
+              label: "Wiped bathroom counter upstairs",
+            },
+            {
+              id: "house-wiped-bathroom-counter-downstairs",
+              label: "Wiped bathroom counter downstairs",
+            },
+            {
+              id: "house-cleaned-kitchen-windows",
+              label: "Cleaned kitchen windows",
+            },
+          ],
+        },
+        {
+          name: "Yard",
+          items: [
+            { id: "yard-picked-trash", label: "Picked up trash in yard" },
+            { id: "yard-picked-toys", label: "Picked up toys in yard" },
+            { id: "yard-dog-poop", label: "Dog poop" },
+            { id: "yard-weed-removal", label: "Weed removal" },
+          ],
+        },
+      ];
+
+      const habitsStorageKey = "habitTrackerData";
+
+      // Settings
+      let settings = {
+        pointsEnabled: true,
+        defaultPoints: {
+          dailyTask: 5,
+          weeklyChore: 10,
+          monthlyChore: 20,
+        },
+      };
+
+      let userPoints = 0;
+      let pendingPoints = 0;
+      let isAdmin = false;
+      let scheduleRefactorActive = false;
+      const adminPasscode = "1234";
+      const maxPoints = 200;
+      let dailyNotes = "";
+      let mealNotes = "";
+
+      // DOM Elements
+      const currentDateEl = document.getElementById("current-date");
+      const currentTimeEl = document.getElementById("current-time");
+      const progressBarEl = document.getElementById("progress-bar");
+      const progressTextEl = document.getElementById("progress-text");
+      const scheduleContainer = document.getElementById("schedule-container");
+      const anytimeSection = document.getElementById("anytime-section");
+      const anytimeContainer = document.getElementById("anytime-container");
+      const weeklyContainer = document.getElementById("weekly-container");
+      const monthlyContainer = document.getElementById("monthly-container");
+      const habitsContainer = document.getElementById("habits-container");
+      const rewardsContainer = document.getElementById("rewards-container");
+      const pointsDisplay = document.getElementById("points-display");
+      const pointsProgress = document.getElementById("points-progress");
+      const pendingPointsDisplay = document.getElementById(
+        "pending-points-display"
+      );
+      const pointsDisplayContainer = document.getElementById(
+        "points-display-container"
+      );
+      const editModal = document.getElementById("edit-modal");
+      const choreModal = document.getElementById("chore-modal");
+      const rewardModal = document.getElementById("reward-modal");
+      const pointsModal = document.getElementById("points-modal");
+      const mealModal = document.getElementById("meal-modal");
+      const celebrationModal = document.getElementById("celebration-modal");
+      const celebrationMessage = document.getElementById("celebration-message");
+      const dailyNotesEl = document.getElementById("daily-notes");
+      const proofModal = document.getElementById("proof-modal");
+      const proofModalTitle = document.getElementById("proof-modal-title");
+      const proofModalDescription = document.getElementById(
+        "proof-modal-description"
+      );
+      const proofFileInput = document.getElementById("proof-file");
+      const proofPreviewWrapper = document.getElementById(
+        "proof-preview-wrapper"
+      );
+      const proofPreview = document.getElementById("proof-preview");
+      const adminModal = document.getElementById("admin-modal");
+      const adminPasscodeInput = document.getElementById("admin-passcode");
+      const adminError = document.getElementById("admin-error");
+      const adminToggle = document.getElementById("admin-toggle");
+      const habitCategoryInput = document.getElementById(
+        "habit-category-input"
+      );
+      const habitItemInput = document.getElementById("habit-item-input");
+      const habitItemAdd = document.getElementById("habit-item-add");
+
+      // Tab functionality
+      const tabButtons = document.querySelectorAll(".tab-btn");
+      const tabContents = document.querySelectorAll(".tab-content");
+
+      tabButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const tabName = button.getAttribute("data-tab");
+
+          // Update button styles
+          tabButtons.forEach((btn) => {
+            if (btn === button) {
+              btn.classList.add(
+                "border-b-2",
+                "border-blue-500",
+                "text-blue-600"
+              );
+              btn.classList.remove("text-gray-500");
+            } else {
+              btn.classList.remove(
+                "border-b-2",
+                "border-blue-500",
+                "text-blue-600"
+              );
+              btn.classList.add("text-gray-500");
+            }
+          });
+
+          // Show/hide tab content
+          tabContents.forEach((content) => {
+            if (content.id === `${tabName}-tab`) {
+              content.classList.remove("hidden");
+            } else {
+              content.classList.add("hidden");
+            }
+          });
+        });
+      });
+
+      async function bootstrapApp() {
+        await loadDefaultTasks();
+        updateDateTime();
+        updatePointsDisplay();
+        await loadPointsFromServer();
+        await loadTodayTasks().finally(() => {
+          renderSchedule();
+          updateProgress();
+        });
+        await loadDailyNotes();
+        loadHabitsFromStorage();
+        await loadHabitsFromServer().finally(() => {
+          renderHabits();
+        });
+        renderWeeklyChores();
+        renderMonthlyChores();
+        renderRewards();
+        updateAdminVisibility();
+      }
+
+      // Helper functions
+      function getTodayString() {
+        const today = new Date();
+        return today.toISOString().split("T")[0];
+      }
+
+      function formatTime(timeString) {
+        if (!timeString) {
+          return "";
+        }
+        const [hours, minutes] = timeString.split(":");
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const formattedHour = hour % 12 || 12;
+        return `${formattedHour}:${minutes} ${ampm}`;
+      }
+
+      function formatTaskType(type) {
+        const labels = {
+          focus: "Focus Block",
+          break: "Break",
+          chore: "Mission",
+          personal: "Personal",
+        };
+        return labels[type] || type;
+      }
+
+      function getDayName(dateString) {
+        const date = dateString
+          ? new Date(`${dateString}T00:00:00`)
+          : new Date();
+        return date.toLocaleDateString("en-US", { weekday: "long" });
+      }
+
+      function getScheduleItemsForDate(dateString) {
+        const dayName = getDayName(dateString);
+        return scheduleItems.filter((item) => {
+          if (
+            Array.isArray(item.recurringDays) &&
+            item.recurringDays.length > 0
+          ) {
+            return item.recurringDays.includes(dayName);
+          }
+          return true;
+        });
+      }
+
+      function sortScheduleByTime(items) {
+        return [...items].sort((a, b) => {
+          const aTime = a.time || "";
+          const bTime = b.time || "";
+          if (!aTime && !bTime) {
+            return 0;
+          }
+          if (!aTime) {
+            return 1;
+          }
+          if (!bTime) {
+            return -1;
+          }
+          return aTime.localeCompare(bTime);
+        });
+      }
+
+      function reorderScheduleForNow(items) {
+        const now = new Date();
+        const currentTimeValue = `${now
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        const sortedSchedule = sortScheduleByTime(items);
+        const incomplete = sortedSchedule.filter((item) => !item.completed);
+        const completed = sortedSchedule.filter((item) => item.completed);
+        const timedIncomplete = incomplete.filter((item) => item.time);
+        const anytimeIncomplete = incomplete.filter((item) => !item.time);
+        const pivotIndex = timedIncomplete.findIndex(
+          (item) => item.time >= currentTimeValue
+        );
+        const reorderedTimed =
+          pivotIndex === -1
+            ? timedIncomplete
+            : [
+                ...timedIncomplete.slice(pivotIndex),
+                ...timedIncomplete.slice(0, pivotIndex),
+              ];
+        return [...reorderedTimed, ...anytimeIncomplete, ...completed];
+      }
+
+      function slugify(text) {
+        return text
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, "");
+      }
+
+      function loadHabitsFromStorage() {
+        const saved = localStorage.getItem(habitsStorageKey);
+        if (!saved) {
+          return;
+        }
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            habitCategories = parsed;
+          }
+        } catch (error) {
+          console.warn("Failed to parse habits storage", error);
+        }
+      }
+
+      function loadHabitsFromServer() {
+        return apiGetJson(
+          `/habits?householdId=${encodeURIComponent(
+            HOUSEHOLD_ID
+          )}&personId=${encodeURIComponent(PERSON_ID)}`
+        )
+          .then((data) => {
+            if (Array.isArray(data.habits)) {
+              habitCategories = data.habits;
+              saveHabitsToStorage();
+            }
+          })
+          .catch(() => {
+            // Ignore load errors to allow offline usage.
+          });
+      }
+
+      function saveHabitsToStorage() {
+        localStorage.setItem(habitsStorageKey, JSON.stringify(habitCategories));
+      }
+
+      function saveHabitsToServer() {
+        return apiPostJson("/habits", {
+          householdId: HOUSEHOLD_ID,
+          personId: PERSON_ID,
+          habits: habitCategories,
+        }).catch(() => {
+          // Ignore save errors to allow offline usage.
+        });
+      }
+
+      function renderHabits() {
+        habitsContainer.innerHTML = "";
+
+        habitCategories.forEach((category) => {
+          const section = document.createElement("div");
+          section.className = "bg-white rounded-lg shadow-sm p-4";
+
+          const itemsHtml = category.items
+            .map((item) => {
+              const durationValue = item.duration || "";
+              const durationField = item.requiresDuration
+                ? `<input type="text" data-id="${item.id}" class="habit-duration ml-2 w-28 border border-gray-300 rounded-md px-2 py-1 text-sm" placeholder="Duration" value="${durationValue}">`
+                : "";
+              return `
+                        <div class="flex items-center justify-between gap-2 py-1">
+                            <label class="flex items-center gap-2 text-sm text-gray-700">
+                                <input type="checkbox" data-id="${
+                                  item.id
+                                }" class="habit-toggle" ${
+                item.completed ? "checked" : ""
+              }>
+                                <span>${item.label}</span>
+                            </label>
+                            ${durationField}
+                        </div>
+                    `;
+            })
+            .join("");
+
+          section.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-lg font-semibold text-gray-800">${
+                          category.name
+                        }</h3>
+                    </div>
+                    <div class="space-y-1">
+                        ${
+                          itemsHtml ||
+                          '<p class="text-sm text-gray-500">No tasks yet.</p>'
+                        }
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <input type="text" class="habit-new flex-grow border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Add a new task...">
+                        <button class="habit-add bg-blue-100 text-blue-600 px-3 py-2 rounded-md hover:bg-blue-200 transition">Add</button>
+                    </div>
+                `;
+
+          habitsContainer.appendChild(section);
+
+          const addButton = section.querySelector(".habit-add");
+          const newInput = section.querySelector(".habit-new");
+          addButton.addEventListener("click", () => {
+            const value = newInput.value.trim();
+            if (!value) {
+              return;
+            }
+            const id = `${slugify(category.name)}-${slugify(value)}`;
+            category.items.push({ id, label: value, completed: false });
+            newInput.value = "";
+            saveHabitsToStorage();
+            saveHabitsToServer();
+            renderHabits();
+          });
+        });
+
+        habitsContainer.querySelectorAll(".habit-toggle").forEach((toggle) => {
+          toggle.addEventListener("change", () => {
+            const id = toggle.dataset.id;
+            habitCategories.forEach((category) => {
+              const item = category.items.find((entry) => entry.id === id);
+              if (item) {
+                item.completed = toggle.checked;
+              }
+            });
+            saveHabitsToStorage();
+            saveHabitsToServer();
+          });
+        });
+
+        habitsContainer.querySelectorAll(".habit-duration").forEach((input) => {
+          input.addEventListener("change", () => {
+            const id = input.dataset.id;
+            habitCategories.forEach((category) => {
+              const item = category.items.find((entry) => entry.id === id);
+              if (item) {
+                item.duration = input.value.trim();
+              }
+            });
+            saveHabitsToStorage();
+            saveHabitsToServer();
+          });
+        });
+      }
+
+      function addHabitFromInputs() {
+        if (!habitCategoryInput || !habitItemInput) {
+          return;
+        }
+        const categoryName = habitCategoryInput.value.trim();
+        const itemLabel = habitItemInput.value.trim();
+        if (!categoryName || !itemLabel) {
+          return;
+        }
+        let category = habitCategories.find(
+          (entry) => entry.name.toLowerCase() === categoryName.toLowerCase()
+        );
+        if (!category) {
+          category = { name: categoryName, items: [] };
+          habitCategories.push(category);
+        }
+        const id = `${slugify(category.name)}-${slugify(itemLabel)}`;
+        if (!category.items.find((item) => item.id === id)) {
+          category.items.push({ id, label: itemLabel, completed: false });
+        }
+        habitCategoryInput.value = "";
+        habitItemInput.value = "";
+        saveHabitsToStorage();
+        saveHabitsToServer();
+        renderHabits();
+      }
+
+      function updateDateTime() {
+        const now = new Date();
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        currentDateEl.textContent = now.toLocaleDateString("en-US", options);
+
+        const timeOptions = {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        };
+        currentTimeEl.textContent = now.toLocaleTimeString(
+          "en-US",
+          timeOptions
+        );
+
+        // Highlight current task
+        updateCurrentTask();
+      }
+
+      function updateCurrentTask() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTimeValue = `${currentHour
+          .toString()
+          .padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
+
+        // Sort schedule by time
+        const sortedSchedule = sortScheduleByTime(scheduleItems);
+
+        // Find the current task
+        let currentTask = null;
+
+        for (let i = 0; i < sortedSchedule.length; i++) {
+          const item = sortedSchedule[i];
+          const nextItem = sortedSchedule[i + 1];
+
+          if (
+            item.time <= currentTimeValue &&
+            (!nextItem || nextItem.time > currentTimeValue)
+          ) {
+            currentTask = item;
+            break;
+          }
+        }
+
+        // Update UI to highlight current task
+        document.querySelectorAll(".schedule-item").forEach((item) => {
+          item.classList.remove("current-task", "bg-blue-50");
+
+          if (currentTask && item.dataset.id == currentTask.id) {
+            item.classList.add("current-task", "bg-blue-50");
+          }
+        });
+      }
+
+      function updateProgress() {
+        const totalTasks = scheduleItems.length;
+        const completedTasks = scheduleItems.filter(
+          (item) => item.completed
+        ).length;
+
+        const progressPercentage =
+          totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+        progressBarEl.style.width = `${progressPercentage}%`;
+        progressTextEl.textContent = `${progressPercentage}%`;
+      }
+
+      function updatePointsDisplay() {
+        pointsDisplay.textContent = userPoints;
+        pendingPointsDisplay.textContent = pendingPoints;
+        const percentage = Math.min((userPoints / maxPoints) * 100, 100);
+        pointsProgress.style.width = `${percentage}%`;
+
+        // Show/hide points display based on settings
+        if (settings.pointsEnabled) {
+          pointsDisplayContainer.classList.remove("hidden");
+          document.getElementById("add-reward").classList.remove("hidden");
+        } else {
+          pointsDisplayContainer.classList.add("hidden");
+          document.getElementById("add-reward").classList.add("hidden");
+        }
+      }
+
+      function getTypeClass(type) {
+        switch (type) {
+          case "focus":
+            return "focus-block";
+          case "break":
+            return "break-block";
+          case "chore":
+            return "chore-block";
+          case "personal":
+            return "personal-block";
+          default:
+            return "";
+        }
+      }
+
+      function getTypeColor(type) {
+        switch (type) {
+          case "focus":
+            return "bg-blue-50";
+          case "break":
+            return "bg-green-50";
+          case "chore":
+            return "bg-amber-50";
+          case "personal":
+            return "bg-purple-50";
+          default:
+            return "bg-white";
+        }
+      }
+
+      function isBreakItem(item) {
+        return item && item.type === "break";
+      }
+
+      function isMealItem(item) {
+        if (!item) {
+          return false;
+        }
+        if (item.hasMealInput) {
+          return true;
+        }
+        const taskText = (item.task || "").toLowerCase();
+        return (
+          taskText.includes("breakfast") ||
+          taskText.includes("lunch") ||
+          taskText.includes("dinner") ||
+          taskText.includes("snack") ||
+          taskText.includes("meal")
+        );
+      }
+
+      function getEffectivePoints(item) {
+        const basePoints = Number(item?.points || 0);
+        return isBreakItem(item) || isMealItem(item) ? 0 : basePoints;
+      }
+
+      function getItemByType(type, id) {
+        if (type === "schedule") {
+          return scheduleItems.find((item) => item.id === id);
+        }
+        if (type === "weekly") {
+          return weeklyChores.find((item) => item.id === id);
+        }
+        if (type === "monthly") {
+          return monthlyChores.find((item) => item.id === id);
+        }
+        return null;
+      }
+
+      function getAllItems() {
+        return [...scheduleItems, ...weeklyChores, ...monthlyChores];
+      }
+
+      function areBasicsComplete() {
+        const basicItems = getAllItems().filter((item) => item.isBasic);
+        if (basicItems.length === 0) {
+          return true;
+        }
+        return basicItems.every(
+          (item) => item.completed && !item.pendingApproval
+        );
+      }
+
+      function releasePendingRewards() {
+        if (!areBasicsComplete()) {
+          return;
+        }
+
+        getAllItems().forEach((item) => {
+          if (item.pendingRelease && item.completed && !item.pendingApproval) {
+            const itemPoints = getEffectivePoints(item);
+            pendingPoints = Math.max(0, pendingPoints - itemPoints);
+            userPoints += itemPoints;
+            item.pendingRelease = false;
+          }
+        });
+        updatePointsDisplay();
+      }
+
+      function requestApproval(item) {
+        item.pendingApproval = true;
+        item.completed = false;
+        if (settings.pointsEnabled) {
+          pendingPoints += getEffectivePoints(item);
+          updatePointsDisplay();
+        }
+        if (scheduleItems.includes(item)) {
+          saveCompletedTasks();
+        }
+      }
+
+      function approveTask(item, label) {
+        item.pendingApproval = false;
+        item.completed = true;
+        if (settings.pointsEnabled) {
+          const itemPoints = getEffectivePoints(item);
+          if (itemPoints > 0) {
+            if (areBasicsComplete()) {
+              pendingPoints = Math.max(0, pendingPoints - itemPoints);
+              userPoints += itemPoints;
+              updatePointsDisplay();
+              showCelebration(`"${label}" approved! Stars added to balance.`);
+            } else {
+              item.pendingRelease = true;
+              showCelebration(
+                `"${label}" approved! Stars are pending until basics are done.`
+              );
+            }
+          } else {
+            showCelebration(`"${label}" approved!`);
+          }
+        } else {
+          showCelebration(`"${label}" approved!`);
+        }
+        releasePendingRewards();
+        if (scheduleItems.includes(item)) {
+          saveCompletedTasks();
+        }
+      }
+
+      function denyTask(item, label) {
+        item.pendingApproval = false;
+        item.completed = false;
+        item.proofImage = "";
+        item.pendingRelease = false;
+        if (settings.pointsEnabled) {
+          pendingPoints = Math.max(0, pendingPoints - getEffectivePoints(item));
+          updatePointsDisplay();
+        }
+        showCelebration(
+          `"${label}" needs another try. Please upload a new photo.`
+        );
+        if (scheduleItems.includes(item)) {
+          saveCompletedTasks();
+        }
+      }
+
+      function openProofModal({ type, item }) {
+        proofModal.dataset.type = type;
+        proofModal.dataset.itemId = item.id;
+        proofModalTitle.textContent = `Upload Proof for "${item.task}"`;
+        proofModalDescription.textContent = item.requiresHomeworkCheck
+          ? "Upload the Acellus progress screenshot. The app will auto-check for the daily star tracker."
+          : "Add a photo or screenshot to request approval.";
+        proofModalDescription.textContent =
+          "Add a photo or screenshot to request approval.";
+        proofFileInput.value = "";
+        proofPreviewWrapper.classList.add("hidden");
+        proofPreview.src = "";
+        document.getElementById("submit-proof").disabled = true;
+        proofModal.classList.remove("hidden");
+      }
+
+      function openCameraCapture({ type, item }) {
+        openProofModal({ type, item });
+        proofFileInput.click();
+      }
+
+      function normalizeText(text) {
+        return text.toLowerCase().replace(/\s+/g, " ").trim();
+      }
+
+      function matchesAcellusTracker(text) {
+        const normalized = normalizeText(text);
+        const hasAcellus = normalized.includes("acellus");
+        const hasStars = normalized.includes("star");
+        const subjects = [
+          "math",
+          "science",
+          "language arts",
+          "reading",
+          "social studies",
+        ];
+        const hasSubject = subjects.some((subject) =>
+          normalized.includes(subject)
+        );
+        return hasAcellus && (hasStars || hasSubject);
+      }
+
+      async function autoReviewHomework(item) {
+        if (!window.Tesseract || !item.proofImage) {
+          return { approved: false, reason: "OCR unavailable" };
+        }
+
+        const result = await window.Tesseract.recognize(item.proofImage, "eng");
+        const text = result?.data?.text || "";
+        return { approved: matchesAcellusTracker(text), reason: text };
+      }
+
+      function renderSchedule() {
+        scheduleContainer.innerHTML = "";
+        anytimeContainer.innerHTML = "";
+
+        let itemsForToday = getScheduleItemsForDate(getTodayString());
+        if (scheduleRefactorActive) {
+          itemsForToday = reorderScheduleForNow(itemsForToday);
+        } else {
+          itemsForToday = sortScheduleByTime(itemsForToday);
+        }
+
+        const renderScheduleItems = (
+          items,
+          targetContainer,
+          showAnytimeLabel
+        ) => {
+          items.forEach((item) => {
+            const itemEl = document.createElement("div");
+            itemEl.className = `schedule-item task-card flex items-center p-3 rounded-lg shadow-sm ${getTypeClass(
+              item.type
+            )} ${getTypeColor(item.type)} ${item.completed ? "completed" : ""}`;
+            itemEl.dataset.id = item.id;
+
+            let timeDisplay = item.time
+              ? formatTime(item.time)
+              : showAnytimeLabel
+              ? "Anytime"
+              : "";
+            if (item.endTime) {
+              timeDisplay += ` - ${formatTime(item.endTime)}`;
+            }
+
+            const isPending = item.pendingApproval;
+            const isPendingRelease = item.pendingRelease;
+            const isBasic = item.isBasic;
+            const autoStatus = item.autoReviewStatus;
+
+            const itemPoints = getEffectivePoints(item);
+            let pointsDisplay = "";
+            if (settings.pointsEnabled && itemPoints > 0) {
+              pointsDisplay =
+                '<span class="text-xs font-semibold text-blue-600 ml-2">⭐</span>';
+            }
+            const cameraButton = item.requiresPhoto
+              ? `<button class="open-camera ml-2 w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
+                  isPending ? "opacity-50 cursor-not-allowed" : ""
+                }" ${
+                  isPending ? 'aria-disabled="true"' : ""
+                } aria-label="Open camera">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h3l2-2h8l2 2h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1z" />
+                    <circle cx="12" cy="13" r="3" stroke-width="2"></circle>
+                  </svg>
+                </button>`
+              : "";
+
+            let statusLabel = "";
+            let approvalActions = "";
+            let proofPreviewHtml = "";
+
+            if (item.requiresPhoto) {
+              if (isPending) {
+                statusLabel =
+                  '<span class="ml-2 text-xs font-semibold text-amber-600">Pending approval</span>';
+                approvalActions = `
+                                <div class="flex items-center gap-2 ml-3">
+                                    <button class="admin-only approve-task text-xs bg-emerald-500 text-white px-2 py-1 rounded-md hover:bg-emerald-600">Approve</button>
+                                    <button class="admin-only deny-task text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-md hover:bg-rose-200">Deny</button>
+                                </div>
+                            `;
+              } else if (item.completed) {
+                statusLabel =
+                  '<span class="ml-2 text-xs font-semibold text-emerald-600">Approved</span>';
+              } else {
+                statusLabel =
+                  '<span class="ml-2 text-xs font-semibold text-gray-500">Photo required</span>';
+              }
+            }
+
+            if (autoStatus === "approved") {
+              statusLabel +=
+                '<span class="ml-2 text-xs font-semibold text-emerald-600">Auto-approved</span>';
+            } else if (autoStatus === "denied") {
+              statusLabel +=
+                '<span class="ml-2 text-xs font-semibold text-rose-600">Auto-denied</span>';
+            }
+
+            if (isPendingRelease) {
+              statusLabel +=
+                '<span class="ml-2 text-xs font-semibold text-amber-600">Pending basics</span>';
+            }
+
+            if (isBasic) {
+              statusLabel +=
+                '<span class="ml-2 text-blue-600" title="Required task" aria-label="Required task">🔹</span>';
+            }
+
+            if (item.proofImage) {
+              proofPreviewHtml = `<div class="mt-2"><img src="${item.proofImage}" alt="Proof preview" class="w-28 rounded-md border border-gray-200"></div>`;
+            }
+
+
+            itemEl.innerHTML = `
+                        <div class="flex-shrink-0 w-24 text-center">
+                            <span class="font-semibold text-gray-700">${timeDisplay}</span>
+                        </div>
+                        <div class="ml-4 flex-grow">
+                            <div class="flex items-center">
+                                <p class="text-gray-800">${item.task}</p>
+                                ${pointsDisplay}
+                                ${cameraButton}
+                                ${statusLabel}
+                            </div>
+                            <div class="task-details">
+                              ${
+                                item.hasMealInput && item.completed && mealNotes
+                                  ? `<p class="text-sm text-gray-600 mt-1">Ate: ${mealNotes}</p>`
+                                  : ""
+                              }
+                              ${proofPreviewHtml}
+                              ${proofPreviewHtml}
+                            </div>
+                        </div>
+                        <div class="flex-shrink-0 ml-2 flex items-center">
+                            <button class="complete-task w-6 h-6 rounded-full border-2 border-blue-500 flex items-center justify-center ${
+                              item.completed ? "bg-blue-500" : ""
+                            } ${
+              isPending ? "opacity-50 cursor-not-allowed" : ""
+            }" ${isPending ? 'aria-disabled="true"' : ""}>
+                                ${
+                                  item.completed
+                                    ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                                    : ""
+                                }
+                            </button>
+                            ${isAdmin ? approvalActions : ""}
+                        </div>
+                    `;
+
+            targetContainer.appendChild(itemEl);
+
+            itemEl.addEventListener("click", (event) => {
+              if (
+                event.target.closest("button") ||
+                event.target.closest("input") ||
+                event.target.closest("textarea")
+              ) {
+                return;
+              }
+              itemEl.classList.toggle("collapsed");
+            });
+
+            // Add event listener to complete button
+            const completeBtn = itemEl.querySelector(".complete-task");
+            const cameraBtn = itemEl.querySelector(".open-camera");
+            completeBtn.addEventListener("click", () => {
+              handleScheduleItemToggle(item);
+            });
+
+            if (cameraBtn) {
+              cameraBtn.addEventListener("click", (event) => {
+                event.stopPropagation();
+                if (item.pendingApproval) {
+                  showCelebration(`"${item.task}" is waiting for approval.`);
+                  return;
+                }
+                openCameraCapture({ type: "schedule", item });
+              });
+            }
+
+            if (item.pendingApproval && isAdmin) {
+              const approveBtn = itemEl.querySelector(".approve-task");
+              const denyBtn = itemEl.querySelector(".deny-task");
+              approveBtn.addEventListener("click", () => {
+                if (!isAdmin) {
+                  showCelebration("Admin sign-in required to approve tasks.");
+                  return;
+                }
+                approveTask(item, item.task);
+                renderSchedule();
+                updateProgress();
+              });
+              denyBtn.addEventListener("click", () => {
+                if (!isAdmin) {
+                  showCelebration("Admin sign-in required to deny tasks.");
+                  return;
+                }
+                denyTask(item, item.task);
+                renderSchedule();
+                updateProgress();
+              });
+            }
+          });
+        };
+
+        const timedItems = itemsForToday.filter((item) => item.time);
+        const anytimeItems = itemsForToday.filter((item) => !item.time);
+        renderScheduleItems(timedItems, scheduleContainer, false);
+        renderScheduleItems(anytimeItems, anytimeContainer, true);
+        anytimeSection.classList.toggle("hidden", anytimeItems.length === 0);
+        renderUnfinishedTasks(itemsForToday);
+
+        updateCurrentTask();
+
+        // Update daily notes textarea
+        dailyNotesEl.value = dailyNotes;
+        updateAdminVisibility();
+      }
+
+      function handleScheduleItemToggle(item) {
+        if (item.pendingApproval) {
+          showCelebration(`"${item.task}" is waiting for approval.`);
+          return;
+        }
+        const itemPoints = getEffectivePoints(item);
+        if (!item.completed) {
+          if (item.requiresPhoto) {
+            openProofModal({ type: "schedule", item });
+            return;
+          }
+          if (item.hasMealInput) {
+            document.getElementById("meal-notes").value = mealNotes;
+            mealModal.classList.remove("hidden");
+            mealModal.dataset.itemId = item.id;
+            return;
+          }
+          item.completed = true;
+          if (settings.pointsEnabled) {
+            if (itemPoints > 0) {
+              if (areBasicsComplete()) {
+                userPoints += itemPoints;
+                updatePointsDisplay();
+                showCelebration(
+                  `You completed "${item.task}"! +${itemPoints} stars`
+                );
+              } else {
+                item.pendingRelease = true;
+                pendingPoints += itemPoints;
+                updatePointsDisplay();
+                showCelebration(
+                  `You completed "${item.task}"! Stars are pending until basics are done.`
+                );
+              }
+            } else {
+              showCelebration(`You completed "${item.task}"!`);
+            }
+          } else {
+            showCelebration(`You completed "${item.task}"!`);
+          }
+          renderSchedule();
+          updateProgress();
+          releasePendingRewards();
+          saveCompletedTasks();
+          return;
+        }
+
+        item.completed = false;
+        if (settings.pointsEnabled) {
+          userPoints = Math.max(0, userPoints - itemPoints);
+          updatePointsDisplay();
+        }
+        if (item.pendingRelease) {
+          pendingPoints = Math.max(0, pendingPoints - itemPoints);
+          item.pendingRelease = false;
+          updatePointsDisplay();
+        }
+        item.proofImage = "";
+        renderSchedule();
+        updateProgress();
+        saveCompletedTasks();
+      }
+
+      function renderUnfinishedTasks(items) {
+        const unfinishedContainer =
+          document.getElementById("unfinished-container");
+        if (!unfinishedContainer) {
+          return;
+        }
+        unfinishedContainer.innerHTML = "";
+        const unfinished = items.filter(
+          (item) =>
+            !item.completed && (item.type === "chore" || item.type === "focus")
+        );
+        if (unfinished.length === 0) {
+          unfinishedContainer.innerHTML =
+            '<p class="text-sm text-gray-500">All tasks finished!</p>';
+          return;
+        }
+
+        const now = new Date();
+        const currentTimeValue = `${now
+          .getHours()
+          .toString()
+          .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        const overdue = [];
+        const upcoming = [];
+        unfinished.forEach((item) => {
+          if (item.time && item.time < currentTimeValue) {
+            overdue.push(item);
+          } else {
+            upcoming.push(item);
+          }
+        });
+
+        const bucketByTimeOfDay = (group) => {
+          const buckets = {
+            morning: [],
+            afternoon: [],
+            evening: [],
+            anytime: [],
+          };
+          group.forEach((item) => {
+            if (!item.time) {
+              buckets.anytime.push(item);
+              return;
+            }
+            const hour = parseInt(item.time.split(":")[0], 10);
+            if (hour < 12) {
+              buckets.morning.push(item);
+            } else if (hour < 17) {
+              buckets.afternoon.push(item);
+            } else {
+              buckets.evening.push(item);
+            }
+          });
+          return buckets;
+        };
+
+        const renderItems = (items) => {
+          items
+            .slice()
+            .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
+            .forEach((item) => {
+              const row = document.createElement("label");
+              row.className =
+                "flex items-start gap-2 rounded-md border border-gray-200 px-2 py-2";
+              row.innerHTML = `
+            <input type="checkbox" class="mt-1" ${
+              item.pendingApproval ? "disabled" : ""
+            }>
+            <span class="text-sm text-gray-700">
+              ${item.task}
+            </span>
+          `;
+              const checkbox = row.querySelector("input");
+              checkbox.addEventListener("change", () => {
+                handleScheduleItemToggle(item);
+              });
+              unfinishedContainer.appendChild(row);
+            });
+        };
+
+        const renderBlock = (label, items) => {
+          if (items.length === 0) {
+            return;
+          }
+          const heading = document.createElement("div");
+          heading.className =
+            "mt-2 text-xs uppercase tracking-wide text-gray-500";
+          heading.textContent = label;
+          unfinishedContainer.appendChild(heading);
+          renderItems(items);
+        };
+
+        const renderGroup = (label, group) => {
+          if (group.length === 0) {
+            return;
+          }
+          const heading = document.createElement("div");
+          heading.className = "text-xs uppercase tracking-wide text-gray-500";
+          heading.textContent = label;
+          unfinishedContainer.appendChild(heading);
+          const buckets = bucketByTimeOfDay(group);
+          renderBlock("Morning", buckets.morning);
+          renderBlock("Afternoon", buckets.afternoon);
+          renderBlock("Evening", buckets.evening);
+          renderBlock("Anytime", buckets.anytime);
+        };
+
+        renderGroup("Earlier", overdue);
+        if (overdue.length && upcoming.length) {
+          const divider = document.createElement("div");
+          divider.className = "border-t border-gray-200 my-2";
+          unfinishedContainer.appendChild(divider);
+        }
+        renderGroup("Coming up", upcoming);
+      }
+
+      function renderWeeklyChores() {
+        weeklyContainer.innerHTML = "";
+
+        // Group chores by day
+        const days = [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ];
+
+        days.forEach((day) => {
+          const dayChores = weeklyChores.filter((chore) => chore.day === day);
+
+          if (dayChores.length > 0) {
+            const dayEl = document.createElement("div");
+            dayEl.className = "bg-white rounded-lg shadow-sm overflow-hidden";
+
+            // Check if today is this day
+            const today = new Date();
+            const isToday =
+              today.toLocaleDateString("en-US", { weekday: "long" }) === day;
+
+            dayEl.innerHTML = `
+                        <div class="p-4 ${
+                          isToday ? "bg-blue-100" : "bg-gray-50"
+                        }">
+                            <h3 class="font-bold text-gray-800 ${
+                              isToday ? "text-blue-800" : ""
+                            }">${day} ${isToday ? "(Today)" : ""}</h3>
+                        </div>
+                        <div class="p-4 space-y-3 chores-list" data-day="${day}"></div>
+                    `;
+
+            weeklyContainer.appendChild(dayEl);
+
+            const choresList = dayEl.querySelector(".chores-list");
+
+            dayChores.forEach((chore) => {
+              const choreEl = document.createElement("div");
+              choreEl.className = `flex items-center p-2 rounded-md ${
+                chore.completed ? "bg-gray-100 completed" : "hover:bg-gray-50"
+              }`;
+
+              const isPending = chore.pendingApproval;
+              const isPendingRelease = chore.pendingRelease;
+              const isBasic = chore.isBasic;
+              const autoStatus = chore.autoReviewStatus;
+
+              let pointsDisplay = "";
+              if (settings.pointsEnabled) {
+                pointsDisplay = `<span class="text-green-600 font-semibold text-sm">+${chore.points} ⭐</span>`;
+              }
+              const cameraButton = chore.requiresPhoto
+                ? `<button class="open-camera ml-2 w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
+                    isPending ? "opacity-50 cursor-not-allowed" : ""
+                  }" ${
+                    isPending ? 'aria-disabled="true"' : ""
+                  } aria-label="Open camera">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h3l2-2h8l2 2h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1z" />
+                      <circle cx="12" cy="13" r="3" stroke-width="2"></circle>
+                    </svg>
+                  </button>`
+                : "";
+
+              let statusLabel = "";
+              let approvalActions = "";
+              let proofPreviewHtml = "";
+
+              if (chore.requiresPhoto) {
+                if (isPending) {
+                  statusLabel =
+                    '<span class="ml-2 text-xs font-semibold text-amber-600">Pending approval</span>';
+                  approvalActions = `
+                                    <div class="flex items-center gap-2 ml-3">
+                                        <button class="admin-only approve-task text-xs bg-emerald-500 text-white px-2 py-1 rounded-md hover:bg-emerald-600">Approve</button>
+                                        <button class="admin-only deny-task text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-md hover:bg-rose-200">Deny</button>
+                                    </div>
+                                `;
+                } else if (chore.completed) {
+                  statusLabel =
+                    '<span class="ml-2 text-xs font-semibold text-emerald-600">Approved</span>';
+                } else {
+                  statusLabel =
+                    '<span class="ml-2 text-xs font-semibold text-gray-500">Photo required</span>';
+                }
+              }
+
+              if (autoStatus === "approved") {
+                statusLabel +=
+                  '<span class="ml-2 text-xs font-semibold text-emerald-600">Auto-approved</span>';
+              } else if (autoStatus === "denied") {
+                statusLabel +=
+                  '<span class="ml-2 text-xs font-semibold text-rose-600">Auto-denied</span>';
+              }
+
+              if (isPendingRelease) {
+                statusLabel +=
+                  '<span class="ml-2 text-xs font-semibold text-amber-600">Pending basics</span>';
+              }
+
+              if (isBasic) {
+                statusLabel +=
+                  '<span class="ml-2 text-blue-600" title="Required task" aria-label="Required task">🔹</span>';
+              }
+
+              if (chore.proofImage) {
+                proofPreviewHtml = `<div class="ml-3"><img src="${chore.proofImage}" alt="Proof preview" class="w-16 rounded-md border border-gray-200"></div>`;
+              }
+
+              choreEl.innerHTML = `
+                            <button class="complete-chore w-6 h-6 rounded-full border-2 border-green-500 flex items-center justify-center ${
+                              chore.completed ? "bg-green-500" : ""
+                            } ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }" ${isPending ? 'aria-disabled="true"' : ""}>
+                                ${
+                                  chore.completed
+                                    ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                                    : ""
+                                }
+                            </button>
+                            <span class="ml-3 flex-grow">${
+                              chore.task
+                            } ${statusLabel}</span>
+                            ${pointsDisplay}
+                            ${cameraButton}
+                            ${proofPreviewHtml}
+                            ${isAdmin ? approvalActions : ""}
+                            <div class="flex items-center ml-2">
+                                ${
+                                  settings.pointsEnabled
+                                    ? `
+                                <button class="admin-only edit-chore-points mr-2 text-blue-500 hover:text-blue-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                `
+                                    : ""
+                                }
+                                <button class="admin-only delete-chore text-red-500 hover:text-red-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+
+              choresList.appendChild(choreEl);
+
+              // Add event listeners
+              const completeBtn = choreEl.querySelector(".complete-chore");
+              const cameraBtn = choreEl.querySelector(".open-camera");
+              completeBtn.addEventListener("click", () => {
+                if (chore.pendingApproval) {
+                  showCelebration(`"${chore.task}" is waiting for approval.`);
+                  return;
+                }
+                if (!chore.completed) {
+                  if (chore.requiresPhoto) {
+                    openProofModal({ type: "weekly", item: chore });
+                  } else {
+                    chore.completed = true;
+                    if (settings.pointsEnabled) {
+                      if (areBasicsComplete()) {
+                        userPoints += chore.points;
+                        updatePointsDisplay();
+                        showCelebration(
+                          `You completed "${chore.task}"! +${chore.points} stars`
+                        );
+                      } else {
+                        chore.pendingRelease = true;
+                        pendingPoints += chore.points;
+                        updatePointsDisplay();
+                        showCelebration(
+                          `You completed "${chore.task}"! Stars are pending until basics are done.`
+                        );
+                      }
+                    } else {
+                      showCelebration(`You completed "${chore.task}"!`);
+                    }
+                    renderWeeklyChores();
+                    releasePendingRewards();
+                  }
+                } else {
+                  chore.completed = false;
+                  if (settings.pointsEnabled) {
+                    userPoints = Math.max(0, userPoints - chore.points);
+                    updatePointsDisplay();
+                  }
+                  if (chore.pendingRelease) {
+                    pendingPoints = Math.max(0, pendingPoints - chore.points);
+                    chore.pendingRelease = false;
+                    updatePointsDisplay();
+                  }
+                  chore.proofImage = "";
+                  renderWeeklyChores();
+                }
+              });
+
+              if (cameraBtn) {
+                cameraBtn.addEventListener("click", (event) => {
+                  event.stopPropagation();
+                  if (chore.pendingApproval) {
+                    showCelebration(`"${chore.task}" is waiting for approval.`);
+                    return;
+                  }
+                  openCameraCapture({ type: "weekly", item: chore });
+                });
+              }
+
+              if (chore.pendingApproval && isAdmin) {
+                const approveBtn = choreEl.querySelector(".approve-task");
+                const denyBtn = choreEl.querySelector(".deny-task");
+                approveBtn.addEventListener("click", () => {
+                  if (!isAdmin) {
+                    showCelebration(
+                      "Admin sign-in required to approve chores."
+                    );
+                    return;
+                  }
+                  approveTask(chore, chore.task);
+                  renderWeeklyChores();
+                });
+                denyBtn.addEventListener("click", () => {
+                  if (!isAdmin) {
+                    showCelebration("Admin sign-in required to deny chores.");
+                    return;
+                  }
+                  denyTask(chore, chore.task);
+                  renderWeeklyChores();
+                });
+              }
+
+              if (settings.pointsEnabled && isAdmin) {
+                const editPointsBtn =
+                  choreEl.querySelector(".edit-chore-points");
+                editPointsBtn.addEventListener("click", () => {
+                  const newPoints = prompt(
+                    `Enter new star value for "${chore.task}":`,
+                    chore.points
+                  );
+                  if (
+                    newPoints !== null &&
+                    !isNaN(newPoints) &&
+                    newPoints >= 0
+                  ) {
+                    chore.points = parseInt(newPoints);
+                    renderWeeklyChores();
+                  }
+                });
+              }
+
+              if (isAdmin) {
+                const deleteBtn = choreEl.querySelector(".delete-chore");
+                deleteBtn.addEventListener("click", () => {
+                  weeklyChores = weeklyChores.filter((c) => c.id !== chore.id);
+                  renderWeeklyChores();
+                });
+              }
+            });
+          }
+        });
+        updateAdminVisibility();
+      }
+
+      function renderMonthlyChores() {
+        monthlyContainer.innerHTML = "";
+
+        // Group chores by week
+        const weeks = ["Week 1", "Week 2", "Week 3", "Week 4"];
+
+        weeks.forEach((week) => {
+          const weekChores = monthlyChores.filter(
+            (chore) => chore.week === week
+          );
+
+          if (weekChores.length > 0) {
+            const weekEl = document.createElement("div");
+            weekEl.className = "bg-white rounded-lg shadow-sm overflow-hidden";
+
+            // Determine if this is the current week of the month
+            const today = new Date();
+            const dayOfMonth = today.getDate();
+            let currentWeek = "";
+
+            if (dayOfMonth <= 7) currentWeek = "Week 1";
+            else if (dayOfMonth <= 14) currentWeek = "Week 2";
+            else if (dayOfMonth <= 21) currentWeek = "Week 3";
+            else currentWeek = "Week 4";
+
+            const isCurrentWeek = week === currentWeek;
+
+            weekEl.innerHTML = `
+                        <div class="p-4 ${
+                          isCurrentWeek ? "bg-purple-100" : "bg-gray-50"
+                        }">
+                            <h3 class="font-bold text-gray-800 ${
+                              isCurrentWeek ? "text-purple-800" : ""
+                            }">${week} ${isCurrentWeek ? "(Current)" : ""}</h3>
+                        </div>
+                        <div class="p-4 space-y-3 chores-list" data-week="${week}"></div>
+                    `;
+
+            monthlyContainer.appendChild(weekEl);
+
+            const choresList = weekEl.querySelector(".chores-list");
+
+            weekChores.forEach((chore) => {
+              const choreEl = document.createElement("div");
+              choreEl.className = `flex items-center p-2 rounded-md ${
+                chore.completed ? "bg-gray-100 completed" : "hover:bg-gray-50"
+              }`;
+
+              let pointsDisplay = "";
+              if (settings.pointsEnabled) {
+                pointsDisplay = `<span class="text-purple-600 font-semibold text-sm">+${chore.points} ⭐</span>`;
+              }
+
+              let statusLabel = "";
+              let approvalActions = "";
+              let proofPreviewHtml = "";
+              const isPending = chore.pendingApproval;
+              const isPendingRelease = chore.pendingRelease;
+              const isBasic = chore.isBasic;
+              const autoStatus = chore.autoReviewStatus;
+
+              if (chore.requiresPhoto) {
+                if (isPending) {
+                  statusLabel =
+                    '<span class="ml-2 text-xs font-semibold text-amber-600">Pending approval</span>';
+                  approvalActions = `
+                                    <div class="flex items-center gap-2 ml-3">
+                                        <button class="admin-only approve-task text-xs bg-emerald-500 text-white px-2 py-1 rounded-md hover:bg-emerald-600">Approve</button>
+                                        <button class="admin-only deny-task text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-md hover:bg-rose-200">Deny</button>
+                                    </div>
+                                `;
+                } else if (chore.completed) {
+                  statusLabel =
+                    '<span class="ml-2 text-xs font-semibold text-emerald-600">Approved</span>';
+                } else {
+                  statusLabel =
+                    '<span class="ml-2 text-xs font-semibold text-gray-500">Photo required</span>';
+                }
+              }
+
+              if (autoStatus === "approved") {
+                statusLabel +=
+                  '<span class="ml-2 text-xs font-semibold text-emerald-600">Auto-approved</span>';
+              } else if (autoStatus === "denied") {
+                statusLabel +=
+                  '<span class="ml-2 text-xs font-semibold text-rose-600">Auto-denied</span>';
+              }
+
+              if (isPendingRelease) {
+                statusLabel +=
+                  '<span class="ml-2 text-xs font-semibold text-amber-600">Pending basics</span>';
+              }
+
+              if (isBasic) {
+                statusLabel +=
+                  '<span class="ml-2 text-blue-600" title="Required task" aria-label="Required task">🔹</span>';
+              }
+
+              if (chore.proofImage) {
+                proofPreviewHtml = `<div class="ml-3"><img src="${chore.proofImage}" alt="Proof preview" class="w-16 rounded-md border border-gray-200"></div>`;
+              }
+
+              choreEl.innerHTML = `
+                            <button class="complete-chore w-6 h-6 rounded-full border-2 border-purple-500 flex items-center justify-center ${
+                              chore.completed ? "bg-purple-500" : ""
+                            } ${
+                isPending ? "opacity-50 cursor-not-allowed" : ""
+              }" ${isPending ? 'aria-disabled="true"' : ""}>
+                                ${
+                                  chore.completed
+                                    ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
+                                    : ""
+                                }
+                            </button>
+                            ${
+                              chore.requiresPhoto
+                                ? `<button class="open-camera ml-2 w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
+                                    isPending
+                                      ? "opacity-50 cursor-not-allowed"
+                                      : ""
+                                  }" ${
+                                    isPending ? 'aria-disabled="true"' : ""
+                                  } aria-label="Open camera">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h3l2-2h8l2 2h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1z" />
+                                      <circle cx="12" cy="13" r="3" stroke-width="2"></circle>
+                                    </svg>
+                                  </button>`
+                                : ""
+                            }
+                            <span class="ml-3 flex-grow">${
+                              chore.task
+                            } ${statusLabel}</span>
+                            ${pointsDisplay}
+                            ${proofPreviewHtml}
+                            ${isAdmin ? approvalActions : ""}
+                            <div class="flex items-center ml-2">
+                                ${
+                                  settings.pointsEnabled
+                                    ? `
+                                <button class="admin-only edit-chore-points mr-2 text-blue-500 hover:text-blue-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                `
+                                    : ""
+                                }
+                                <button class="admin-only delete-chore text-red-500 hover:text-red-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        `;
+
+              choresList.appendChild(choreEl);
+
+              // Add event listeners
+              const completeBtn = choreEl.querySelector(".complete-chore");
+              const cameraBtn = choreEl.querySelector(".open-camera");
+              completeBtn.addEventListener("click", () => {
+                if (chore.pendingApproval) {
+                  showCelebration(`"${chore.task}" is waiting for approval.`);
+                  return;
+                }
+                if (!chore.completed) {
+                  if (chore.requiresPhoto) {
+                    openProofModal({ type: "monthly", item: chore });
+                  } else {
+                    chore.completed = true;
+                    if (settings.pointsEnabled) {
+                      if (areBasicsComplete()) {
+                        userPoints += chore.points;
+                        updatePointsDisplay();
+                        showCelebration(
+                          `You completed "${chore.task}"! +${chore.points} stars`
+                        );
+                      } else {
+                        chore.pendingRelease = true;
+                        pendingPoints += chore.points;
+                        updatePointsDisplay();
+                        showCelebration(
+                          `You completed "${chore.task}"! Stars are pending until basics are done.`
+                        );
+                      }
+                    } else {
+                      showCelebration(`You completed "${chore.task}"!`);
+                    }
+                    renderMonthlyChores();
+                    releasePendingRewards();
+                  }
+                } else {
+                  chore.completed = false;
+                  if (settings.pointsEnabled) {
+                    userPoints = Math.max(0, userPoints - chore.points);
+                    updatePointsDisplay();
+                  }
+                  if (chore.pendingRelease) {
+                    pendingPoints = Math.max(0, pendingPoints - chore.points);
+                    chore.pendingRelease = false;
+                    updatePointsDisplay();
+                  }
+                  chore.proofImage = "";
+                  renderMonthlyChores();
+                }
+              });
+
+              if (cameraBtn) {
+                cameraBtn.addEventListener("click", (event) => {
+                  event.stopPropagation();
+                  if (chore.pendingApproval) {
+                    showCelebration(`"${chore.task}" is waiting for approval.`);
+                    return;
+                  }
+                  openCameraCapture({ type: "monthly", item: chore });
+                });
+              }
+
+              if (chore.pendingApproval && isAdmin) {
+                const approveBtn = choreEl.querySelector(".approve-task");
+                const denyBtn = choreEl.querySelector(".deny-task");
+                approveBtn.addEventListener("click", () => {
+                  if (!isAdmin) {
+                    showCelebration(
+                      "Admin sign-in required to approve chores."
+                    );
+                    return;
+                  }
+                  approveTask(chore, chore.task);
+                  renderMonthlyChores();
+                });
+                denyBtn.addEventListener("click", () => {
+                  if (!isAdmin) {
+                    showCelebration("Admin sign-in required to deny chores.");
+                    return;
+                  }
+                  denyTask(chore, chore.task);
+                  renderMonthlyChores();
+                });
+              }
+
+              if (settings.pointsEnabled && isAdmin) {
+                const editPointsBtn =
+                  choreEl.querySelector(".edit-chore-points");
+                editPointsBtn.addEventListener("click", () => {
+                  const newPoints = prompt(
+                    `Enter new star value for "${chore.task}":`,
+                    chore.points
+                  );
+                  if (
+                    newPoints !== null &&
+                    !isNaN(newPoints) &&
+                    newPoints >= 0
+                  ) {
+                    chore.points = parseInt(newPoints);
+                    renderMonthlyChores();
+                  }
+                });
+              }
+
+              if (isAdmin) {
+                const deleteBtn = choreEl.querySelector(".delete-chore");
+                deleteBtn.addEventListener("click", () => {
+                  monthlyChores = monthlyChores.filter(
+                    (c) => c.id !== chore.id
+                  );
+                  renderMonthlyChores();
+                });
+              }
+            });
+          }
+        });
+        updateAdminVisibility();
+      }
+
+      function renderRewards() {
+        rewardsContainer.innerHTML = "";
+
+        if (!settings.pointsEnabled) {
+          rewardsContainer.innerHTML = `
+                    <div class="col-span-1 md:col-span-2 p-6 bg-gray-50 rounded-lg text-center">
+                        <p class="text-gray-600">Allowance stars are currently disabled.</p>
+                        <p class="text-gray-600 mt-2">Enable stars in Allowance Settings to use rewards.</p>
+                    </div>
+                `;
+          return;
+        }
+
+        rewards.forEach((reward) => {
+          const rewardEl = document.createElement("div");
+          rewardEl.className = "task-card p-4 bg-white rounded-lg shadow-sm";
+
+          const canAfford = userPoints >= reward.points;
+
+          rewardEl.innerHTML = `
+                    <div class="flex items-center mb-3">
+                        <span class="text-3xl mr-3">${reward.icon}</span>
+                        <div>
+                            <h3 class="font-semibold text-gray-800">${
+                              reward.name
+                            }</h3>
+                            <p class="text-purple-600 text-sm font-bold">${
+                              reward.points
+                            } stars</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-between">
+                        <button class="redeem-reward px-3 py-2 rounded-md ${
+                          canAfford
+                            ? "bg-purple-600 text-white hover:bg-purple-700"
+                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        }" ${canAfford ? "" : "disabled"}>
+                            ${canAfford ? "Redeem Reward" : "Not Enough Stars"}
+                        </button>
+                        <button class="delete-reward text-red-500 hover:text-red-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+          rewardsContainer.appendChild(rewardEl);
+
+          // Add event listeners
+          const redeemBtn = rewardEl.querySelector(".redeem-reward");
+          if (canAfford) {
+            redeemBtn.addEventListener("click", () => {
+              userPoints -= reward.points;
+              updatePointsDisplay();
+              renderRewards();
+              showCelebration(
+                `You redeemed "${reward.name}"! Enjoy your reward!`
+              );
+            });
+          }
+
+          const deleteBtn = rewardEl.querySelector(".delete-reward");
+          deleteBtn.addEventListener("click", () => {
+            rewards = rewards.filter((r) => r.id !== reward.id);
+            renderRewards();
+          });
+        });
+      }
+
+      function renderEditSchedule() {
+        const editContainer = document.getElementById(
+          "edit-schedule-container"
+        );
+        editContainer.innerHTML = "";
+
+        // Sort schedule by time
+        const sortedSchedule = [...scheduleItems].sort((a, b) =>
+          a.time.localeCompare(b.time)
+        );
+
+        sortedSchedule.forEach((item) => {
+          const itemEl = document.createElement("div");
+          itemEl.className = "space-y-2";
+          itemEl.dataset.itemId = item.id;
+
+          const isAnytime = !item.time;
+          let endTimeInput = "";
+          if (item.endTime) {
+            endTimeInput = `
+                        <div class="flex items-center">
+                            <label class="w-24 text-sm text-gray-600">End Time:</label>
+                            <input type="time" value="${
+                              item.endTime
+                            }" class="end-time border border-gray-300 rounded-md px-2 py-1 flex-grow" ${
+              isAnytime ? "disabled" : ""
+            }>
+                        </div>
+                    `;
+          }
+          const anytimeCheckbox = `
+                    <div class="flex items-center mt-1">
+                        <input type="checkbox" class="anytime-input mr-2" ${
+                          isAnytime ? "checked" : ""
+                        }>
+                        <label class="text-sm text-gray-600">Anytime task (no start time)</label>
+                    </div>
+                `;
+
+          let mealCheckbox = "";
+          if (item.hasMealInput) {
+            mealCheckbox = `
+                        <div class="flex items-center mt-1">
+                            <input type="checkbox" class="meal-input mr-2" checked>
+                            <label class="text-sm text-gray-600">Has meal input</label>
+                        </div>
+                    `;
+          } else {
+            mealCheckbox = `
+                        <div class="flex items-center mt-1">
+                            <input type="checkbox" class="meal-input mr-2">
+                            <label class="text-sm text-gray-600">Has meal input</label>
+                        </div>
+                    `;
+          }
+
+          const photoCheckbox = `
+                    <div class="flex items-center mt-1">
+                        <input type="checkbox" class="photo-input mr-2" ${
+                          item.requiresPhoto ? "checked" : ""
+                        }>
+                        <label class="text-sm text-gray-600">Requires photo proof</label>
+                    </div>
+                `;
+
+          const basicCheckbox = `
+                    <div class="flex items-center mt-1">
+                        <input type="checkbox" class="basic-input mr-2" ${
+                          item.isBasic ? "checked" : ""
+                        }>
+                        <label class="text-sm text-gray-600">Basic requirement (unlocks paid tasks)</label>
+                    </div>
+                `;
+
+          const recurringDays = Array.isArray(item.recurringDays)
+            ? item.recurringDays
+            : [];
+          const recurringCheckboxes = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ]
+            .map(
+              (day) => `
+                        <label class="flex items-center gap-2 text-xs text-gray-600">
+                            <input type="checkbox" class="recurring-day" value="${day}" ${
+                recurringDays.includes(day) ? "checked" : ""
+              }>
+                            ${day.slice(0, 3)}
+                        </label>
+                    `
+            )
+            .join("");
+          const recurringInput = `
+                    <div class="flex flex-wrap items-center gap-2 mt-1">
+                        <span class="text-sm text-gray-600">Repeat on:</span>
+                        ${recurringCheckboxes}
+                        <span class="text-xs text-gray-400">(leave blank for daily)</span>
+                    </div>
+                `;
+
+          let pointsInput = "";
+          if (settings.pointsEnabled) {
+            pointsInput = `
+                        <div class="flex items-center">
+                            <label class="w-24 text-sm text-gray-600">Stars:</label>
+                            <input type="number" value="${item.points}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
+                        </div>
+                    `;
+          }
+
+          itemEl.innerHTML = `
+                    <div class="flex items-center">
+                        <label class="w-24 text-sm text-gray-600">Start Time:</label>
+                        <input type="time" value="${
+                          item.time || ""
+                        }" class="start-time border border-gray-300 rounded-md px-2 py-1 flex-grow" ${
+            isAnytime ? "disabled" : ""
+          }>
+                    </div>
+                    ${endTimeInput}
+                    ${anytimeCheckbox}
+                    <div class="flex items-center">
+                        <label class="w-24 text-sm text-gray-600">Task:</label>
+                        <input type="text" value="${
+                          item.task
+                        }" class="task-name border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 text-sm text-gray-600">Type:</label>
+                        <select class="task-type border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                            <option value="focus" ${
+                              item.type === "focus" ? "selected" : ""
+                            }>Focus Block</option>
+                            <option value="break" ${
+                              item.type === "break" ? "selected" : ""
+                            }>Break</option>
+                            <option value="chore" ${
+                              item.type === "chore" ? "selected" : ""
+                            }>Mission</option>
+                            <option value="personal" ${
+                              item.type === "personal" ? "selected" : ""
+                            }>Personal</option>
+                        </select>
+                    </div>
+                    ${pointsInput}
+                    ${mealCheckbox}
+                    ${photoCheckbox}
+                    ${basicCheckbox}
+                    ${recurringInput}
+                    <button class="delete-schedule-item text-red-500 hover:text-red-700 text-sm">
+                        Remove this item
+                    </button>
+                    <hr class="my-3">
+                `;
+
+          editContainer.appendChild(itemEl);
+          syncScheduleFromEditor();
+
+          // Add event listener to delete button
+          const deleteBtn = itemEl.querySelector(".delete-schedule-item");
+          const anytimeInput = itemEl.querySelector(".anytime-input");
+          const startTimeInput = itemEl.querySelector(".start-time");
+          const endTimeInputEl = itemEl.querySelector(".end-time");
+          deleteBtn.addEventListener("click", () => {
+            itemEl.remove();
+            syncScheduleFromEditor();
+          });
+          if (anytimeInput) {
+            anytimeInput.addEventListener("change", () => {
+              const isChecked = anytimeInput.checked;
+              if (startTimeInput) {
+                startTimeInput.disabled = isChecked;
+                if (isChecked) {
+                  startTimeInput.value = "";
+                }
+              }
+              if (endTimeInputEl) {
+                endTimeInputEl.disabled = isChecked;
+                if (isChecked) {
+                  endTimeInputEl.value = "";
+                }
+              }
+              syncScheduleFromEditor();
+            });
+          }
+        });
+
+        editContainer.oninput = () => {
+          syncScheduleFromEditor();
+        };
+        editContainer.onchange = () => {
+          syncScheduleFromEditor();
+        };
+      }
+
+      function syncScheduleFromEditor() {
+        const editContainer = document.getElementById(
+          "edit-schedule-container"
+        );
+        const items = editContainer.querySelectorAll("div.space-y-2");
+        const existingById = new Map(
+          scheduleItems.map((item) => [String(item.id), item])
+        );
+        let maxId = scheduleItems.reduce(
+          (max, item) => Math.max(max, item.id || 0),
+          0
+        );
+
+        const newSchedule = [];
+        items.forEach((itemEl) => {
+          const startTimeInput = itemEl.querySelector(".start-time");
+          const endTimeInput = itemEl.querySelector(".end-time");
+          const taskInput = itemEl.querySelector(".task-name");
+          const typeSelect = itemEl.querySelector(".task-type");
+          const mealInput = itemEl.querySelector(".meal-input");
+          const photoInput = itemEl.querySelector(".photo-input");
+          const basicInput = itemEl.querySelector(".basic-input");
+          const pointsInput = itemEl.querySelector(".points-value");
+          const recurringInputs = itemEl.querySelectorAll(".recurring-day");
+
+          if (taskInput && taskInput.value) {
+            let rawId = itemEl.dataset.itemId;
+            let id = rawId ? parseInt(rawId, 10) : NaN;
+            if (!id || Number.isNaN(id)) {
+              id = ++maxId;
+              itemEl.dataset.itemId = id;
+            }
+            const previous = existingById.get(String(id));
+
+            const newItem = {
+              id,
+              time:
+                startTimeInput && startTimeInput.value
+                  ? startTimeInput.value
+                  : "",
+              task: taskInput.value,
+              completed: previous ? previous.completed : false,
+              type: typeSelect ? typeSelect.value : "personal",
+              points:
+                settings.pointsEnabled && pointsInput
+                  ? parseInt(pointsInput.value)
+                  : settings.defaultPoints.dailyTask,
+              requiresPhoto: photoInput ? photoInput.checked : false,
+              isBasic: basicInput ? basicInput.checked : false,
+              recurringDays: Array.from(recurringInputs)
+                .filter((input) => input.checked)
+                .map((input) => input.value),
+            };
+
+            if (endTimeInput && endTimeInput.value) {
+              newItem.endTime = endTimeInput.value;
+            }
+
+            if (mealInput && mealInput.checked) {
+              newItem.hasMealInput = true;
+            }
+
+            if (previous) {
+              newItem.actualActivity = previous.actualActivity || "";
+              newItem.pendingApproval = !!previous.pendingApproval;
+              newItem.pendingRelease = !!previous.pendingRelease;
+              newItem.proofImage = previous.proofImage || "";
+              newItem.autoReviewStatus = previous.autoReviewStatus || "";
+            }
+
+            newSchedule.push(newItem);
+          }
+        });
+
+        scheduleItems = newSchedule;
+        renderSchedule();
+        updateProgress();
+        saveCompletedTasks();
+      }
+
+      function renderPointSettings() {
+        document.getElementById("points-toggle").checked =
+          settings.pointsEnabled;
+        document.getElementById("daily-task-points").value =
+          settings.defaultPoints.dailyTask;
+        document.getElementById("weekly-chore-points").value =
+          settings.defaultPoints.weeklyChore;
+        document.getElementById("monthly-chore-points").value =
+          settings.defaultPoints.monthlyChore;
+
+        // Show/hide point values container based on toggle
+        const pointValuesContainer = document.getElementById(
+          "point-values-container"
+        );
+        if (settings.pointsEnabled) {
+          pointValuesContainer.classList.remove("hidden");
+        } else {
+          pointValuesContainer.classList.add("hidden");
+        }
+
+        // Add event listener to toggle
+        document
+          .getElementById("points-toggle")
+          .addEventListener("change", function () {
+            if (this.checked) {
+              pointValuesContainer.classList.remove("hidden");
+            } else {
+              pointValuesContainer.classList.add("hidden");
+            }
+          });
+      }
+
+      function showCelebration(message) {
+        celebrationMessage.textContent = message;
+        celebrationModal.classList.remove("hidden");
+
+        // Create confetti effect
+        createConfetti();
+      }
+
+      function createConfetti() {
+        const confettiContainer = document.body;
+        const colors = [
+          "#ff0000",
+          "#00ff00",
+          "#0000ff",
+          "#ffff00",
+          "#ff00ff",
+          "#00ffff",
+        ];
+
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement("div");
+          confetti.className = "confetti";
+          confetti.style.left = `${Math.random() * 100}%`;
+          confetti.style.top = `${Math.random() * 100}%`;
+          confetti.style.backgroundColor =
+            colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.opacity = "1";
+          confettiContainer.appendChild(confetti);
+
+          // Animate confetti
+          const animationDuration = 1000 + Math.random() * 2000;
+          confetti.animate(
+            [
+              { transform: "translateY(0) rotate(0)", opacity: 1 },
+              {
+                transform: `translateY(${100 + Math.random() * 200}px) rotate(${
+                  360 * Math.random()
+                }deg)`,
+                opacity: 0,
+              },
+            ],
+            {
+              duration: animationDuration,
+              easing: "cubic-bezier(0.1, 0.8, 0.3, 1)",
+            }
+          );
+
+          // Remove confetti after animation
+          setTimeout(() => {
+            confetti.remove();
+          }, animationDuration);
+        }
+      }
+
+      // Event listeners
+      document
+        .getElementById("refactor-schedule")
+        .addEventListener("click", () => {
+          scheduleRefactorActive = true;
+          renderSchedule();
+          updateProgress();
+          showCelebration("Schedule refactored for the current time!");
+        });
+
+      document.getElementById("edit-schedule").addEventListener("click", () => {
+        if (!isAdmin) {
+          showCelebration("Admin sign-in required to edit the schedule.");
+          return;
+        }
+        renderEditSchedule();
+        editModal.classList.remove("hidden");
+      });
+
+      document.getElementById("close-modal").addEventListener("click", () => {
+        editModal.classList.add("hidden");
+      });
+
+      document
+        .getElementById("add-schedule-item")
+        .addEventListener("click", () => {
+          const editContainer = document.getElementById(
+            "edit-schedule-container"
+          );
+          const itemEl = document.createElement("div");
+          itemEl.className = "space-y-2";
+
+          let pointsInput = "";
+          if (settings.pointsEnabled) {
+            pointsInput = `
+                    <div class="flex items-center">
+                        <label class="w-24 text-sm text-gray-600">Stars:</label>
+                        <input type="number" value="${settings.defaultPoints.dailyTask}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
+                    </div>
+                `;
+          }
+
+          itemEl.innerHTML = `
+                <div class="flex items-center">
+                    <label class="w-24 text-sm text-gray-600">Start Time:</label>
+                    <input type="time" value="12:00" class="start-time border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                </div>
+                <div class="flex items-center">
+                    <label class="w-24 text-sm text-gray-600">End Time:</label>
+                    <input type="time" value="12:30" class="end-time border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                </div>
+                <div class="flex items-center mt-1">
+                    <input type="checkbox" class="anytime-input mr-2">
+                    <label class="text-sm text-gray-600">Anytime task (no start time)</label>
+                </div>
+                <div class="flex items-center">
+                    <label class="w-24 text-sm text-gray-600">Task:</label>
+                    <input type="text" value="New task" class="task-name border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                </div>
+                <div class="flex items-center">
+                    <label class="w-24 text-sm text-gray-600">Type:</label>
+                    <select class="task-type border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                        <option value="focus">Focus Block</option>
+                        <option value="break">Break</option>
+                        <option value="chore">Mission</option>
+                        <option value="personal" selected>Personal</option>
+                    </select>
+                </div>
+                ${pointsInput}
+                <div class="flex items-center mt-1">
+                    <input type="checkbox" class="meal-input mr-2">
+                    <label class="text-sm text-gray-600">Has meal input</label>
+                </div>
+                <div class="flex items-center mt-1">
+                    <input type="checkbox" class="photo-input mr-2">
+                    <label class="text-sm text-gray-600">Requires photo proof</label>
+                </div>
+                <div class="flex items-center mt-1">
+                    <input type="checkbox" class="basic-input mr-2">
+                    <label class="text-sm text-gray-600">Basic requirement (unlocks paid tasks)</label>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-1">
+                    <span class="text-sm text-gray-600">Repeat on:</span>
+                    ${[
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                      "Sunday",
+                    ]
+                      .map(
+                        (day) => `
+                        <label class="flex items-center gap-2 text-xs text-gray-600">
+                            <input type="checkbox" class="recurring-day" value="${day}">
+                            ${day.slice(0, 3)}
+                        </label>
+                    `
+                      )
+                      .join("")}
+                    <span class="text-xs text-gray-400">(leave blank for daily)</span>
+                </div>
+                <button class="delete-schedule-item text-red-500 hover:text-red-700 text-sm">
+                    Remove this item
+                </button>
+                <hr class="my-3">
+            `;
+
+          editContainer.appendChild(itemEl);
+
+          // Add event listener to delete button
+          const deleteBtn = itemEl.querySelector(".delete-schedule-item");
+          const anytimeInput = itemEl.querySelector(".anytime-input");
+          const startTimeInput = itemEl.querySelector(".start-time");
+          const endTimeInputEl = itemEl.querySelector(".end-time");
+          deleteBtn.addEventListener("click", () => {
+            itemEl.remove();
+          });
+          anytimeInput.addEventListener("change", () => {
+            const isChecked = anytimeInput.checked;
+            startTimeInput.disabled = isChecked;
+            endTimeInputEl.disabled = isChecked;
+            if (isChecked) {
+              startTimeInput.value = "";
+              endTimeInputEl.value = "";
+            }
+          });
+        });
+
+      document.getElementById("save-schedule").addEventListener("click", () => {
+        syncScheduleFromEditor();
+        editModal.classList.add("hidden");
+      });
+
+      document
+        .getElementById("add-weekly-chore")
+        .addEventListener("click", () => {
+          document.getElementById("chore-modal-title").textContent =
+            "Add Weekly Mission";
+          document.getElementById("chore-name").value = "";
+          document.getElementById("chore-points").value =
+            settings.defaultPoints.weeklyChore;
+          document.getElementById("chore-requires-photo").checked = false;
+          document.getElementById("chore-basic").checked = false;
+          document
+            .getElementById("chore-day-container")
+            .classList.remove("hidden");
+          document
+            .getElementById("chore-week-container")
+            .classList.add("hidden");
+          document.getElementById("save-chore").dataset.type = "weekly";
+
+          // Show/hide points input based on settings
+          if (settings.pointsEnabled) {
+            document
+              .getElementById("chore-points-container")
+              .classList.remove("hidden");
+          } else {
+            document
+              .getElementById("chore-points-container")
+              .classList.add("hidden");
+          }
+
+          choreModal.classList.remove("hidden");
+        });
+
+      document
+        .getElementById("add-monthly-chore")
+        .addEventListener("click", () => {
+          document.getElementById("chore-modal-title").textContent =
+            "Add Monthly Mission";
+          document.getElementById("chore-name").value = "";
+          document.getElementById("chore-points").value =
+            settings.defaultPoints.monthlyChore;
+          document.getElementById("chore-requires-photo").checked = false;
+          document.getElementById("chore-basic").checked = false;
+          document
+            .getElementById("chore-day-container")
+            .classList.add("hidden");
+          document
+            .getElementById("chore-week-container")
+            .classList.remove("hidden");
+          document.getElementById("save-chore").dataset.type = "monthly";
+
+          // Show/hide points input based on settings
+          if (settings.pointsEnabled) {
+            document
+              .getElementById("chore-points-container")
+              .classList.remove("hidden");
+          } else {
+            document
+              .getElementById("chore-points-container")
+              .classList.add("hidden");
+          }
+
+          choreModal.classList.remove("hidden");
+        });
+
+      document
+        .getElementById("close-chore-modal")
+        .addEventListener("click", () => {
+          choreModal.classList.add("hidden");
+        });
+
+      document.getElementById("save-chore").addEventListener("click", () => {
+        const name = document.getElementById("chore-name").value.trim();
+        const points = settings.pointsEnabled
+          ? parseInt(document.getElementById("chore-points").value)
+          : 0;
+        const requiresPhoto = document.getElementById(
+          "chore-requires-photo"
+        ).checked;
+        const isBasic = document.getElementById("chore-basic").checked;
+        const type = document.getElementById("save-chore").dataset.type;
+
+        if (name) {
+          if (type === "weekly") {
+            const day = document.getElementById("chore-day").value;
+            const newId =
+              weeklyChores.length > 0
+                ? Math.max(...weeklyChores.map((c) => c.id)) + 1
+                : 1;
+
+            weeklyChores.push({
+              id: newId,
+              day: day,
+              task: name,
+              points: points || settings.defaultPoints.weeklyChore,
+              completed: false,
+              requiresPhoto,
+              isBasic,
+            });
+
+            renderWeeklyChores();
+          } else if (type === "monthly") {
+            const week = document.getElementById("chore-week").value;
+            const newId =
+              monthlyChores.length > 0
+                ? Math.max(...monthlyChores.map((c) => c.id)) + 1
+                : 1;
+
+            monthlyChores.push({
+              id: newId,
+              week: week,
+              task: name,
+              points: points || settings.defaultPoints.monthlyChore,
+              completed: false,
+              requiresPhoto,
+              isBasic,
+            });
+
+            renderMonthlyChores();
+          }
+
+          choreModal.classList.add("hidden");
+        }
+      });
+
+      document.getElementById("add-reward").addEventListener("click", () => {
+        document.getElementById("reward-name").value = "";
+        document.getElementById("reward-points").value = "20";
+        document.getElementById("reward-icon").value = "🎁";
+        rewardModal.classList.remove("hidden");
+      });
+
+      document
+        .getElementById("close-reward-modal")
+        .addEventListener("click", () => {
+          rewardModal.classList.add("hidden");
+        });
+
+      document.getElementById("save-reward").addEventListener("click", () => {
+        const name = document.getElementById("reward-name").value.trim();
+        const points = parseInt(document.getElementById("reward-points").value);
+        const icon =
+          document.getElementById("reward-icon").value.trim() || "🎁";
+
+        if (name && points > 0) {
+          const newId =
+            rewards.length > 0 ? Math.max(...rewards.map((r) => r.id)) + 1 : 1;
+
+          rewards.push({
+            id: newId,
+            name: name,
+            points: points,
+            icon: icon,
+          });
+
+          renderRewards();
+          rewardModal.classList.add("hidden");
+        }
+      });
+
+      document
+        .getElementById("point-settings")
+        .addEventListener("click", () => {
+          renderPointSettings();
+          pointsModal.classList.remove("hidden");
+        });
+
+      document
+        .getElementById("close-points-modal")
+        .addEventListener("click", () => {
+          pointsModal.classList.add("hidden");
+        });
+
+      document
+        .getElementById("save-points-settings")
+        .addEventListener("click", () => {
+          settings.pointsEnabled =
+            document.getElementById("points-toggle").checked;
+
+          if (settings.pointsEnabled) {
+            settings.defaultPoints.dailyTask =
+              parseInt(document.getElementById("daily-task-points").value) || 5;
+            settings.defaultPoints.weeklyChore =
+              parseInt(document.getElementById("weekly-chore-points").value) ||
+              10;
+            settings.defaultPoints.monthlyChore =
+              parseInt(document.getElementById("monthly-chore-points").value) ||
+              20;
+          }
+
+          updatePointsDisplay();
+          renderSchedule();
+          renderWeeklyChores();
+          renderMonthlyChores();
+          renderRewards();
+
+          pointsModal.classList.add("hidden");
+
+          showCelebration("Allowance settings updated!");
+        });
+
+      document.getElementById("reset-points").addEventListener("click", () => {
+        if (confirm("Are you sure you want to reset all stars to zero?")) {
+          userPoints = 0;
+          updatePointsDisplay();
+          showCelebration("Stars have been reset to zero.");
+        }
+      });
+
+      document
+        .getElementById("close-meal-modal")
+        .addEventListener("click", () => {
+          mealModal.classList.add("hidden");
+        });
+
+      document.getElementById("save-meal").addEventListener("click", () => {
+        const mealNotesInput = document
+          .getElementById("meal-notes")
+          .value.trim();
+        mealNotes = mealNotesInput;
+
+        const itemId = parseInt(mealModal.dataset.itemId);
+        const item = scheduleItems.find((i) => i.id === itemId);
+
+        if (item) {
+          if (item.requiresPhoto) {
+            mealModal.classList.add("hidden");
+            openProofModal({ type: "schedule", item });
+            return;
+          }
+          item.completed = true;
+          if (settings.pointsEnabled) {
+            const itemPoints = getEffectivePoints(item);
+            if (itemPoints > 0) {
+              if (areBasicsComplete()) {
+                userPoints += itemPoints;
+                updatePointsDisplay();
+                showCelebration(
+                  `You completed "${item.task}"! +${itemPoints} stars`
+                );
+              } else {
+                item.pendingRelease = true;
+                pendingPoints += itemPoints;
+                updatePointsDisplay();
+                showCelebration(
+                  `You completed "${item.task}"! Stars are pending until basics are done.`
+                );
+              }
+            } else {
+              showCelebration(`You completed "${item.task}"!`);
+            }
+          } else {
+            showCelebration(`You completed "${item.task}"!`);
+          }
+          renderSchedule();
+          updateProgress();
+          releasePendingRewards();
+          saveCompletedTasks();
+        }
+
+        mealModal.classList.add("hidden");
+      });
+
+      document
+        .getElementById("close-proof-modal")
+        .addEventListener("click", () => {
+          proofModal.classList.add("hidden");
+        });
+
+      document.getElementById("cancel-proof").addEventListener("click", () => {
+        proofModal.classList.add("hidden");
+      });
+
+      proofFileInput.addEventListener("change", () => {
+        const file = proofFileInput.files[0];
+        if (!file) {
+          proofPreviewWrapper.classList.add("hidden");
+          proofPreview.src = "";
+          document.getElementById("submit-proof").disabled = true;
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+          proofPreview.src = reader.result;
+          proofPreviewWrapper.classList.remove("hidden");
+          document.getElementById("submit-proof").disabled = false;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document
+        .getElementById("submit-proof")
+        .addEventListener("click", async () => {
+          const type = proofModal.dataset.type;
+          const itemId = parseInt(proofModal.dataset.itemId);
+          const item = getItemByType(type, itemId);
+
+          if (!item || !proofPreview.src) {
+            return;
+          }
+
+          item.proofImage = proofPreview.src;
+
+          if (item.requiresHomeworkCheck) {
+            item.autoReviewStatus = "pending";
+            proofModal.classList.add("hidden");
+            showCelebration(`Reviewing "${item.task}" screenshot...`);
+
+            const review = await autoReviewHomework(item);
+            if (review.approved) {
+              item.autoReviewStatus = "approved";
+              approveTask(item, item.task);
+              showCelebration(
+                `"${item.task}" auto-approved from the Acellus tracker!`
+              );
+            } else {
+              item.autoReviewStatus = "denied";
+              denyTask(item, item.task);
+              showCelebration(
+                `"${item.task}" auto-denied. Please upload a clear Acellus tracker screenshot.`
+              );
+            }
+          } else {
+            requestApproval(item);
+            proofModal.classList.add("hidden");
+            showCelebration(
+              `Proof uploaded for "${item.task}"! Stars are pending approval.`
+            );
+          }
+
+          if (type === "schedule") {
+            renderSchedule();
+            updateProgress();
+          } else if (type === "weekly") {
+            renderWeeklyChores();
+          } else if (type === "monthly") {
+            renderMonthlyChores();
+          }
+        });
+
+      function updateAdminVisibility() {
+        document.querySelectorAll(".admin-only").forEach((element) => {
+          element.classList.toggle("hidden", !isAdmin);
+        });
+        adminToggle.textContent = isAdmin ? "Admin Sign Out" : "Admin Sign In";
+      }
+
+      adminToggle.addEventListener("click", () => {
+        if (isAdmin) {
+          isAdmin = false;
+          updateAdminVisibility();
+          renderSchedule();
+          renderWeeklyChores();
+          renderMonthlyChores();
+          showCelebration("Admin mode disabled.");
+          return;
+        }
+        adminPasscodeInput.value = "";
+        adminError.classList.add("hidden");
+        adminModal.classList.remove("hidden");
+      });
+
+      document
+        .getElementById("close-admin-modal")
+        .addEventListener("click", () => {
+          adminModal.classList.add("hidden");
+        });
+
+      document.getElementById("admin-cancel").addEventListener("click", () => {
+        adminModal.classList.add("hidden");
+      });
+      document.getElementById("admin-login").addEventListener("click", () => {
+        if (adminPasscodeInput.value === adminPasscode) {
+          isAdmin = true;
+          adminModal.classList.add("hidden");
+          updateAdminVisibility();
+          renderSchedule();
+          renderWeeklyChores();
+          renderMonthlyChores();
+          showCelebration("Admin mode enabled.");
+        } else {
+          adminError.classList.remove("hidden");
+        }
+      });
+
+      document
+        .getElementById("close-celebration")
+        .addEventListener("click", () => {
+          celebrationModal.classList.add("hidden");
+        });
+
+      document.getElementById("save-notes").addEventListener("click", () => {
+        dailyNotes = document.getElementById("daily-notes").value;
+        showCelebration("Notes saved successfully!");
+        saveDailyNotes();
+      });
+
+      if (habitItemAdd) {
+        habitItemAdd.addEventListener("click", () => {
+          addHabitFromInputs();
+        });
+      }
+
+      bootstrapApp().catch((error) => {
+        console.warn("Failed to initialize app", error);
+      });
+
+      // Update time every second
+      setInterval(updateDateTime, 1000);
+    </script>
+    <script src="/planner-schedule.js" defer></script>
+  </body>
+</html>

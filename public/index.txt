@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chore Planner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background: #f9f9f9;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .chore-list {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+    #resetBtn {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #historyLog {
+      margin-top: 2rem;
+      background: #fff;
+      padding: 1rem;
+      border: 1px solid #ccc;
+    }
+    #historyLog div {
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Daily Chore Planner</h1>
+
+  <section class="chore-list">
+    <label><input type="checkbox" /> Make the bed</label>
+    <label><input type="checkbox" /> Brush teeth</label>
+    <label><input type="checkbox" /> Feed the dog</label>
+    <label><input type="checkbox" /> Clean up toys</label>
+    <label><input type="checkbox" /> Help with dishes</label>
+  </section>
+
+  <button id="resetBtn">Reset Today's Chores</button>
+
+  <section id="history">
+    <h2>Chore History</h2>
+    <div id="historyLog"></div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

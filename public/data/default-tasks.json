@@ -1,0 +1,277 @@
+{
+  "scheduleItems": [
+    {
+      "id": 1,
+      "time": "08:00",
+      "task": "Wake up, make bed, Brush teeth",
+      "completed": false,
+      "type": "personal",
+      "points": 5,
+      "isBasic": true
+    },
+    {
+      "id": 2,
+      "time": "08:30",
+      "task": "Eat breakfast, Refill dog bowls (AM), Tidy room",
+      "completed": false,
+      "type": "chore",
+      "points": 0,
+      "isBasic": true
+    },
+    {
+      "id": 3,
+      "time": "09:00",
+      "task": "Focus Block 1: Schoolwork",
+      "completed": false,
+      "type": "focus",
+      "endTime": "11:00",
+      "points": 5,
+      "requiresPhoto": true,
+      "requiresHomeworkCheck": true
+    },
+    {
+      "id": 4,
+      "time": "11:00",
+      "task": "Movement break (walk/stretch)",
+      "completed": false,
+      "type": "break",
+      "endTime": "11:15",
+      "points": 0
+    },
+    {
+      "id": 5,
+      "time": "11:15",
+      "task": "Focus Block 2: Schoolwork",
+      "completed": false,
+      "type": "focus",
+      "endTime": "13:15",
+      "points": 5,
+      "requiresPhoto": true,
+      "requiresHomeworkCheck": true
+    },
+    {
+      "id": 6,
+      "time": "13:15",
+      "task": "Lunch break",
+      "completed": false,
+      "type": "break",
+      "endTime": "13:45",
+      "hasMealInput": true,
+      "points": 0
+    },
+    {
+      "id": 7,
+      "time": "13:45",
+      "task": "Dishes and kitchen cleanup",
+      "completed": false,
+      "type": "chore",
+      "endTime": "14:15",
+      "points": 5,
+      "isBasic": true
+    },
+    {
+      "id": 8,
+      "time": "14:15",
+      "task": "Focus Block 3: Schoolwork",
+      "completed": false,
+      "type": "focus",
+      "endTime": "16:15",
+      "points": 5,
+      "requiresPhoto": true,
+      "requiresHomeworkCheck": true
+    },
+    {
+      "id": 9,
+      "time": "16:15",
+      "task": "Free time / hobby",
+      "completed": false,
+      "type": "personal",
+      "endTime": "17:15",
+      "points": 5
+    },
+    {
+      "id": 10,
+      "time": "17:15",
+      "task": "Clean up bedroom, Help with laundry",
+      "completed": false,
+      "type": "chore",
+      "endTime": "18:15",
+      "points": 5,
+      "isBasic": true
+    },
+    {
+      "id": 11,
+      "time": "18:30",
+      "task": "Dinner, Refill dog bowls (PM)",
+      "completed": false,
+      "type": "personal",
+      "endTime": "19:30",
+      "points": 0
+    },
+    {
+      "id": 12,
+      "time": "19:30",
+      "task": "Shower, Clean room, Clean dog bowls (Saturday)",
+      "completed": false,
+      "type": "chore",
+      "endTime": "20:30",
+      "points": 5,
+      "isBasic": true
+    },
+    {
+      "id": 13,
+      "time": "20:30",
+      "task": "Snack & relax with Mom/Mimi",
+      "completed": false,
+      "type": "personal",
+      "endTime": "21:30",
+      "points": 0
+    },
+    {
+      "id": 14,
+      "time": "21:30",
+      "task": "Wash face, Brush teeth, Wipe bathroom counter, Take medicine",
+      "completed": false,
+      "type": "personal",
+      "endTime": "22:00",
+      "points": 5
+    },
+    {
+      "id": 15,
+      "time": "22:00",
+      "task": "Electronics off, wind down",
+      "completed": false,
+      "type": "personal",
+      "endTime": "22:30",
+      "points": 5
+    },
+    {
+      "id": 16,
+      "time": "22:30",
+      "task": "Bedtime",
+      "completed": false,
+      "type": "personal",
+      "points": 5,
+      "isBasic": true
+    },
+    {
+      "id": 17,
+      "time": "20:00",
+      "task": "Musical theater",
+      "completed": false,
+      "type": "personal",
+      "endTime": "21:00",
+      "points": 5,
+      "recurringDays": ["Tuesday"]
+    }
+  ],
+  "weeklyChores": [
+    {
+      "id": 1,
+      "day": "Monday",
+      "task": "Help with laundry",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 2,
+      "day": "Tuesday",
+      "task": "Vacuum bedroom",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 3,
+      "day": "Tuesday",
+      "task": "Vacuum hallway",
+      "points": 5,
+      "completed": false
+    },
+    {
+      "id": 4,
+      "day": "Wednesday",
+      "task": "Wipe bathroom sinks",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 5,
+      "day": "Wednesday",
+      "task": "Help with laundry",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 6,
+      "day": "Thursday",
+      "task": "Empty wastebaskets (room, bathrooms, Mimi's office)",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 7,
+      "day": "Friday",
+      "task": "Help with laundry",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 8,
+      "day": "Saturday",
+      "task": "Clean mirrors",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 9,
+      "day": "Saturday",
+      "task": "Clean dog water bowls",
+      "points": 5,
+      "completed": false
+    },
+    {
+      "id": 10,
+      "day": "Sunday",
+      "task": "Help with laundry",
+      "points": 10,
+      "completed": false
+    },
+    {
+      "id": 11,
+      "day": "Sunday",
+      "task": "Tidy hobby/play area",
+      "points": 10,
+      "completed": false
+    }
+  ],
+  "monthlyChores": [
+    {
+      "id": 1,
+      "week": "Week 1",
+      "task": "Closet clean",
+      "points": 20,
+      "completed": false
+    },
+    {
+      "id": 2,
+      "week": "Week 2",
+      "task": "Wipe baseboards + door frames",
+      "points": 20,
+      "completed": false
+    },
+    {
+      "id": 3,
+      "week": "Week 3",
+      "task": "Yarn and bead organization",
+      "points": 20,
+      "completed": false
+    },
+    {
+      "id": 4,
+      "week": "Week 4",
+      "task": "Declutter desk or drawers",
+      "points": 20,
+      "completed": false
+    }
+  ]
+}

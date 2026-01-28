@@ -1,0 +1,14 @@
+export function getEnv(env) {
+  return {
+    DB: env.DB,
+    DATABASE_URL: env.DATABASE_URL,
+    AUTH_SECRET: env.AUTH_SECRET,
+    AUTH_ISSUER: env.AUTH_ISSUER,
+    AUTH_AUDIENCE: env.AUTH_AUDIENCE,
+    GOOGLE_CLIENT_ID: env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: env.GOOGLE_CLIENT_SECRET,
+    GOOGLE_REDIRECT_URI: env.GOOGLE_REDIRECT_URI,
+    GOOGLE_WEBHOOK_SECRET: env.GOOGLE_WEBHOOK_SECRET,
+    fetch: env.fetch || fetch
+  };
+}
