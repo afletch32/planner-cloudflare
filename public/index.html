@@ -8,7 +8,174 @@
     <meta name="theme-color" content="#6b5bff" />
     <link rel="icon" href="/assets/icons/icon-32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/assets/icons/icon-180.png" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Luckiest+Guy&family=Rubik:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --credit-pink: #ff5ab7;
+        --credit-blue: #3bd1ff;
+        --credit-gold: #ffd54a;
+        --credit-purple: #7b5dff;
+        --credit-ink: #1e1b3a;
+      }
+      .credit-hub {
+        font-family: "Rubik", "Trebuchet MS", sans-serif;
+        background: radial-gradient(
+            circle at 15% 20%,
+            rgba(255, 90, 183, 0.2),
+            transparent 45%
+          ),
+          radial-gradient(
+            circle at 85% 15%,
+            rgba(59, 209, 255, 0.25),
+            transparent 40%
+          ),
+          linear-gradient(135deg, #fffbf0 0%, #f7f2ff 50%, #eef8ff 100%);
+        border-radius: 24px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(30, 27, 58, 0.12);
+      }
+      .credit-hub::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.6) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        opacity: 0.5;
+        pointer-events: none;
+      }
+      .credit-title {
+        font-family: "Luckiest Guy", "Trebuchet MS", cursive;
+        letter-spacing: 0.06em;
+        color: var(--credit-purple);
+      }
+      .credit-pill {
+        background: rgba(30, 27, 58, 0.08);
+        border: 1px solid rgba(30, 27, 58, 0.08);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--credit-ink);
+      }
+      .credit-card {
+        background: linear-gradient(135deg, #ffffff 0%, #fff6fd 100%);
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 12px 24px rgba(30, 27, 58, 0.1);
+        border: 1px solid rgba(123, 93, 255, 0.15);
+      }
+      .credit-card.alt {
+        background: linear-gradient(135deg, #ffffff 0%, #f1fbff 100%);
+        border-color: rgba(59, 209, 255, 0.25);
+      }
+      .credit-stat {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed rgba(30, 27, 58, 0.12);
+      }
+      .credit-stat:last-child {
+        border-bottom: none;
+      }
+      .credit-stat span:first-child {
+        color: rgba(30, 27, 58, 0.7);
+        font-size: 0.85rem;
+      }
+      .credit-stat span:last-child {
+        font-weight: 800;
+        font-size: 1.25rem;
+        color: var(--credit-ink);
+      }
+      .cta-stack {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+      }
+      .cta-button {
+        border-radius: 18px;
+        padding: 14px 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.85rem;
+        box-shadow: 0 10px 20px rgba(30, 27, 58, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .cta-button:hover {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 16px 24px rgba(30, 27, 58, 0.25);
+      }
+      .cta-primary {
+        background: linear-gradient(135deg, #ff6ad5, #ffb86c);
+        color: #1f0a2e;
+      }
+      .cta-secondary {
+        background: linear-gradient(135deg, #4ce7ff, #7b5dff);
+        color: white;
+      }
+      .cta-tertiary {
+        background: linear-gradient(135deg, #ffe45c, #ff8f55);
+        color: #2a1b1b;
+      }
+      .reward-shop-header {
+        font-family: "Luckiest Guy", "Trebuchet MS", cursive;
+        color: var(--credit-ink);
+      }
+      .crk-border {
+        border: 4px solid #5d3a1a;
+        border-radius: 24px;
+      }
+      @keyframes cookie-pop {
+        0% {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+        70% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      @keyframes sparkle-float {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 0.8;
+        }
+        50% {
+          transform: translateY(-20px) rotate(20deg);
+          opacity: 1;
+        }
+      }
+      .level-up-overlay {
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+      }
+      .level-up-card {
+        background: linear-gradient(180deg, #fff9ea 0%, #ffd700 100%);
+        border: 6px solid #8b4513;
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        animation: cookie-pop 0.5s
+          cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .sparkle {
+        position: absolute;
+        animation: sparkle-float 2s infinite ease-in-out;
+        pointer-events: none;
+      }
+    </style>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
@@ -29,6 +196,40 @@
       const API_BASE = FUNCTIONS_BASE_URL
         ? FUNCTIONS_BASE_URL.replace(/\/$/, "")
         : "/api";
+      const KINGDOM_API_URL =
+        "https://planner-cloudflare-api.afletcherr32.workers.dev";
+
+      const initialState = {
+        player: {
+          name: "New Cookie",
+          level: 1,
+          exp: 0,
+          crystals: 100,
+          jellies: 30,
+          class: "Charge",
+          avatar: "🍪",
+        },
+        inventory: [],
+        quests: [
+          {
+            id: 1,
+            title: "Clean the Jammery",
+            reward: 50,
+            energy: 5,
+            type: "daily",
+          },
+          {
+            id: 2,
+            title: "Organize Sugar Quarry",
+            reward: 100,
+            energy: 10,
+            type: "epic",
+          },
+        ],
+      };
+
+      let state = { ...initialState };
+      let selectedDough = { class: "Charge", avatar: "🍪" };
 
       async function apiFetch(path, options = {}) {
         const headers = {
@@ -61,6 +262,68 @@
           body: JSON.stringify(body),
         });
         return resp.json();
+      }
+
+      async function saveKingdom() {
+        try {
+          await fetch(KINGDOM_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(state),
+          });
+        } catch (error) {
+          console.error("Kingdom Sync Failed!", error);
+        }
+      }
+
+      function renderUI() {
+        const nameEl = document.getElementById("cookie-name");
+        if (nameEl) nameEl.textContent = state.player.name;
+        const levelEl = document.getElementById("cookie-level");
+        if (levelEl) levelEl.textContent = state.player.level;
+      }
+
+      function selectDough(className, avatar, event) {
+        selectedDough = { class: className, avatar: avatar };
+        document
+          .querySelectorAll(".dough-btn")
+          .forEach((btn) =>
+            btn.classList.remove("border-amber-600", "bg-amber-100")
+          );
+        if (event?.currentTarget) {
+          event.currentTarget.classList.add("border-amber-600", "bg-amber-100");
+        }
+      }
+
+      async function checkFirstTime() {
+        try {
+          const response = await fetch(KINGDOM_API_URL);
+          if (response.ok) {
+            const data = await response.json();
+            if (!data || !data.player || data.player.name === "New Cookie") {
+              document.getElementById("setup-screen")?.classList.remove("hidden");
+            } else {
+              state = data;
+              renderUI();
+            }
+          }
+        } catch (error) {
+          console.log("Starting fresh Kingdom.");
+        }
+      }
+
+      async function bakeCookie() {
+        const name = document.getElementById("name-input").value.trim();
+        if (!name) return alert("Your Cookie needs a name!");
+
+        state.player.name = name;
+        state.player.class = selectedDough.class;
+        state.player.avatar = selectedDough.avatar;
+
+        await saveKingdom();
+
+        document.getElementById("setup-screen")?.classList.add("hidden");
+        renderUI();
       }
 
       async function ensureHouseholdMeta() {
@@ -159,6 +422,119 @@
           });
       }
 
+      function moodStorageKey(dateString) {
+        return `mood:${HOUSEHOLD_ID}:${PERSON_ID}:${dateString}`;
+      }
+
+      function journalStorageKey(dateString) {
+        return `journal:${HOUSEHOLD_ID}:${PERSON_ID}:${dateString}`;
+      }
+
+      function updateMoodButtons() {
+        moodButtons.forEach((button) => {
+          const mood = button.getAttribute("data-mood");
+          if (mood === selectedMood) {
+            button.classList.add("bg-blue-600", "text-white");
+            button.classList.remove("bg-blue-50", "text-blue-700");
+          } else {
+            button.classList.remove("bg-blue-600", "text-white");
+            button.classList.add("bg-blue-50", "text-blue-700");
+          }
+        });
+      }
+
+      function loadMoodCheckin() {
+        const key = moodStorageKey(getTodayString());
+        const saved = localStorage.getItem(key);
+        if (!saved) {
+          moodStatusEl.textContent = "";
+          return;
+        }
+        try {
+          const parsed = JSON.parse(saved);
+          selectedMood = parsed.mood || null;
+          if (parsed.note && moodNoteEl) {
+            moodNoteEl.value = parsed.note;
+          }
+          if (parsed.savedAt && moodStatusEl) {
+            const savedAt = new Date(parsed.savedAt);
+            moodStatusEl.textContent = `Saved at ${savedAt.toLocaleTimeString()}`;
+          }
+          updateMoodButtons();
+        } catch (error) {
+          console.warn("Failed to parse mood check-in", error);
+        }
+      }
+
+      function saveMoodCheckin() {
+        if (!selectedMood) {
+          showCelebration("Pick a mood first.");
+          return;
+        }
+        const payload = {
+          mood: selectedMood,
+          note: moodNoteEl ? moodNoteEl.value : "",
+          savedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(
+          moodStorageKey(getTodayString()),
+          JSON.stringify(payload)
+        );
+        moodStatusEl.textContent = `Saved at ${new Date(
+          payload.savedAt
+        ).toLocaleTimeString()}`;
+        showCelebration("Mood saved!");
+        renderDailyBonusMissions();
+        renderWeeklyChores();
+        renderMonthlyChores();
+      }
+
+      function loadJournal() {
+        const key = journalStorageKey(getTodayString());
+        const saved = localStorage.getItem(key);
+        if (saved && journalEntryEl) {
+          journalEntryEl.value = saved;
+        }
+      }
+
+      function saveJournal() {
+        if (!journalEntryEl) return;
+        const key = journalStorageKey(getTodayString());
+        localStorage.setItem(key, journalEntryEl.value || "");
+        showCelebration("Journal saved!");
+        renderDailyBonusMissions();
+        renderWeeklyChores();
+        renderMonthlyChores();
+      }
+
+      function loadMissionsFromStorage() {
+        const saved = localStorage.getItem(missionsStorageKey);
+        if (!saved) return;
+        try {
+          const parsed = JSON.parse(saved);
+          weeklyChores = Array.isArray(parsed.weeklyMissions)
+            ? parsed.weeklyMissions
+            : weeklyChores;
+          monthlyChores = Array.isArray(parsed.monthlyMissions)
+            ? parsed.monthlyMissions
+            : monthlyChores;
+          dailyBonusMissions = Array.isArray(parsed.dailyBonusMissions)
+            ? parsed.dailyBonusMissions
+            : dailyBonusMissions;
+        } catch (error) {
+          console.warn("Failed to parse missions storage", error);
+        }
+      }
+
+      function saveMissionsToStorage() {
+        const payload = {
+          weeklyMissions: weeklyChores,
+          monthlyMissions: monthlyChores,
+          dailyBonusMissions: dailyBonusMissions,
+        };
+        localStorage.setItem(missionsStorageKey, JSON.stringify(payload));
+      }
+
       function loadTodayTasks() {
         return apiGetJson(
           `/completedTasks?householdId=${encodeURIComponent(
@@ -225,14 +601,56 @@
           scheduleItems = Array.isArray(data.scheduleItems)
             ? data.scheduleItems
             : [];
-          weeklyChores = Array.isArray(data.weeklyChores)
-            ? data.weeklyChores
-            : [];
-          monthlyChores = Array.isArray(data.monthlyChores)
-            ? data.monthlyChores
-            : [];
         } catch (error) {
           console.warn("Unable to load default tasks", error);
+        }
+      }
+
+      async function loadDefaultMissions() {
+        try {
+          const resp = await fetch("/data/default-missions.json", {
+            headers: { "cache-control": "no-cache" },
+          });
+          if (!resp.ok) {
+            throw new Error("Failed to load default missions");
+          }
+          const data = await resp.json();
+          const now = new Date();
+          const currentMonth = getMonthName(now);
+          const currentWeek = `Week ${getWeekOfMonth(now)}`;
+          const currentDay = now.toLocaleDateString("en-US", {
+            weekday: "long",
+          });
+
+          weeklyChores = Array.isArray(data.weeklyMissions)
+            ? data.weeklyMissions.map((mission) => ({
+                ...mission,
+                weekOfMonth:
+                  mission.weekOfMonth === "CURRENT_WEEK"
+                    ? currentWeek
+                    : mission.weekOfMonth,
+              }))
+            : [];
+          monthlyChores = Array.isArray(data.monthlyMissions)
+            ? data.monthlyMissions.map((mission) => ({
+                ...mission,
+                month:
+                  mission.month === "CURRENT_MONTH"
+                    ? currentMonth
+                    : mission.month,
+              }))
+            : [];
+          dailyBonusMissions = Array.isArray(data.dailyBonusMissions)
+            ? data.dailyBonusMissions.map((mission) => ({
+                ...mission,
+                dayOfWeek:
+                  mission.dayOfWeek === "CURRENT_DAY"
+                    ? currentDay
+                    : mission.dayOfWeek,
+              }))
+            : [];
+        } catch (error) {
+          console.warn("Unable to load default missions", error);
         }
       }
 
@@ -434,15 +852,15 @@
           </button>
           <button
             class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
-            data-tab="weekly"
+            data-tab="missions"
           >
-            Weekly Missions
+            Missions
           </button>
           <button
             class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
-            data-tab="monthly"
+            data-tab="journal"
           >
-            Monthly Missions
+            Journal
           </button>
           <button
             class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
@@ -535,35 +953,106 @@
         </div>
       </div>
 
-      <!-- Weekly Missions Tab Content -->
-      <div id="weekly-tab" class="tab-content hidden">
-        <div class="flex justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-800">Weekly Missions</h2>
-          <button
-            id="add-weekly-chore"
-            class="admin-only bg-green-100 text-green-600 px-3 py-1 rounded-md hover:bg-green-200 transition"
-          >
-            Add Mission
-          </button>
-        </div>
-        <div class="grid grid-cols-1 gap-4" id="weekly-container">
-          <!-- Days of the week will be populated here -->
+      <!-- Missions Tab Content -->
+      <div id="missions-tab" class="tab-content hidden">
+        <div class="space-y-8">
+          <section>
+            <div class="flex justify-between mb-4">
+              <h2 class="text-xl font-bold text-gray-800">Weekly Missions</h2>
+              <button
+                id="add-weekly-chore"
+                class="admin-only bg-green-100 text-green-600 px-3 py-1 rounded-md hover:bg-green-200 transition"
+              >
+                Add Mission
+              </button>
+            </div>
+            <div class="grid grid-cols-1 gap-4" id="weekly-container">
+              <!-- Weeks will be populated here -->
+            </div>
+          </section>
+
+          <section>
+            <div class="flex justify-between mb-4">
+              <h2 class="text-xl font-bold text-gray-800">
+                Daily Bonus Missions
+              </h2>
+              <button
+                id="add-daily-bonus"
+                class="admin-only bg-amber-100 text-amber-700 px-3 py-1 rounded-md hover:bg-amber-200 transition"
+              >
+                Add Bonus Mission
+              </button>
+            </div>
+            <div class="grid grid-cols-1 gap-4" id="daily-bonus-container">
+              <!-- Days of the week will be populated here -->
+            </div>
+          </section>
+
+          <section>
+            <div class="flex justify-between mb-4">
+              <h2 class="text-xl font-bold text-gray-800">Monthly Missions</h2>
+              <button
+                id="add-monthly-chore"
+                class="admin-only bg-purple-100 text-purple-600 px-3 py-1 rounded-md hover:bg-purple-200 transition"
+              >
+                Add Mission
+              </button>
+            </div>
+            <div class="grid grid-cols-1 gap-4" id="monthly-container">
+              <!-- Weeks will be populated here -->
+            </div>
+          </section>
         </div>
       </div>
 
-      <!-- Monthly Missions Tab Content -->
-      <div id="monthly-tab" class="tab-content hidden">
-        <div class="flex justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-800">Monthly Missions</h2>
-          <button
-            id="add-monthly-chore"
-            class="admin-only bg-purple-100 text-purple-600 px-3 py-1 rounded-md hover:bg-purple-200 transition"
-          >
-            Add Mission
-          </button>
-        </div>
-        <div class="grid grid-cols-1 gap-4" id="monthly-container">
-          <!-- Weeks will be populated here -->
+      <!-- Journal Tab Content -->
+      <div id="journal-tab" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Mood Check-in
+            </h3>
+            <div class="flex flex-wrap gap-2" id="mood-buttons">
+              <button class="mood-btn bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200" data-mood="great">Great</button>
+              <button class="mood-btn bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200" data-mood="good">Good</button>
+              <button class="mood-btn bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200" data-mood="ok">Okay</button>
+              <button class="mood-btn bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200" data-mood="meh">Meh</button>
+              <button class="mood-btn bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200" data-mood="hard">Hard</button>
+            </div>
+            <textarea
+              id="mood-note"
+              class="w-full h-20 mt-3 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Optional note..."
+            ></textarea>
+            <div class="mt-2 flex items-center justify-between">
+              <p id="mood-status" class="text-sm text-gray-500"></p>
+              <button
+                id="save-mood"
+                class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition"
+              >
+                Save Mood
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">
+              Daily Journal
+            </h3>
+            <textarea
+              id="journal-entry"
+              class="w-full h-48 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Write about your day..."
+            ></textarea>
+            <div class="mt-2 text-right">
+              <button
+                id="save-journal"
+                class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition"
+              >
+                Save Journal
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -610,40 +1099,119 @@
           </button>
         </div>
 
-        <div
-          id="points-display-container"
-          class="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-lg shadow-md mb-6"
-        >
-          <h2 class="text-xl font-bold text-purple-800 mb-2">
-            Allowance Stars: <span id="points-display">0</span>
-          </h2>
-          <div class="w-full bg-white rounded-full h-4 mb-2">
+        <section class="credit-hub mb-6">
+          <div class="relative z-10">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div>
+                <p class="credit-title text-sm uppercase">Credits HQ</p>
+                <h3 class="text-2xl md:text-3xl font-extrabold text-[#1e1b3a]">
+                  Power up your rewards
+                </h3>
+                <p class="text-sm text-[#433d6e] mt-2">
+                  Stack streaks, boost missions, and cash in your victories.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span class="credit-pill">Daily Bonus Ready</span>
+                <span class="credit-pill">Streak: 4 Days</span>
+                <span class="credit-pill">Next Drop: 6 PM</span>
+              </div>
+            </div>
+
             <div
-              class="bg-purple-600 h-4 rounded-full transition-all duration-500"
-              id="points-progress"
-              style="width: 0%"
-            ></div>
-          </div>
-          <div
-            class="flex flex-wrap items-center justify-between gap-2 text-sm text-purple-700"
-          >
-            <span>Collect stars to trade for rewards!</span>
-            <span class="font-semibold text-amber-700"
-              >Pending approval:
-              <span id="pending-points-display">0</span> ⭐</span
+              id="points-display-container"
+              class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6"
             >
+              <div id="points-card" class="credit-card">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-lg font-extrabold text-[#1e1b3a]">
+                    Stars Balance
+                  </h4>
+                  <span class="credit-pill">Points</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="credit-stat">
+                    <span>Total earnings</span>
+                    <span><span id="points-total-earnings">0</span> ⭐</span>
+                  </div>
+                  <div class="credit-stat">
+                    <span>Pending earnings</span>
+                    <span><span id="pending-points-display">0</span> ⭐</span>
+                  </div>
+                  <div class="credit-stat">
+                    <span>Current balance</span>
+                    <span><span id="points-display">0</span> ⭐</span>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <div class="w-full bg-white rounded-full h-4 mb-2">
+                    <div
+                      class="bg-purple-600 h-4 rounded-full transition-all duration-500"
+                      id="points-progress"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <p class="text-xs text-purple-700">
+                    Collect stars to unlock colorful rewards.
+                  </p>
+                </div>
+              </div>
+              <div class="credit-card alt">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-lg font-extrabold text-[#1e1b3a]">
+                    Cash Balance
+                  </h4>
+                  <span class="credit-pill">Money</span>
+                </div>
+                <div class="space-y-1">
+                  <div class="credit-stat">
+                    <span>Total earnings</span>
+                    <span>$<span id="money-total-earnings">0.00</span></span>
+                  </div>
+                  <div class="credit-stat">
+                    <span>Pending earnings</span>
+                    <span>$<span id="money-pending-earnings">0.00</span></span>
+                  </div>
+                  <div class="credit-stat">
+                    <span>Current balance</span>
+                    <span>$<span id="money-current-balance">0.00</span></span>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <div class="w-full bg-white rounded-full h-4 mb-2">
+                    <div
+                      class="bg-[#3bd1ff] h-4 rounded-full transition-all duration-500"
+                      style="width: 45%"
+                    ></div>
+                  </div>
+                  <p class="text-xs text-[#2d6f85]">
+                    Money rewards release after approval.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="cta-stack mb-6">
+              <button class="cta-button cta-primary">
+                Restore your streak!
+              </button>
+              <button class="cta-button cta-secondary">
+                Double mission rewards
+              </button>
+              <button class="cta-button cta-tertiary">
+                Unlock bonus pack
+              </button>
+            </div>
           </div>
-          <p class="text-xs text-purple-600 mt-2">
-            Homework rewards stay pending until a parent approves the photo
-            proof.
-          </p>
-        </div>
+        </section>
 
         <div class="flex justify-between mb-4">
-          <h3 class="text-lg font-bold text-gray-800">Reward Shop</h3>
+          <h3 class="text-lg font-bold text-gray-800 reward-shop-header">
+            Reward Shop
+          </h3>
           <button
             id="add-reward"
-            class="bg-purple-100 text-purple-600 px-3 py-1 rounded-md hover:bg-purple-200 transition"
+            class="bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white px-4 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
           >
             Add Reward
           </button>
@@ -748,23 +1316,46 @@
                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div>
-              <label class="flex items-center text-gray-700 mb-1">
-                <input type="checkbox" id="chore-requires-photo" class="mr-2" />
-                Requires photo proof
-              </label>
-              <p class="text-xs text-gray-500">
-                Upload a photo or screenshot for approval.
-              </p>
-            </div>
-            <div>
-              <label class="flex items-center text-gray-700 mb-1">
-                <input type="checkbox" id="chore-basic" class="mr-2" />
-                Basic requirement (unlocks paid tasks)
-              </label>
-              <p class="text-xs text-gray-500">
-                Complete this before stars can be released.
-              </p>
+            <div id="mission-requirements" class="space-y-3">
+              <div>
+                <label class="block text-gray-700 mb-1">Requirement 1</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <select
+                    id="mission-req-1-type"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="mood">Mood check-ins</option>
+                    <option value="journal">Journal entries</option>
+                  </select>
+                  <input
+                    type="number"
+                    id="mission-req-1-target"
+                    min="1"
+                    value="5"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label class="block text-gray-700 mb-1">Requirement 2 (optional)</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <select
+                    id="mission-req-2-type"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">None</option>
+                    <option value="mood">Mood check-ins</option>
+                    <option value="journal">Journal entries</option>
+                  </select>
+                  <input
+                    type="number"
+                    id="mission-req-2-target"
+                    min="1"
+                    value="5"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
             </div>
             <div id="chore-day-container" class="hidden">
               <label class="block text-gray-700 mb-1">Day</label>
@@ -791,6 +1382,27 @@
                 <option value="Week 2">Week 2</option>
                 <option value="Week 3">Week 3</option>
                 <option value="Week 4">Week 4</option>
+                <option value="Week 5">Week 5</option>
+              </select>
+            </div>
+            <div id="chore-month-container" class="hidden">
+              <label class="block text-gray-700 mb-1">Month</label>
+              <select
+                id="chore-month"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
               </select>
             </div>
           </div>
@@ -1193,6 +1805,7 @@
       let scheduleItems = [];
       let weeklyChores = [];
       let monthlyChores = [];
+      let dailyBonusMissions = [];
 
       let rewards = [
         { id: 1, name: "30 minutes extra screen time", points: 20, icon: "📱" },
@@ -1290,6 +1903,7 @@
       ];
 
       const habitsStorageKey = "habitTrackerData";
+      const missionsStorageKey = `missions:${HOUSEHOLD_ID}:${PERSON_ID}`;
 
       // Settings
       let settings = {
@@ -1309,6 +1923,7 @@
       const maxPoints = 200;
       let dailyNotes = "";
       let mealNotes = "";
+      let selectedMood = null;
 
       // DOM Elements
       const currentDateEl = document.getElementById("current-date");
@@ -1320,12 +1935,24 @@
       const anytimeContainer = document.getElementById("anytime-container");
       const weeklyContainer = document.getElementById("weekly-container");
       const monthlyContainer = document.getElementById("monthly-container");
+      const dailyBonusContainer = document.getElementById("daily-bonus-container");
       const habitsContainer = document.getElementById("habits-container");
       const rewardsContainer = document.getElementById("rewards-container");
       const pointsDisplay = document.getElementById("points-display");
+      const pointsTotalDisplay = document.getElementById(
+        "points-total-earnings"
+      );
       const pointsProgress = document.getElementById("points-progress");
       const pendingPointsDisplay = document.getElementById(
         "pending-points-display"
+      );
+      const pointsCard = document.getElementById("points-card");
+      const moneyTotalEarnings = document.getElementById("money-total-earnings");
+      const moneyPendingEarnings = document.getElementById(
+        "money-pending-earnings"
+      );
+      const moneyCurrentBalance = document.getElementById(
+        "money-current-balance"
       );
       const pointsDisplayContainer = document.getElementById(
         "points-display-container"
@@ -1335,9 +1962,36 @@
       const rewardModal = document.getElementById("reward-modal");
       const pointsModal = document.getElementById("points-modal");
       const mealModal = document.getElementById("meal-modal");
+
+      function handleMissionDelete(event) {
+        const button = event.target.closest(".delete-mission");
+        if (!button || !isAdmin) return;
+        const scope = button.dataset.scope;
+        const id = parseInt(button.dataset.id, 10);
+        if (!id) return;
+        if (scope === "weekly") {
+          weeklyChores = weeklyChores.filter((m) => m.id !== id);
+          renderWeeklyChores();
+        } else if (scope === "monthly") {
+          monthlyChores = monthlyChores.filter((m) => m.id !== id);
+          renderMonthlyChores();
+        } else if (scope === "daily") {
+          dailyBonusMissions = dailyBonusMissions.filter((m) => m.id !== id);
+          renderDailyBonusMissions();
+        }
+        saveMissionsToStorage();
+      }
+
+      if (weeklyContainer) weeklyContainer.addEventListener("click", handleMissionDelete);
+      if (monthlyContainer) monthlyContainer.addEventListener("click", handleMissionDelete);
+      if (dailyBonusContainer) dailyBonusContainer.addEventListener("click", handleMissionDelete);
       const celebrationModal = document.getElementById("celebration-modal");
       const celebrationMessage = document.getElementById("celebration-message");
       const dailyNotesEl = document.getElementById("daily-notes");
+      const moodButtons = document.querySelectorAll(".mood-btn");
+      const moodNoteEl = document.getElementById("mood-note");
+      const moodStatusEl = document.getElementById("mood-status");
+      const journalEntryEl = document.getElementById("journal-entry");
       const proofModal = document.getElementById("proof-modal");
       const proofModalTitle = document.getElementById("proof-modal-title");
       const proofModalDescription = document.getElementById(
@@ -1398,6 +2052,8 @@
 
       async function bootstrapApp() {
         await loadDefaultTasks();
+        await loadDefaultMissions();
+        loadMissionsFromStorage();
         updateDateTime();
         updatePointsDisplay();
         await loadPointsFromServer();
@@ -1406,14 +2062,18 @@
           updateProgress();
         });
         await loadDailyNotes();
+        loadMoodCheckin();
+        loadJournal();
         loadHabitsFromStorage();
         await loadHabitsFromServer().finally(() => {
           renderHabits();
         });
         renderWeeklyChores();
+        renderDailyBonusMissions();
         renderMonthlyChores();
         renderRewards();
         updateAdminVisibility();
+        await checkFirstTime();
       }
 
       // Helper functions
@@ -1450,6 +2110,82 @@
         return date.toLocaleDateString("en-US", { weekday: "long" });
       }
 
+      function getMonthName(date) {
+        return date.toLocaleDateString("en-US", { month: "long" });
+      }
+
+      function getWeekOfMonth(date) {
+        const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        const firstWeekday = (firstDay.getDay() + 6) % 7; // Monday=0
+        return Math.floor((date.getDate() + firstWeekday - 1) / 7) + 1;
+      }
+
+      function getWeekRange(year, monthIndex, weekOfMonth) {
+        const firstDay = new Date(year, monthIndex, 1);
+        const firstWeekday = (firstDay.getDay() + 6) % 7;
+        const startDay = 1 + (weekOfMonth - 1) * 7 - firstWeekday;
+        const startDate = new Date(year, monthIndex, startDay);
+        const endDate = new Date(year, monthIndex, startDay + 6);
+        return { startDate, endDate };
+      }
+
+      function getMonthRange(year, monthIndex) {
+        const startDate = new Date(year, monthIndex, 1);
+        const endDate = new Date(year, monthIndex + 1, 0);
+        return { startDate, endDate };
+      }
+
+      function listDatedEntries(prefix) {
+        const entries = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key || !key.startsWith(prefix)) continue;
+          const dateString = key.slice(prefix.length);
+          const date = new Date(`${dateString}T00:00:00`);
+          if (Number.isNaN(date.getTime())) continue;
+          entries.push({ date, value: localStorage.getItem(key) });
+        }
+        return entries;
+      }
+
+      function isDateInRange(date, startDate, endDate) {
+        const time = date.getTime();
+        return time >= startDate.getTime() && time <= endDate.getTime();
+      }
+
+      function countMoodEntriesInRange(startDate, endDate) {
+        const prefix = `mood:${HOUSEHOLD_ID}:${PERSON_ID}:`;
+        const entries = listDatedEntries(prefix);
+        return entries.filter((entry) => {
+          if (!isDateInRange(entry.date, startDate, endDate)) return false;
+          try {
+            const parsed = JSON.parse(entry.value || "{}");
+            return !!parsed.mood;
+          } catch {
+            return false;
+          }
+        }).length;
+      }
+
+      function countJournalEntriesInRange(startDate, endDate) {
+        const prefix = `journal:${HOUSEHOLD_ID}:${PERSON_ID}:`;
+        const entries = listDatedEntries(prefix);
+        return entries.filter((entry) => {
+          if (!isDateInRange(entry.date, startDate, endDate)) return false;
+          return (entry.value || "").trim().length > 0;
+        }).length;
+      }
+
+      function getRequirementCount(type, startDate, endDate) {
+        if (type === "mood") {
+          return countMoodEntriesInRange(startDate, endDate);
+        }
+        if (type === "journal") {
+          return countJournalEntriesInRange(startDate, endDate);
+        }
+        return 0;
+      }
+
       function getScheduleItemsForDate(dateString) {
         const dayName = getDayName(dateString);
         return scheduleItems.filter((item) => {
@@ -1480,12 +2216,50 @@
         });
       }
 
+      function timeToMinutes(timeString) {
+        if (!timeString) return null;
+        const [hours, minutes] = timeString.split(":").map(Number);
+        if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+        return hours * 60 + minutes;
+      }
+
+      function minutesToTime(totalMinutes) {
+        const normalized =
+          ((totalMinutes % 1440) + 1440) % 1440;
+        const hours = Math.floor(normalized / 60);
+        const minutes = normalized % 60;
+        return `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}`;
+      }
+
+      function roundUpToIncrement(date, incrementMinutes) {
+        const totalMinutes = date.getHours() * 60 + date.getMinutes();
+        const rounded =
+          Math.ceil(totalMinutes / incrementMinutes) * incrementMinutes;
+        return rounded;
+      }
+
+      function getItemDurationMinutes(item) {
+        const start = timeToMinutes(item.time);
+        const end = timeToMinutes(item.endTime);
+        if (start !== null && end !== null) {
+          let delta = end - start;
+          if (delta <= 0) {
+            delta += 1440;
+          }
+          return delta;
+        }
+        return 30;
+      }
+
       function reorderScheduleForNow(items) {
         const now = new Date();
         const currentTimeValue = `${now
           .getHours()
           .toString()
           .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+        let cursorMinutes = roundUpToIncrement(now, 15);
         const sortedSchedule = sortScheduleByTime(items);
         const incomplete = sortedSchedule.filter((item) => !item.completed);
         const completed = sortedSchedule.filter((item) => item.completed);
@@ -1501,7 +2275,18 @@
                 ...timedIncomplete.slice(pivotIndex),
                 ...timedIncomplete.slice(0, pivotIndex),
               ];
-        return [...reorderedTimed, ...anytimeIncomplete, ...completed];
+        const refactoredTimed = reorderedTimed.map((item) => {
+          const duration = getItemDurationMinutes(item);
+          const startMinutes = cursorMinutes;
+          const endMinutes = cursorMinutes + duration;
+          cursorMinutes = endMinutes;
+          const updated = { ...item, time: minutesToTime(startMinutes) };
+          if (item.endTime) {
+            updated.endTime = minutesToTime(endMinutes);
+          }
+          return updated;
+        });
+        return [...refactoredTimed, ...anytimeIncomplete, ...completed];
       }
 
       function slugify(text) {
@@ -1752,19 +2537,50 @@
         progressTextEl.textContent = `${progressPercentage}%`;
       }
 
+      function triggerLevelUpAnimation() {
+        const modal = document.getElementById("level-up-modal");
+        if (modal) {
+          modal.classList.remove("hidden");
+        }
+      }
+
+      function closeLevelUp() {
+        const modal = document.getElementById("level-up-modal");
+        if (modal) {
+          modal.classList.add("hidden");
+        }
+      }
+
       function updatePointsDisplay() {
         pointsDisplay.textContent = userPoints;
         pendingPointsDisplay.textContent = pendingPoints;
+        if (pointsTotalDisplay) {
+          pointsTotalDisplay.textContent = userPoints + pendingPoints;
+        }
         const percentage = Math.min((userPoints / maxPoints) * 100, 100);
         pointsProgress.style.width = `${percentage}%`;
 
         // Show/hide points display based on settings
         if (settings.pointsEnabled) {
-          pointsDisplayContainer.classList.remove("hidden");
+          if (pointsCard) {
+            pointsCard.classList.remove("hidden");
+          }
           document.getElementById("add-reward").classList.remove("hidden");
         } else {
-          pointsDisplayContainer.classList.add("hidden");
+          if (pointsCard) {
+            pointsCard.classList.add("hidden");
+          }
           document.getElementById("add-reward").classList.add("hidden");
+        }
+
+        if (moneyTotalEarnings) {
+          moneyTotalEarnings.textContent = "0.00";
+        }
+        if (moneyPendingEarnings) {
+          moneyPendingEarnings.textContent = "0.00";
+        }
+        if (moneyCurrentBalance) {
+          moneyCurrentBalance.textContent = "0.00";
         }
       }
 
@@ -1828,17 +2644,11 @@
         if (type === "schedule") {
           return scheduleItems.find((item) => item.id === id);
         }
-        if (type === "weekly") {
-          return weeklyChores.find((item) => item.id === id);
-        }
-        if (type === "monthly") {
-          return monthlyChores.find((item) => item.id === id);
-        }
         return null;
       }
 
       function getAllItems() {
-        return [...scheduleItems, ...weeklyChores, ...monthlyChores];
+        return [...scheduleItems];
       }
 
       function areBasicsComplete() {
@@ -2365,10 +3175,38 @@
         renderGroup("Coming up", upcoming);
       }
 
-      function renderWeeklyChores() {
-        weeklyContainer.innerHTML = "";
+      function renderMissionRequirements(requirements, startDate, endDate) {
+        if (!requirements.length) {
+          return { html: '<p class="text-xs text-gray-500">No requirements.</p>', completed: false };
+        }
+        let completed = true;
+        const rows = requirements
+          .filter((req) => req && req.type && req.target)
+          .map((req) => {
+            const count = getRequirementCount(req.type, startDate, endDate);
+            const target = parseInt(req.target, 10);
+            const progress = Math.min((count / target) * 100, 100);
+            if (count < target) completed = false;
+            return `
+              <div class="mt-2">
+                <div class="flex items-center justify-between text-xs text-gray-600">
+                  <span>${req.type === "mood" ? "Mood check-ins" : "Journal entries"}</span>
+                  <span>${count}/${target}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                  <div class="bg-blue-600 h-2 rounded-full" style="width: ${progress}%"></div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+        return { html: rows, completed };
+      }
 
-        // Group chores by day
+      function renderDailyBonusMissions() {
+        dailyBonusContainer.innerHTML = "";
+        const today = new Date();
+        const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
         const days = [
           "Monday",
           "Tuesday",
@@ -2380,536 +3218,201 @@
         ];
 
         days.forEach((day) => {
-          const dayChores = weeklyChores.filter((chore) => chore.day === day);
-
-          if (dayChores.length > 0) {
-            const dayEl = document.createElement("div");
-            dayEl.className = "bg-white rounded-lg shadow-sm overflow-hidden";
-
-            // Check if today is this day
-            const today = new Date();
-            const isToday =
-              today.toLocaleDateString("en-US", { weekday: "long" }) === day;
-
-            dayEl.innerHTML = `
-                        <div class="p-4 ${
-                          isToday ? "bg-blue-100" : "bg-gray-50"
-                        }">
-                            <h3 class="font-bold text-gray-800 ${
-                              isToday ? "text-blue-800" : ""
-                            }">${day} ${isToday ? "(Today)" : ""}</h3>
-                        </div>
-                        <div class="p-4 space-y-3 chores-list" data-day="${day}"></div>
-                    `;
-
-            weeklyContainer.appendChild(dayEl);
-
-            const choresList = dayEl.querySelector(".chores-list");
-
-            dayChores.forEach((chore) => {
-              const choreEl = document.createElement("div");
-              choreEl.className = `flex items-center p-2 rounded-md ${
-                chore.completed ? "bg-gray-100 completed" : "hover:bg-gray-50"
-              }`;
-
-              const isPending = chore.pendingApproval;
-              const isPendingRelease = chore.pendingRelease;
-              const isBasic = chore.isBasic;
-              const autoStatus = chore.autoReviewStatus;
-
-              let pointsDisplay = "";
-              if (settings.pointsEnabled) {
-                pointsDisplay = `<span class="text-green-600 font-semibold text-sm">+${chore.points} ⭐</span>`;
-              }
-              const cameraButton = chore.requiresPhoto
-                ? `<button class="open-camera ml-2 w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
-                    isPending ? "opacity-50 cursor-not-allowed" : ""
-                  }" ${
-                    isPending ? 'aria-disabled="true"' : ""
-                  } aria-label="Open camera">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h3l2-2h8l2 2h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1z" />
-                      <circle cx="12" cy="13" r="3" stroke-width="2"></circle>
-                    </svg>
-                  </button>`
-                : "";
-
-              let statusLabel = "";
-              let approvalActions = "";
-              let proofPreviewHtml = "";
-
-              if (chore.requiresPhoto) {
-                if (isPending) {
-                  statusLabel =
-                    '<span class="ml-2 text-xs font-semibold text-amber-600">Pending approval</span>';
-                  approvalActions = `
-                                    <div class="flex items-center gap-2 ml-3">
-                                        <button class="admin-only approve-task text-xs bg-emerald-500 text-white px-2 py-1 rounded-md hover:bg-emerald-600">Approve</button>
-                                        <button class="admin-only deny-task text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-md hover:bg-rose-200">Deny</button>
-                                    </div>
-                                `;
-                } else if (chore.completed) {
-                  statusLabel =
-                    '<span class="ml-2 text-xs font-semibold text-emerald-600">Approved</span>';
-                } else {
-                  statusLabel =
-                    '<span class="ml-2 text-xs font-semibold text-gray-500">Photo required</span>';
-                }
-              }
-
-              if (autoStatus === "approved") {
-                statusLabel +=
-                  '<span class="ml-2 text-xs font-semibold text-emerald-600">Auto-approved</span>';
-              } else if (autoStatus === "denied") {
-                statusLabel +=
-                  '<span class="ml-2 text-xs font-semibold text-rose-600">Auto-denied</span>';
-              }
-
-              if (isPendingRelease) {
-                statusLabel +=
-                  '<span class="ml-2 text-xs font-semibold text-amber-600">Pending basics</span>';
-              }
-
-              if (isBasic) {
-                statusLabel +=
-                  '<span class="ml-2 text-blue-600" title="Required task" aria-label="Required task">🔹</span>';
-              }
-
-              if (chore.proofImage) {
-                proofPreviewHtml = `<div class="ml-3"><img src="${chore.proofImage}" alt="Proof preview" class="w-16 rounded-md border border-gray-200"></div>`;
-              }
-
-              choreEl.innerHTML = `
-                            <button class="complete-chore w-6 h-6 rounded-full border-2 border-green-500 flex items-center justify-center ${
-                              chore.completed ? "bg-green-500" : ""
-                            } ${
-                isPending ? "opacity-50 cursor-not-allowed" : ""
-              }" ${isPending ? 'aria-disabled="true"' : ""}>
-                                ${
-                                  chore.completed
-                                    ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-                                    : ""
-                                }
-                            </button>
-                            <span class="ml-3 flex-grow">${
-                              chore.task
-                            } ${statusLabel}</span>
-                            ${pointsDisplay}
-                            ${cameraButton}
-                            ${proofPreviewHtml}
-                            ${isAdmin ? approvalActions : ""}
-                            <div class="flex items-center ml-2">
-                                ${
-                                  settings.pointsEnabled
-                                    ? `
-                                <button class="admin-only edit-chore-points mr-2 text-blue-500 hover:text-blue-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                </button>
-                                `
-                                    : ""
-                                }
-                                <button class="admin-only delete-chore text-red-500 hover:text-red-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        `;
-
-              choresList.appendChild(choreEl);
-
-              // Add event listeners
-              const completeBtn = choreEl.querySelector(".complete-chore");
-              const cameraBtn = choreEl.querySelector(".open-camera");
-              completeBtn.addEventListener("click", () => {
-                if (chore.pendingApproval) {
-                  showCelebration(`"${chore.task}" is waiting for approval.`);
-                  return;
-                }
-                if (!chore.completed) {
-                  if (chore.requiresPhoto) {
-                    openProofModal({ type: "weekly", item: chore });
-                  } else {
-                    chore.completed = true;
-                    if (settings.pointsEnabled) {
-                      if (areBasicsComplete()) {
-                        userPoints += chore.points;
-                        updatePointsDisplay();
-                        showCelebration(
-                          `You completed "${chore.task}"! +${chore.points} stars`
-                        );
-                      } else {
-                        chore.pendingRelease = true;
-                        pendingPoints += chore.points;
-                        updatePointsDisplay();
-                        showCelebration(
-                          `You completed "${chore.task}"! Stars are pending until basics are done.`
-                        );
-                      }
-                    } else {
-                      showCelebration(`You completed "${chore.task}"!`);
-                    }
-                    renderWeeklyChores();
-                    releasePendingRewards();
+          const missions = dailyBonusMissions.filter(
+            (mission) => mission.dayOfWeek === day
+          );
+          if (!missions.length) return;
+          const card = document.createElement("div");
+          card.className = "bg-white p-4 rounded-lg shadow-md";
+          card.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">${day}${
+              day === dayName ? " (Today)" : ""
+            }</h3>
+            <div class="space-y-3 missions-list" data-day="${day}"></div>
+          `;
+          dailyBonusContainer.appendChild(card);
+          const list = card.querySelector(".missions-list");
+          missions.forEach((mission) => {
+            const startDate = new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate()
+            );
+            const endDate = new Date(startDate);
+            const requirementHtml = day === dayName
+              ? renderMissionRequirements(mission.requirements || [], startDate, endDate)
+              : { html: '<p class="text-xs text-gray-500">Not active today.</p>', completed: false };
+            const completed = requirementHtml.completed;
+            const missionEl = document.createElement("div");
+            missionEl.className = `p-3 rounded-md border ${
+              completed ? "border-emerald-300 bg-emerald-50" : "border-gray-200"
+            }`;
+            missionEl.innerHTML = `
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="font-semibold text-gray-800">${mission.title}</div>
+                  ${requirementHtml.html}
+                </div>
+                <div class="flex items-center gap-2">
+                  ${
+                    completed
+                      ? '<span class="text-xs text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">Complete</span>'
+                      : ""
                   }
-                } else {
-                  chore.completed = false;
-                  if (settings.pointsEnabled) {
-                    userPoints = Math.max(0, userPoints - chore.points);
-                    updatePointsDisplay();
-                  }
-                  if (chore.pendingRelease) {
-                    pendingPoints = Math.max(0, pendingPoints - chore.points);
-                    chore.pendingRelease = false;
-                    updatePointsDisplay();
-                  }
-                  chore.proofImage = "";
-                  renderWeeklyChores();
-                }
-              });
-
-              if (cameraBtn) {
-                cameraBtn.addEventListener("click", (event) => {
-                  event.stopPropagation();
-                  if (chore.pendingApproval) {
-                    showCelebration(`"${chore.task}" is waiting for approval.`);
-                    return;
-                  }
-                  openCameraCapture({ type: "weekly", item: chore });
-                });
-              }
-
-              if (chore.pendingApproval && isAdmin) {
-                const approveBtn = choreEl.querySelector(".approve-task");
-                const denyBtn = choreEl.querySelector(".deny-task");
-                approveBtn.addEventListener("click", () => {
-                  if (!isAdmin) {
-                    showCelebration(
-                      "Admin sign-in required to approve chores."
-                    );
-                    return;
-                  }
-                  approveTask(chore, chore.task);
-                  renderWeeklyChores();
-                });
-                denyBtn.addEventListener("click", () => {
-                  if (!isAdmin) {
-                    showCelebration("Admin sign-in required to deny chores.");
-                    return;
-                  }
-                  denyTask(chore, chore.task);
-                  renderWeeklyChores();
-                });
-              }
-
-              if (settings.pointsEnabled && isAdmin) {
-                const editPointsBtn =
-                  choreEl.querySelector(".edit-chore-points");
-                editPointsBtn.addEventListener("click", () => {
-                  const newPoints = prompt(
-                    `Enter new star value for "${chore.task}":`,
-                    chore.points
-                  );
-                  if (
-                    newPoints !== null &&
-                    !isNaN(newPoints) &&
-                    newPoints >= 0
-                  ) {
-                    chore.points = parseInt(newPoints);
-                    renderWeeklyChores();
-                  }
-                });
-              }
-
-              if (isAdmin) {
-                const deleteBtn = choreEl.querySelector(".delete-chore");
-                deleteBtn.addEventListener("click", () => {
-                  weeklyChores = weeklyChores.filter((c) => c.id !== chore.id);
-                  renderWeeklyChores();
-                });
-              }
-            });
-          }
+                  <button class="admin-only delete-mission text-red-500 hover:text-red-700" data-scope="daily" data-id="${mission.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H3.5A1.5 1.5 0 002 5.5V6h16v-.5A1.5 1.5 0 0016.5 4H15V3a1 1 0 00-1-1H6zm3 6a1 1 0 012 0v6a1 1 0 11-2 0V8zm-4 0a1 1 0 112 0v6a1 1 0 11-2 0V8zm8 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/></svg>
+                  </button>
+                </div>
+              </div>
+            `;
+            list.appendChild(missionEl);
+          });
         });
-        updateAdminVisibility();
+
+        if (!dailyBonusContainer.children.length) {
+          dailyBonusContainer.innerHTML =
+            '<p class="text-sm text-gray-500">No daily bonus missions yet.</p>';
+        }
+      }
+
+      function renderWeeklyChores() {
+        weeklyContainer.innerHTML = "";
+        const now = new Date();
+        const currentWeek = `Week ${getWeekOfMonth(now)}`;
+        const weeks = ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"];
+
+        weeks.forEach((weekLabel) => {
+          const missions = weeklyChores.filter(
+            (mission) => mission.weekOfMonth === weekLabel
+          );
+          if (!missions.length) return;
+          const card = document.createElement("div");
+          card.className = "bg-white p-4 rounded-lg shadow-md";
+          card.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">${weekLabel}${
+              weekLabel === currentWeek ? " (Current Week)" : ""
+            }</h3>
+            <div class="space-y-3 missions-list" data-week="${weekLabel}"></div>
+          `;
+          weeklyContainer.appendChild(card);
+          const list = card.querySelector(".missions-list");
+          const weekNumber = parseInt(weekLabel.split(" ")[1], 10);
+          const { startDate, endDate } = getWeekRange(
+            now.getFullYear(),
+            now.getMonth(),
+            weekNumber
+          );
+          missions.forEach((mission) => {
+            const requirementHtml = renderMissionRequirements(
+              mission.requirements || [],
+              startDate,
+              endDate
+            );
+            const completed = requirementHtml.completed;
+            const missionEl = document.createElement("div");
+            missionEl.className = `p-3 rounded-md border ${
+              completed ? "border-green-300 bg-green-50" : "border-gray-200"
+            }`;
+            missionEl.innerHTML = `
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="font-semibold text-gray-800">${mission.title}</div>
+                  ${requirementHtml.html}
+                </div>
+                <div class="flex items-center gap-2">
+                  ${
+                    completed
+                      ? '<span class="text-xs text-green-700 bg-green-100 px-2 py-1 rounded-full">Complete</span>'
+                      : ""
+                  }
+                  <button class="admin-only delete-mission text-red-500 hover:text-red-700" data-scope="weekly" data-id="${mission.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H3.5A1.5 1.5 0 002 5.5V6h16v-.5A1.5 1.5 0 0016.5 4H15V3a1 1 0 00-1-1H6zm3 6a1 1 0 012 0v6a1 1 0 11-2 0V8zm-4 0a1 1 0 112 0v6a1 1 0 11-2 0V8zm8 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/></svg>
+                  </button>
+                </div>
+              </div>
+            `;
+            list.appendChild(missionEl);
+          });
+        });
+
+        if (!weeklyContainer.children.length) {
+          weeklyContainer.innerHTML =
+            '<p class="text-sm text-gray-500">No weekly missions yet.</p>';
+        }
       }
 
       function renderMonthlyChores() {
         monthlyContainer.innerHTML = "";
+        const now = new Date();
+        const currentMonth = getMonthName(now);
+        const months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
 
-        // Group chores by week
-        const weeks = ["Week 1", "Week 2", "Week 3", "Week 4"];
-
-        weeks.forEach((week) => {
-          const weekChores = monthlyChores.filter(
-            (chore) => chore.week === week
+        months.forEach((monthLabel, idx) => {
+          const missions = monthlyChores.filter(
+            (mission) => mission.month === monthLabel
           );
-
-          if (weekChores.length > 0) {
-            const weekEl = document.createElement("div");
-            weekEl.className = "bg-white rounded-lg shadow-sm overflow-hidden";
-
-            // Determine if this is the current week of the month
-            const today = new Date();
-            const dayOfMonth = today.getDate();
-            let currentWeek = "";
-
-            if (dayOfMonth <= 7) currentWeek = "Week 1";
-            else if (dayOfMonth <= 14) currentWeek = "Week 2";
-            else if (dayOfMonth <= 21) currentWeek = "Week 3";
-            else currentWeek = "Week 4";
-
-            const isCurrentWeek = week === currentWeek;
-
-            weekEl.innerHTML = `
-                        <div class="p-4 ${
-                          isCurrentWeek ? "bg-purple-100" : "bg-gray-50"
-                        }">
-                            <h3 class="font-bold text-gray-800 ${
-                              isCurrentWeek ? "text-purple-800" : ""
-                            }">${week} ${isCurrentWeek ? "(Current)" : ""}</h3>
-                        </div>
-                        <div class="p-4 space-y-3 chores-list" data-week="${week}"></div>
-                    `;
-
-            monthlyContainer.appendChild(weekEl);
-
-            const choresList = weekEl.querySelector(".chores-list");
-
-            weekChores.forEach((chore) => {
-              const choreEl = document.createElement("div");
-              choreEl.className = `flex items-center p-2 rounded-md ${
-                chore.completed ? "bg-gray-100 completed" : "hover:bg-gray-50"
-              }`;
-
-              let pointsDisplay = "";
-              if (settings.pointsEnabled) {
-                pointsDisplay = `<span class="text-purple-600 font-semibold text-sm">+${chore.points} ⭐</span>`;
-              }
-
-              let statusLabel = "";
-              let approvalActions = "";
-              let proofPreviewHtml = "";
-              const isPending = chore.pendingApproval;
-              const isPendingRelease = chore.pendingRelease;
-              const isBasic = chore.isBasic;
-              const autoStatus = chore.autoReviewStatus;
-
-              if (chore.requiresPhoto) {
-                if (isPending) {
-                  statusLabel =
-                    '<span class="ml-2 text-xs font-semibold text-amber-600">Pending approval</span>';
-                  approvalActions = `
-                                    <div class="flex items-center gap-2 ml-3">
-                                        <button class="admin-only approve-task text-xs bg-emerald-500 text-white px-2 py-1 rounded-md hover:bg-emerald-600">Approve</button>
-                                        <button class="admin-only deny-task text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded-md hover:bg-rose-200">Deny</button>
-                                    </div>
-                                `;
-                } else if (chore.completed) {
-                  statusLabel =
-                    '<span class="ml-2 text-xs font-semibold text-emerald-600">Approved</span>';
-                } else {
-                  statusLabel =
-                    '<span class="ml-2 text-xs font-semibold text-gray-500">Photo required</span>';
-                }
-              }
-
-              if (autoStatus === "approved") {
-                statusLabel +=
-                  '<span class="ml-2 text-xs font-semibold text-emerald-600">Auto-approved</span>';
-              } else if (autoStatus === "denied") {
-                statusLabel +=
-                  '<span class="ml-2 text-xs font-semibold text-rose-600">Auto-denied</span>';
-              }
-
-              if (isPendingRelease) {
-                statusLabel +=
-                  '<span class="ml-2 text-xs font-semibold text-amber-600">Pending basics</span>';
-              }
-
-              if (isBasic) {
-                statusLabel +=
-                  '<span class="ml-2 text-blue-600" title="Required task" aria-label="Required task">🔹</span>';
-              }
-
-              if (chore.proofImage) {
-                proofPreviewHtml = `<div class="ml-3"><img src="${chore.proofImage}" alt="Proof preview" class="w-16 rounded-md border border-gray-200"></div>`;
-              }
-
-              choreEl.innerHTML = `
-                            <button class="complete-chore w-6 h-6 rounded-full border-2 border-purple-500 flex items-center justify-center ${
-                              chore.completed ? "bg-purple-500" : ""
-                            } ${
-                isPending ? "opacity-50 cursor-not-allowed" : ""
-              }" ${isPending ? 'aria-disabled="true"' : ""}>
-                                ${
-                                  chore.completed
-                                    ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-                                    : ""
-                                }
-                            </button>
-                            ${
-                              chore.requiresPhoto
-                                ? `<button class="open-camera ml-2 w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
-                                    isPending
-                                      ? "opacity-50 cursor-not-allowed"
-                                      : ""
-                                  }" ${
-                                    isPending ? 'aria-disabled="true"' : ""
-                                  } aria-label="Open camera">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h3l2-2h8l2 2h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1z" />
-                                      <circle cx="12" cy="13" r="3" stroke-width="2"></circle>
-                                    </svg>
-                                  </button>`
-                                : ""
-                            }
-                            <span class="ml-3 flex-grow">${
-                              chore.task
-                            } ${statusLabel}</span>
-                            ${pointsDisplay}
-                            ${proofPreviewHtml}
-                            ${isAdmin ? approvalActions : ""}
-                            <div class="flex items-center ml-2">
-                                ${
-                                  settings.pointsEnabled
-                                    ? `
-                                <button class="admin-only edit-chore-points mr-2 text-blue-500 hover:text-blue-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                </button>
-                                `
-                                    : ""
-                                }
-                                <button class="admin-only delete-chore text-red-500 hover:text-red-700">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        `;
-
-              choresList.appendChild(choreEl);
-
-              // Add event listeners
-              const completeBtn = choreEl.querySelector(".complete-chore");
-              const cameraBtn = choreEl.querySelector(".open-camera");
-              completeBtn.addEventListener("click", () => {
-                if (chore.pendingApproval) {
-                  showCelebration(`"${chore.task}" is waiting for approval.`);
-                  return;
-                }
-                if (!chore.completed) {
-                  if (chore.requiresPhoto) {
-                    openProofModal({ type: "monthly", item: chore });
-                  } else {
-                    chore.completed = true;
-                    if (settings.pointsEnabled) {
-                      if (areBasicsComplete()) {
-                        userPoints += chore.points;
-                        updatePointsDisplay();
-                        showCelebration(
-                          `You completed "${chore.task}"! +${chore.points} stars`
-                        );
-                      } else {
-                        chore.pendingRelease = true;
-                        pendingPoints += chore.points;
-                        updatePointsDisplay();
-                        showCelebration(
-                          `You completed "${chore.task}"! Stars are pending until basics are done.`
-                        );
-                      }
-                    } else {
-                      showCelebration(`You completed "${chore.task}"!`);
-                    }
-                    renderMonthlyChores();
-                    releasePendingRewards();
+          if (!missions.length) return;
+          const card = document.createElement("div");
+          card.className = "bg-white p-4 rounded-lg shadow-md";
+          card.innerHTML = `
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">${monthLabel}${
+              monthLabel === currentMonth ? " (Current Month)" : ""
+            }</h3>
+            <div class="space-y-3 missions-list" data-month="${monthLabel}"></div>
+          `;
+          monthlyContainer.appendChild(card);
+          const list = card.querySelector(".missions-list");
+          const { startDate, endDate } = getMonthRange(now.getFullYear(), idx);
+          missions.forEach((mission) => {
+            const requirementHtml = renderMissionRequirements(
+              mission.requirements || [],
+              startDate,
+              endDate
+            );
+            const completed = requirementHtml.completed;
+            const missionEl = document.createElement("div");
+            missionEl.className = `p-3 rounded-md border ${
+              completed ? "border-green-300 bg-green-50" : "border-gray-200"
+            }`;
+            missionEl.innerHTML = `
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="font-semibold text-gray-800">${mission.title}</div>
+                  ${requirementHtml.html}
+                </div>
+                <div class="flex items-center gap-2">
+                  ${
+                    completed
+                      ? '<span class="text-xs text-green-700 bg-green-100 px-2 py-1 rounded-full">Complete</span>'
+                      : ""
                   }
-                } else {
-                  chore.completed = false;
-                  if (settings.pointsEnabled) {
-                    userPoints = Math.max(0, userPoints - chore.points);
-                    updatePointsDisplay();
-                  }
-                  if (chore.pendingRelease) {
-                    pendingPoints = Math.max(0, pendingPoints - chore.points);
-                    chore.pendingRelease = false;
-                    updatePointsDisplay();
-                  }
-                  chore.proofImage = "";
-                  renderMonthlyChores();
-                }
-              });
-
-              if (cameraBtn) {
-                cameraBtn.addEventListener("click", (event) => {
-                  event.stopPropagation();
-                  if (chore.pendingApproval) {
-                    showCelebration(`"${chore.task}" is waiting for approval.`);
-                    return;
-                  }
-                  openCameraCapture({ type: "monthly", item: chore });
-                });
-              }
-
-              if (chore.pendingApproval && isAdmin) {
-                const approveBtn = choreEl.querySelector(".approve-task");
-                const denyBtn = choreEl.querySelector(".deny-task");
-                approveBtn.addEventListener("click", () => {
-                  if (!isAdmin) {
-                    showCelebration(
-                      "Admin sign-in required to approve chores."
-                    );
-                    return;
-                  }
-                  approveTask(chore, chore.task);
-                  renderMonthlyChores();
-                });
-                denyBtn.addEventListener("click", () => {
-                  if (!isAdmin) {
-                    showCelebration("Admin sign-in required to deny chores.");
-                    return;
-                  }
-                  denyTask(chore, chore.task);
-                  renderMonthlyChores();
-                });
-              }
-
-              if (settings.pointsEnabled && isAdmin) {
-                const editPointsBtn =
-                  choreEl.querySelector(".edit-chore-points");
-                editPointsBtn.addEventListener("click", () => {
-                  const newPoints = prompt(
-                    `Enter new star value for "${chore.task}":`,
-                    chore.points
-                  );
-                  if (
-                    newPoints !== null &&
-                    !isNaN(newPoints) &&
-                    newPoints >= 0
-                  ) {
-                    chore.points = parseInt(newPoints);
-                    renderMonthlyChores();
-                  }
-                });
-              }
-
-              if (isAdmin) {
-                const deleteBtn = choreEl.querySelector(".delete-chore");
-                deleteBtn.addEventListener("click", () => {
-                  monthlyChores = monthlyChores.filter(
-                    (c) => c.id !== chore.id
-                  );
-                  renderMonthlyChores();
-                });
-              }
-            });
-          }
+                  <button class="admin-only delete-mission text-red-500 hover:text-red-700" data-scope="monthly" data-id="${mission.id}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H3.5A1.5 1.5 0 002 5.5V6h16v-.5A1.5 1.5 0 0016.5 4H15V3a1 1 0 00-1-1H6zm3 6a1 1 0 012 0v6a1 1 0 11-2 0V8zm-4 0a1 1 0 112 0v6a1 1 0 11-2 0V8zm8 0a1 1 0 112 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/></svg>
+                  </button>
+                </div>
+              </div>
+            `;
+            list.appendChild(missionEl);
+          });
         });
-        updateAdminVisibility();
+
+        if (!monthlyContainer.children.length) {
+          monthlyContainer.innerHTML =
+            '<p class="text-sm text-gray-500">No monthly missions yet.</p>';
+        }
       }
 
       function renderRewards() {
@@ -3489,29 +3992,43 @@
           document.getElementById("chore-modal-title").textContent =
             "Add Weekly Mission";
           document.getElementById("chore-name").value = "";
-          document.getElementById("chore-points").value =
-            settings.defaultPoints.weeklyChore;
-          document.getElementById("chore-requires-photo").checked = false;
-          document.getElementById("chore-basic").checked = false;
+          document
+            .getElementById("chore-day-container")
+            .classList.add("hidden");
+          document
+            .getElementById("chore-week-container")
+            .classList.remove("hidden");
+          document
+            .getElementById("chore-month-container")
+            .classList.add("hidden");
+          document.getElementById("save-chore").dataset.type = "weekly";
+
+          document
+            .getElementById("chore-points-container")
+            .classList.add("hidden");
+
+          choreModal.classList.remove("hidden");
+        });
+
+      document
+        .getElementById("add-daily-bonus")
+        .addEventListener("click", () => {
+          document.getElementById("chore-modal-title").textContent =
+            "Add Daily Bonus Mission";
+          document.getElementById("chore-name").value = "";
           document
             .getElementById("chore-day-container")
             .classList.remove("hidden");
           document
             .getElementById("chore-week-container")
             .classList.add("hidden");
-          document.getElementById("save-chore").dataset.type = "weekly";
-
-          // Show/hide points input based on settings
-          if (settings.pointsEnabled) {
-            document
-              .getElementById("chore-points-container")
-              .classList.remove("hidden");
-          } else {
-            document
-              .getElementById("chore-points-container")
-              .classList.add("hidden");
-          }
-
+          document
+            .getElementById("chore-month-container")
+            .classList.add("hidden");
+          document.getElementById("save-chore").dataset.type = "daily";
+          document
+            .getElementById("chore-points-container")
+            .classList.add("hidden");
           choreModal.classList.remove("hidden");
         });
 
@@ -3521,28 +4038,20 @@
           document.getElementById("chore-modal-title").textContent =
             "Add Monthly Mission";
           document.getElementById("chore-name").value = "";
-          document.getElementById("chore-points").value =
-            settings.defaultPoints.monthlyChore;
-          document.getElementById("chore-requires-photo").checked = false;
-          document.getElementById("chore-basic").checked = false;
           document
             .getElementById("chore-day-container")
             .classList.add("hidden");
           document
             .getElementById("chore-week-container")
+            .classList.add("hidden");
+          document
+            .getElementById("chore-month-container")
             .classList.remove("hidden");
           document.getElementById("save-chore").dataset.type = "monthly";
 
-          // Show/hide points input based on settings
-          if (settings.pointsEnabled) {
-            document
-              .getElementById("chore-points-container")
-              .classList.remove("hidden");
-          } else {
-            document
-              .getElementById("chore-points-container")
-              .classList.add("hidden");
-          }
+          document
+            .getElementById("chore-points-container")
+            .classList.add("hidden");
 
           choreModal.classList.remove("hidden");
         });
@@ -3555,18 +4064,43 @@
 
       document.getElementById("save-chore").addEventListener("click", () => {
         const name = document.getElementById("chore-name").value.trim();
-        const points = settings.pointsEnabled
-          ? parseInt(document.getElementById("chore-points").value)
-          : 0;
-        const requiresPhoto = document.getElementById(
-          "chore-requires-photo"
-        ).checked;
-        const isBasic = document.getElementById("chore-basic").checked;
         const type = document.getElementById("save-chore").dataset.type;
+        const req1Type = document.getElementById("mission-req-1-type").value;
+        const req1Target = parseInt(
+          document.getElementById("mission-req-1-target").value,
+          10
+        );
+        const req2Type = document.getElementById("mission-req-2-type").value;
+        const req2Target = parseInt(
+          document.getElementById("mission-req-2-target").value,
+          10
+        );
+        const requirements = [];
+        if (req1Type && req1Target > 0) {
+          requirements.push({ type: req1Type, target: req1Target });
+        }
+        if (req2Type && req2Target > 0) {
+          requirements.push({ type: req2Type, target: req2Target });
+        }
 
         if (name) {
-          if (type === "weekly") {
+          if (type === "daily") {
             const day = document.getElementById("chore-day").value;
+            const newId =
+              dailyBonusMissions.length > 0
+                ? Math.max(...dailyBonusMissions.map((c) => c.id)) + 1
+                : 1;
+
+            dailyBonusMissions.push({
+              id: newId,
+              dayOfWeek: day,
+              title: name,
+              requirements,
+            });
+
+            renderDailyBonusMissions();
+          } else if (type === "weekly") {
+            const week = document.getElementById("chore-week").value;
             const newId =
               weeklyChores.length > 0
                 ? Math.max(...weeklyChores.map((c) => c.id)) + 1
@@ -3574,17 +4108,14 @@
 
             weeklyChores.push({
               id: newId,
-              day: day,
-              task: name,
-              points: points || settings.defaultPoints.weeklyChore,
-              completed: false,
-              requiresPhoto,
-              isBasic,
+              weekOfMonth: week,
+              title: name,
+              requirements,
             });
 
             renderWeeklyChores();
           } else if (type === "monthly") {
-            const week = document.getElementById("chore-week").value;
+            const month = document.getElementById("chore-month").value;
             const newId =
               monthlyChores.length > 0
                 ? Math.max(...monthlyChores.map((c) => c.id)) + 1
@@ -3592,17 +4123,15 @@
 
             monthlyChores.push({
               id: newId,
-              week: week,
-              task: name,
-              points: points || settings.defaultPoints.monthlyChore,
-              completed: false,
-              requiresPhoto,
-              isBasic,
+              month,
+              title: name,
+              requirements,
             });
 
             renderMonthlyChores();
           }
 
+          saveMissionsToStorage();
           choreModal.classList.add("hidden");
         }
       });
@@ -3878,6 +4407,29 @@
         showCelebration("Notes saved successfully!");
         saveDailyNotes();
       });
+
+      if (moodButtons && moodButtons.length > 0) {
+        moodButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            selectedMood = button.getAttribute("data-mood");
+            updateMoodButtons();
+          });
+        });
+      }
+
+      const saveMoodButton = document.getElementById("save-mood");
+      if (saveMoodButton) {
+        saveMoodButton.addEventListener("click", () => {
+          saveMoodCheckin();
+        });
+      }
+
+      const saveJournalButton = document.getElementById("save-journal");
+      if (saveJournalButton) {
+        saveJournalButton.addEventListener("click", () => {
+          saveJournal();
+        });
+      }
 
       if (habitItemAdd) {
         habitItemAdd.addEventListener("click", () => {

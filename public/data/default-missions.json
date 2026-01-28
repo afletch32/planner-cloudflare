@@ -1,0 +1,41 @@
+{
+  "dailyBonusMissions": [
+    {
+      "id": 1,
+      "dayOfWeek": "CURRENT_DAY",
+      "title": "Bonus: Log your mood",
+      "requirements": [
+        { "type": "mood", "target": 1 }
+      ]
+    }
+  ],
+  "weeklyMissions": [
+    {
+      "id": 1,
+      "weekOfMonth": "CURRENT_WEEK",
+      "title": "Weekly: Log your mood 3 times",
+      "requirements": [
+        { "type": "mood", "target": 3 }
+      ]
+    }
+  ],
+  "monthlyMissions": [
+    {
+      "id": 1,
+      "month": "CURRENT_MONTH",
+      "title": "Monthly: Log your mood 15 times",
+      "requirements": [
+        { "type": "mood", "target": 15 }
+      ]
+    },
+    {
+      "id": 2,
+      "month": "CURRENT_MONTH",
+      "title": "Monthly: Log your mood 50 times and write 5 journal entries",
+      "requirements": [
+        { "type": "mood", "target": 50 },
+        { "type": "journal", "target": 5 }
+      ]
+    }
+  ]
+}

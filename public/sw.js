@@ -7,6 +7,7 @@ const ASSETS = [
   "/planner-schedule.js",
   "/manifest.json",
   "/data/default-tasks.json",
+  "/data/default-missions.json",
   "/assets/icons/icon-192.png",
   "/assets/icons/icon-512.png",
   "/assets/icons/icon-180.png",
