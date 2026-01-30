@@ -1,0 +1,9 @@
+name = "planner-cloudflare-api"
+main = "services/index.js"
+compatibility_date = "2026-01-27"
+compatibility_flags = ["nodejs_compat"]
+minify = true
+
+# Configure routes in Cloudflare to point /api/* to this worker.
+
+pages_build_output_dir = "public"
