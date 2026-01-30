@@ -1,0 +1,8 @@
+name = "planner-cloudflare-assets"
+main = "src/index.js"
+compatibility_date = "2026-01-30"
+minify = true
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "planner-cloudflare-assets"
