@@ -87,11 +87,6 @@
         opacity: 0.5;
         pointer-events: none;
       }
-      .credit-title {
-        font-family: "Luckiest Guy", "Trebuchet MS", cursive;
-        letter-spacing: 0.06em;
-        color: var(--credit-purple);
-      }
       body {
         font-family: "CookieRun", "Fredoka", "Nunito", sans-serif;
         background: radial-gradient(
@@ -713,6 +708,7 @@
           rarity: "Epic",
         },
       ];
+      let cookieUnlockingId = null;
 
       async function apiFetch(path, options = {}) {
         const headers = {
@@ -865,20 +861,23 @@
         renderCookieCollection(cookieId, "select");
       }
 
-      function unlockCookie(cookieId) {
+      async function unlockCookie(cookieId) {
         const cookie = getCookieById(cookieId);
         if (!cookie || isCookieUnlocked(cookieId)) return;
+        if (cookieUnlockingId) return;
         if (state.player.crystals < cookie.cost) {
           alert("Not enough crystals yet!");
           return;
         }
+        cookieUnlockingId = cookieId;
         state.player.crystals -= cookie.cost;
         state.player.unlockedCookies = [
           ...(state.player.unlockedCookies || []),
           cookieId,
         ];
         state.player.activeCookie = cookieId;
-        saveKingdom();
+        await saveKingdom();
+        cookieUnlockingId = null;
         renderUI();
         renderCookieCollection(cookieId, "unlock");
       }
@@ -909,6 +908,11 @@
           action.textContent = unlocked
             ? "Select"
             : `Unlock • ${cookie.cost} 💎`;
+          if (!unlocked && cookieUnlockingId === cookie.id) {
+            action.disabled = true;
+            action.textContent = "Unlocking...";
+            action.style.opacity = "0.7";
+          }
           action.addEventListener("click", () => {
             if (unlocked) {
               selectCookie(cookie.id);
@@ -1216,6 +1220,44 @@
         });
       }
 
+      function saveCompletedTasksForDate(date, overrides = {}) {
+        const itemsForDate = getScheduleItemsForDate(date);
+        const tasks = itemsForDate
+          .filter((item) => overrides[item.id])
+          .map((item) => {
+            const override = overrides[item.id];
+            return {
+              id: item.id,
+              task: item.task,
+              time: item.time,
+              endTime: item.endTime || "",
+              type: item.type,
+              completed:
+                typeof override.completed === "boolean"
+                  ? override.completed
+                  : item.completed,
+              actualActivity: override.actualActivity || item.actualActivity || "",
+              pendingApproval: !!override.pendingApproval,
+              pendingRelease: !!override.pendingRelease,
+              proofImage: override.proofImage || item.proofImage || "",
+              autoReviewStatus:
+                override.autoReviewStatus || item.autoReviewStatus || "",
+              groupId: item.groupId || DEFAULT_GROUP_ID,
+            };
+          });
+        if (!tasks.length) {
+          return Promise.resolve();
+        }
+        return apiPostJson("/completedTasks", {
+          householdId: HOUSEHOLD_ID,
+          personId: PERSON_ID,
+          date,
+          tasks,
+        }).catch(() => {
+          // Ignore save errors to allow offline usage.
+        });
+      }
+
       function saveDailyNotes() {
         return apiPostJson("/dailyNotes", {
           householdId: HOUSEHOLD_ID,
@@ -1381,6 +1423,13 @@
                 target.pendingRelease = !!saved.pendingRelease;
                 target.proofImage = saved.proofImage || "";
                 target.autoReviewStatus = saved.autoReviewStatus || "";
+                if (
+                  target.completed &&
+                  target.requiresHomeworkCheck &&
+                  !target.completedDate
+                ) {
+                  target.completedDate = getTodayString();
+                }
               }
             });
             if (settings.pointsEnabled) {
@@ -2578,6 +2627,19 @@
             Add a photo or screenshot to request approval.
           </p>
           <div class="space-y-4">
+            <label
+              id="proof-previous-day-wrapper"
+              class="hidden items-center gap-2 text-xs text-gray-600"
+            >
+              <input type="checkbox" id="proof-previous-day" />
+              This proof covers yesterday too
+            </label>
+            <p
+              id="proof-previous-day-help"
+              class="hidden text-[11px] text-gray-500"
+            >
+              Use this when the screenshot shows yesterday's progress too.
+            </p>
             <input
               type="file"
               id="proof-file"
@@ -2970,6 +3032,14 @@
       const proofModalDescription = document.getElementById(
         "proof-modal-description"
       );
+      const proofPreviousDayWrapper = document.getElementById(
+        "proof-previous-day-wrapper"
+      );
+      const proofPreviousDayHelp = document.getElementById(
+        "proof-previous-day-help"
+      );
+      const proofPreviousDayToggle =
+        document.getElementById("proof-previous-day");
       const proofFileInput = document.getElementById("proof-file");
       const proofPreviewWrapper = document.getElementById(
         "proof-preview-wrapper"
@@ -3711,6 +3781,22 @@
         if (item.requiresHomeworkCheck) {
           item.completedDate = item.proofDate || getTodayString();
         }
+        if (item.proofCoversYesterday) {
+          const yesterday =
+            item.proofCoversYesterdayDate || getYesterdayString();
+          saveCompletedTasksForDate(yesterday, {
+            [item.id]: {
+              completed: true,
+              proofImage: item.proofImage || "",
+              autoReviewStatus: item.autoReviewStatus || "",
+              pendingApproval: false,
+              pendingRelease: false,
+              actualActivity: item.actualActivity || "",
+            },
+          });
+          item.proofCoversYesterday = false;
+          item.proofCoversYesterdayDate = null;
+        }
         if (settings.pointsEnabled) {
           const itemPoints = getEffectivePoints(item);
           if (itemPoints > 0) {
@@ -3742,6 +3828,8 @@
         item.completed = false;
         item.proofImage = "";
         item.proofDate = null;
+        item.proofCoversYesterday = false;
+        item.proofCoversYesterdayDate = null;
         item.pendingRelease = false;
         if (settings.pointsEnabled) {
           pendingPoints = Math.max(0, pendingPoints - getEffectivePoints(item));
@@ -3762,8 +3850,15 @@
         proofModalDescription.textContent = item.requiresHomeworkCheck
           ? "Upload the Acellus progress screenshot. The app will auto-check for the daily star tracker."
           : "Add a photo or screenshot to request approval.";
-        proofModalDescription.textContent =
-          "Add a photo or screenshot to request approval.";
+        if (proofPreviousDayWrapper && proofPreviousDayToggle) {
+          const showPreviousDay = isSchoolTask(item);
+          proofPreviousDayWrapper.classList.toggle("hidden", !showPreviousDay);
+          proofPreviousDayWrapper.classList.toggle("flex", showPreviousDay);
+          if (proofPreviousDayHelp) {
+            proofPreviousDayHelp.classList.toggle("hidden", !showPreviousDay);
+          }
+          proofPreviousDayToggle.checked = false;
+        }
         proofFileInput.value = "";
         proofPreviewWrapper.classList.add("hidden");
         proofPreview.src = "";
@@ -3816,8 +3911,8 @@
         itemsForToday.forEach((item) => {
           if (
             item.requiresHomeworkCheck &&
-            item.completedDate &&
-            item.completedDate !== todayString
+            item.completed &&
+            (!item.completedDate || item.completedDate !== todayString)
           ) {
             item.completed = false;
             item.pendingApproval = false;
@@ -3946,7 +4041,6 @@
                                   ? `<p class="text-sm text-gray-600 mt-1">Ate: ${mealNotes}</p>`
                                   : ""
                               }
-                              ${proofPreviewHtml}
                               ${proofPreviewHtml}
                             </div>
                         </div>
@@ -5365,6 +5459,7 @@
           const type = proofModal.dataset.type;
           const itemId = parseInt(proofModal.dataset.itemId);
           const item = getItemByType(type, itemId);
+          const coversYesterday = !!proofPreviousDayToggle?.checked;
 
           if (!item || !proofPreview.src) {
             return;
@@ -5372,6 +5467,10 @@
 
           item.proofImage = proofPreview.src;
           item.proofDate = getTodayString();
+          item.proofCoversYesterday = coversYesterday;
+          item.proofCoversYesterdayDate = coversYesterday
+            ? getYesterdayString()
+            : null;
 
           if (item.requiresHomeworkCheck) {
             item.autoReviewStatus = "pending";
