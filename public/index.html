@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Schedule & Allowance Adventure</title>
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#6b5bff" />
+    <meta name="theme-color" content="#8b5e34" />
     <link rel="icon" href="/assets/icons/icon-32.png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/assets/icons/icon-180.png" />
     <link
@@ -14,12 +14,47 @@
     />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+      @font-face {
+        font-family: "CookieRun";
+        src: url("/fonts/CookieRunFont_TTF/CookieRun Regular.ttf")
+          format("truetype");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "CookieRun";
+        src: url("/fonts/CookieRunFont_TTF/CookieRun Bold.ttf")
+          format("truetype");
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "CookieRun";
+        src: url("/fonts/CookieRunFont_TTF/CookieRun Black.ttf")
+          format("truetype");
+        font-weight: 900;
+        font-style: normal;
+        font-display: swap;
+      }
       :root {
         --credit-pink: #ff5ab7;
         --credit-blue: #3bd1ff;
         --credit-gold: #ffd54a;
         --credit-purple: #7b5dff;
         --credit-ink: #1e1b3a;
+        --crk-cream: #fff4df;
+        --crk-biscuit: #f6d5a9;
+        --crk-caramel: #c9823b;
+        --crk-choco: #5d3a1a;
+        --crk-berry: #ff6aa0;
+        --crk-mint: #5bd6c2;
+        --crk-sky: #5cb7ff;
+        --crk-gold: #f7c44a;
+        --crk-ink: #2a1c14;
+        --crk-panel: rgba(255, 250, 240, 0.92);
+        --crk-shadow: rgba(64, 39, 20, 0.18);
       }
       .credit-hub {
         font-family: "Rubik", "Trebuchet MS", sans-serif;
@@ -56,6 +91,51 @@
         font-family: "Luckiest Guy", "Trebuchet MS", cursive;
         letter-spacing: 0.06em;
         color: var(--credit-purple);
+      }
+      body {
+        font-family: "CookieRun", "Fredoka", "Nunito", sans-serif;
+        background: radial-gradient(
+            circle at 12% 15%,
+            rgba(255, 214, 169, 0.7),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 90% 8%,
+            rgba(92, 183, 255, 0.25),
+            transparent 35%
+          ),
+          linear-gradient(160deg, #fff3d6 0%, #fef9f2 55%, #f2f8ff 100%);
+        color: var(--crk-ink);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: url("assets/crk/super-epic-cookie-lobby.webp") center/cover
+          no-repeat;
+        opacity: 0.16;
+        pointer-events: none;
+        z-index: -2;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+            circle at 30% 30%,
+            rgba(255, 255, 255, 0.7),
+            transparent 60%
+          ),
+          radial-gradient(
+            circle at 80% 80%,
+            rgba(255, 255, 255, 0.6),
+            transparent 55%
+          );
+        z-index: -1;
+        pointer-events: none;
       }
       .credit-pill {
         background: rgba(30, 27, 58, 0.08);
@@ -175,6 +255,290 @@
         animation: sparkle-float 2s infinite ease-in-out;
         pointer-events: none;
       }
+      .cookie-panel {
+        background: var(--crk-panel);
+        border: 4px solid var(--crk-choco);
+        border-radius: 28px;
+        box-shadow: 0 12px 0 rgba(210, 180, 140, 0.75),
+          0 18px 30px var(--crk-shadow);
+      }
+      .cookie-title {
+        font-family: "Fredoka", sans-serif;
+        color: var(--crk-choco);
+      }
+      .cookie-label {
+        color: #8b4513;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+      }
+      .cookie-task {
+        border: 3px solid var(--crk-choco);
+        border-radius: 18px;
+        background: linear-gradient(180deg, #ffffff 0%, #fff5e6 100%);
+        box-shadow: 0 6px 0 rgba(210, 180, 140, 0.8),
+          0 10px 18px rgba(93, 58, 26, 0.12);
+      }
+      .cookie-star {
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .cookie-star.active {
+        transform: scale(1.08);
+        background: #fef3c7;
+        border-color: #f59e0b;
+      }
+      .cookie-avatar-stack {
+        position: relative;
+        display: inline-block;
+        width: var(--avatar-size, 56px);
+        height: var(--avatar-size, 56px);
+      }
+      .cookie-avatar-layer {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+      }
+      .cookie-avatar-pill {
+        background: #fff9ea;
+        border: 2px solid #f3d4a8;
+        border-radius: 999px;
+        padding: 6px 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .cookie-collection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+      }
+      .cookie-card {
+        background: rgba(255, 255, 255, 0.85);
+        border: 2px solid rgba(93, 58, 26, 0.2);
+        border-radius: 18px;
+        padding: 12px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(93, 58, 26, 0.12);
+      }
+      .cookie-card.locked::after {
+        content: "LOCKED";
+        position: absolute;
+        inset: auto 0 0 0;
+        padding: 6px 0;
+        background: rgba(93, 58, 26, 0.85);
+        color: #fff3d6;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+      }
+      .cookie-portrait {
+        width: 100%;
+        height: 140px;
+        object-fit: contain;
+        filter: drop-shadow(0 8px 10px rgba(93, 58, 26, 0.2));
+      }
+      .cookie-card.locked .cookie-portrait {
+        filter: grayscale(1) brightness(0.75);
+        opacity: 0.7;
+      }
+      .cookie-rarity {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: rgba(255, 214, 169, 0.8);
+        color: #5d3a1a;
+      }
+      .cookie-action {
+        margin-top: 8px;
+        width: 100%;
+        border-radius: 999px;
+        border: none;
+        padding: 6px 10px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        background: linear-gradient(135deg, #ffb55c 0%, #ff8f55 100%);
+        color: #2a1b1b;
+        cursor: pointer;
+      }
+      .cookie-action.secondary {
+        background: linear-gradient(135deg, #66e6d1 0%, #5cb7ff 100%);
+        color: #0c2c3a;
+      }
+      .cookie-collection-grid.selecting .cookie-card {
+        pointer-events: none;
+      }
+      .cookie-select-pop {
+        animation: cookie-select-pop 0.5s
+          cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes cookie-select-pop {
+        0% {
+          transform: scale(0.9);
+          box-shadow: 0 0 0 rgba(247, 196, 74, 0);
+        }
+        60% {
+          transform: scale(1.06);
+          box-shadow: 0 0 24px rgba(247, 196, 74, 0.6);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 10px 20px rgba(93, 58, 26, 0.12);
+        }
+      }
+      .avatar-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 10px;
+        justify-items: center;
+      }
+      .avatar-option {
+        border: 2px solid transparent;
+        border-radius: 14px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.7);
+        transition: transform 0.2s ease, border-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .avatar-option:hover {
+        transform: translateY(-2px);
+        border-color: rgba(245, 158, 11, 0.6);
+      }
+      .avatar-option.active {
+        border-color: #f59e0b;
+        box-shadow: 0 8px 14px rgba(93, 58, 26, 0.18);
+      }
+      .avatar-option img {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
+      }
+      .kingdom-shell {
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 36px;
+        box-shadow: 0 30px 60px rgba(74, 42, 15, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(4px);
+      }
+      .kingdom-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(
+            125deg,
+            rgba(255, 247, 229, 0.95),
+            rgba(255, 236, 208, 0.9)
+          ),
+          url("assets/crk/super-epic-cookie-lobby.webp") center/cover no-repeat;
+      }
+      .kingdom-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          120deg,
+          rgba(255, 255, 255, 0.8) 0%,
+          rgba(255, 255, 255, 0.4) 55%,
+          transparent 100%
+        );
+        pointer-events: none;
+      }
+      .kingdom-logo {
+        max-width: 220px;
+        width: 100%;
+        filter: drop-shadow(0 10px 14px rgba(93, 58, 26, 0.25));
+      }
+      .kingdom-mascot {
+        width: 140px;
+        height: auto;
+        filter: drop-shadow(0 12px 18px rgba(93, 58, 26, 0.22));
+        animation: floaty 3.6s ease-in-out infinite;
+      }
+      .kingdom-pill {
+        background: rgba(255, 255, 255, 0.75);
+        border: 2px solid rgba(201, 130, 59, 0.4);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-weight: 700;
+        color: var(--crk-choco);
+      }
+      .kingdom-button {
+        background: linear-gradient(135deg, #ffb55c 0%, #ff8f55 100%);
+        color: #2a1b1b;
+        border-radius: 999px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        box-shadow: 0 12px 20px rgba(138, 68, 11, 0.2);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .kingdom-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 26px rgba(138, 68, 11, 0.28);
+      }
+      .kingdom-button.secondary {
+        background: linear-gradient(135deg, #66e6d1 0%, #5cb7ff 100%);
+        color: #0c2c3a;
+      }
+      .kingdom-tabbar {
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 18px;
+        padding: 6px;
+        border: 2px solid rgba(201, 130, 59, 0.25);
+      }
+      .tab-btn {
+        border-radius: 14px;
+        padding: 10px 14px;
+        font-weight: 700;
+        color: rgba(42, 28, 20, 0.7);
+        transition: all 0.2s ease;
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, #fff1c5, #ffd987);
+        color: #4b2a12;
+        box-shadow: 0 6px 12px rgba(93, 58, 26, 0.18);
+      }
+      .kingdom-progress-track {
+        background: rgba(255, 255, 255, 0.75);
+        border: 2px solid rgba(201, 130, 59, 0.35);
+        border-radius: 999px;
+        height: 18px;
+        box-shadow: inset 0 2px 6px rgba(93, 58, 26, 0.12);
+      }
+      .kingdom-progress-fill {
+        background: linear-gradient(90deg, #6fe1ff, #ffd35c, #ff9e7a);
+        height: 100%;
+        border-radius: inherit;
+        transition: width 0.5s ease;
+        box-shadow: 0 8px 16px rgba(255, 158, 122, 0.35);
+      }
+      .fade-in {
+        animation: soft-rise 0.7s ease both;
+      }
+      @keyframes floaty {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      @keyframes soft-rise {
+        0% {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
     <script>
       if ("serviceWorker" in navigator) {
@@ -208,6 +572,20 @@
           jellies: 30,
           class: "Charge",
           avatar: "🍪",
+          unlockedCookies: ["brave-default"],
+          activeCookie: "brave-default",
+          inventory: ["hat_01"],
+          current_outfit: {
+            body: "assets/cookie/slices/cookiebody/01.png",
+            head: "assets/cookie/slices/hair/05.png",
+            eyes: "assets/cookie/slices/eyesmouths/03.png",
+            arms: "assets/cookie/slices/bodyposes/01.png",
+            legs: "assets/cookie/slices/bodyposes/03.png",
+            accessory: null,
+          },
+        },
+        weekly_stars: {
+          Schedule: [0, 0, 0, 0, 0],
         },
         inventory: [],
         quests: [
@@ -230,6 +608,98 @@
 
       let state = { ...initialState };
       let selectedDough = { class: "Charge", avatar: "🍪" };
+      const cookieSubjects = ["Schedule"];
+      const cookieDays = ["M", "T", "W", "T", "F"];
+      const cookieStorageKey = "cookie-kingdom-state-v1";
+      const cookieRewards = { starCrystals: 200, starExp: 100 };
+      const ItemDatabase = [
+        {
+          id: "hat_01",
+          type: "accessory",
+          name: "Adventurer Hat",
+          cost: 500,
+          emoji: "🤠",
+        },
+        {
+          id: "eyes_01",
+          type: "accessory",
+          name: "Cool Shades",
+          cost: 1000,
+          emoji: "😎",
+        },
+        {
+          id: "skin_choco",
+          type: "avatar",
+          name: "Chocolate Dough",
+          cost: 1500,
+          emoji: "🍫",
+        },
+        {
+          id: "skin_berry",
+          type: "avatar",
+          name: "Berry Dough",
+          cost: 1500,
+          emoji: "🍇",
+        },
+      ];
+      const cookieCatalog = [
+        {
+          id: "brave-default",
+          name: "Brave Cookie",
+          image: "assets/cookies/brave/default.webp",
+          cost: 0,
+          rarity: "Common",
+        },
+        {
+          id: "brave-happy",
+          name: "Brave Cookie (Happy)",
+          image: "assets/cookies/brave/happy.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "brave-hurray",
+          name: "Brave Cookie (Hurray)",
+          image: "assets/cookies/brave/hurray.webp",
+          cost: 200,
+          rarity: "Common",
+        },
+        {
+          id: "brave-angry",
+          name: "Brave Cookie (Angry)",
+          image: "assets/cookies/brave/angry.webp",
+          cost: 200,
+          rarity: "Common",
+        },
+        {
+          id: "white-lily-default",
+          name: "White Lily Cookie",
+          image: "assets/cookies/white-lily/default.png",
+          cost: 600,
+          rarity: "Epic",
+        },
+        {
+          id: "white-lily-smile",
+          name: "White Lily (Smile)",
+          image: "assets/cookies/white-lily/smile.png",
+          cost: 650,
+          rarity: "Epic",
+        },
+        {
+          id: "white-lily-happy",
+          name: "White Lily (Happy)",
+          image: "assets/cookies/white-lily/happy.png",
+          cost: 650,
+          rarity: "Epic",
+        },
+        {
+          id: "white-lily-motivated",
+          name: "White Lily (Motivated)",
+          image: "assets/cookies/white-lily/motivated.png",
+          cost: 700,
+          rarity: "Epic",
+        },
+      ];
 
       async function apiFetch(path, options = {}) {
         const headers = {
@@ -265,6 +735,7 @@
       }
 
       async function saveKingdom() {
+        saveCookieLocalState();
         try {
           await fetch(KINGDOM_API_URL, {
             method: "POST",
@@ -279,8 +750,19 @@
       function renderUI() {
         const nameEl = document.getElementById("cookie-name");
         if (nameEl) nameEl.textContent = state.player.name;
+        const headerNameEl = document.getElementById("player-name");
+        if (headerNameEl) headerNameEl.textContent = state.player.name;
         const levelEl = document.getElementById("cookie-level");
         if (levelEl) levelEl.textContent = state.player.level;
+        const levelBadgeEl = document.getElementById("lvl-badge");
+        if (levelBadgeEl) levelBadgeEl.textContent = `LVL ${state.player.level}`;
+        const crystalEl = document.getElementById("cookie-crystals");
+        if (crystalEl) crystalEl.textContent = state.player.crystals;
+        const avatarEl = document.getElementById("cookie-avatar");
+        if (avatarEl) renderCookieAvatar(avatarEl, 44);
+        const mainAvatarEl = document.getElementById("main-avatar");
+        if (mainAvatarEl) renderCookieAvatar(mainAvatarEl, 52);
+        renderCookieStars();
       }
 
       function selectDough(className, avatar, event) {
@@ -303,11 +785,17 @@
             if (!data || !data.player || data.player.name === "New Cookie") {
               document.getElementById("setup-screen")?.classList.remove("hidden");
             } else {
-              state = data;
+              state = normalizeCookieState(data);
               renderUI();
             }
           }
         } catch (error) {
+          const localState = loadCookieLocalState();
+          if (localState) {
+            state = normalizeCookieState(localState);
+            renderUI();
+            return;
+          }
           console.log("Starting fresh Kingdom.");
         }
       }
@@ -324,6 +812,327 @@
 
         document.getElementById("setup-screen")?.classList.add("hidden");
         renderUI();
+      }
+
+      function getCookieById(cookieId) {
+        return cookieCatalog.find((cookie) => cookie.id === cookieId);
+      }
+
+      function renderCookieAvatar(targetEl, size) {
+        if (!targetEl) return;
+        const cookie = getCookieById(state.player.activeCookie);
+        targetEl.innerHTML = "";
+        if (cookie) {
+          const img = document.createElement("img");
+          img.src = cookie.image;
+          img.alt = cookie.name;
+          img.style.width = `${size}px`;
+          img.style.height = `${size}px`;
+          img.style.objectFit = "contain";
+          targetEl.appendChild(img);
+          return;
+        }
+        targetEl.textContent = state.player.avatar || "🍪";
+      }
+
+      function openAvatarBuilder() {
+        const modal = document.getElementById("avatar-builder-modal");
+        renderCookieCollection();
+        if (modal) modal.classList.remove("hidden");
+      }
+
+      function isCookieUnlocked(cookieId) {
+        return (state.player.unlockedCookies || []).includes(cookieId);
+      }
+
+      function selectCookie(cookieId) {
+        state.player.activeCookie = cookieId;
+        saveKingdom();
+        renderUI();
+        renderCookieCollection(cookieId, "select");
+      }
+
+      function unlockCookie(cookieId) {
+        const cookie = getCookieById(cookieId);
+        if (!cookie || isCookieUnlocked(cookieId)) return;
+        if (state.player.crystals < cookie.cost) {
+          alert("Not enough crystals yet!");
+          return;
+        }
+        state.player.crystals -= cookie.cost;
+        state.player.unlockedCookies = [
+          ...(state.player.unlockedCookies || []),
+          cookieId,
+        ];
+        state.player.activeCookie = cookieId;
+        saveKingdom();
+        renderUI();
+        renderCookieCollection(cookieId, "unlock");
+      }
+
+      function renderCookieCollection(focusId = null, mode = "select") {
+        const preview = document.getElementById("avatar-preview");
+        renderCookieAvatar(preview, 180);
+        const grid = document.getElementById("cookie-collection-grid");
+        if (!grid) return;
+        grid.innerHTML = "";
+        grid.classList.toggle("selecting", !!focusId);
+        cookieCatalog.forEach((cookie) => {
+          const unlocked = isCookieUnlocked(cookie.id);
+          const card = document.createElement("div");
+          card.className = `cookie-card${unlocked ? "" : " locked"}`;
+          const img = document.createElement("img");
+          img.className = "cookie-portrait";
+          img.src = cookie.image;
+          img.alt = cookie.name;
+          const title = document.createElement("div");
+          title.className = "mt-2 font-bold text-sm";
+          title.textContent = cookie.name;
+          const rarity = document.createElement("div");
+          rarity.className = "cookie-rarity";
+          rarity.textContent = cookie.rarity;
+          const action = document.createElement("button");
+          action.className = `cookie-action${unlocked ? " secondary" : ""}`;
+          action.textContent = unlocked
+            ? "Select"
+            : `Unlock • ${cookie.cost} 💎`;
+          action.addEventListener("click", () => {
+            if (unlocked) {
+              selectCookie(cookie.id);
+            } else {
+              unlockCookie(cookie.id);
+            }
+          });
+          card.appendChild(img);
+          card.appendChild(title);
+          card.appendChild(rarity);
+          card.appendChild(action);
+          grid.appendChild(card);
+          if (cookie.id === focusId) {
+            card.classList.add("cookie-select-pop");
+            if (mode === "unlock") {
+              const label = document.createElement("div");
+              label.textContent = "Unlocked!";
+              label.className = "cookie-rarity";
+              label.style.background = "rgba(92,183,255,0.2)";
+              label.style.color = "#0c2c3a";
+              card.appendChild(label);
+            }
+          }
+        });
+        if (focusId) {
+          window.setTimeout(() => {
+            grid.classList.remove("selecting");
+          }, 500);
+        }
+      }
+
+      function openShop() {
+        document.getElementById("shop-modal")?.classList.remove("hidden");
+        renderShopItems();
+      }
+
+      function renderShopItems() {
+        const shopList = document.getElementById("shop-items-list");
+        if (!shopList) return;
+        const inventory = Array.isArray(state.player.inventory)
+          ? state.player.inventory
+          : [];
+        shopList.innerHTML = ItemDatabase.map((item) => {
+          const owned = inventory.includes(item.id);
+          const canAfford = state.player.crystals >= item.cost;
+          return `
+            <div class="flex justify-between items-center p-3 border-2 rounded-xl ${
+              owned
+                ? "bg-green-100 border-green-500 opacity-70"
+                : "bg-white border-amber-300"
+            }">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">${item.emoji}</span>
+                <div>
+                  <div class="font-bold">${item.name}</div>
+                  <div class="text-xs text-gray-500">${item.type}</div>
+                </div>
+              </div>
+              ${
+                owned
+                  ? '<span class="text-green-600 font-bold">OWNED</span>'
+                  : `<button onclick="purchaseItem('${item.id}')" ${
+                      canAfford ? "" : "disabled"
+                    }
+                    class="bg-[#8b4513] text-white px-4 py-1 rounded-full text-sm font-bold disabled:bg-gray-400">
+                    ${item.cost} 💎
+                  </button>`
+              }
+            </div>
+          `;
+        }).join("");
+      }
+
+      async function purchaseItem(itemId) {
+        const item = ItemDatabase.find((i) => i.id === itemId);
+        if (!item) return;
+        if (
+          state.player.crystals >= item.cost &&
+          !state.player.inventory.includes(itemId)
+        ) {
+          state.player.crystals -= item.cost;
+          state.player.inventory.push(itemId);
+          if (item.type === "avatar") {
+            state.player.avatar = item.emoji;
+            if (!state.player.current_outfit) {
+              state.player.current_outfit = {
+                avatar: item.emoji,
+                accessory: null,
+              };
+            } else {
+              state.player.current_outfit.avatar = item.emoji;
+            }
+          }
+          alert(`🎉 You unlocked: ${item.name}!`);
+          await saveKingdom();
+          renderUI();
+          renderShopItems();
+        }
+      }
+
+      function normalizeCookieState(data) {
+        const merged = {
+          ...initialState,
+          ...data,
+          player: { ...initialState.player, ...(data?.player || {}) },
+        };
+        if (!merged.weekly_stars || !merged.weekly_stars.Schedule) {
+          merged.weekly_stars = { Schedule: [0, 0, 0, 0, 0] };
+        }
+        if (!Array.isArray(merged.player.inventory)) {
+          merged.player.inventory = ["hat_01"];
+        }
+        if (!Array.isArray(merged.player.unlockedCookies)) {
+          merged.player.unlockedCookies = ["brave-default"];
+        }
+        if (!merged.player.activeCookie) {
+          merged.player.activeCookie = merged.player.unlockedCookies[0];
+        }
+        if (
+          merged.player.activeCookie &&
+          !merged.player.unlockedCookies.includes(merged.player.activeCookie)
+        ) {
+          merged.player.activeCookie = merged.player.unlockedCookies[0];
+        }
+        if (!merged.player.current_outfit) {
+          merged.player.current_outfit = {
+            body: "assets/cookie/slices/cookiebody/01.png",
+            head: "assets/cookie/slices/hair/05.png",
+            eyes: "assets/cookie/slices/eyesmouths/03.png",
+            arms: "assets/cookie/slices/bodyposes/01.png",
+            legs: "assets/cookie/slices/bodyposes/03.png",
+            accessory: null,
+          };
+        }
+        merged.player.current_outfit.body =
+          merged.player.current_outfit.body ||
+          "assets/cookie/slices/cookiebody/01.png";
+        merged.player.current_outfit.head =
+          merged.player.current_outfit.head || "assets/cookie/slices/hair/05.png";
+        merged.player.current_outfit.eyes =
+          merged.player.current_outfit.eyes ||
+          "assets/cookie/slices/eyesmouths/03.png";
+        merged.player.current_outfit.arms =
+          merged.player.current_outfit.arms ||
+          "assets/cookie/slices/bodyposes/01.png";
+        merged.player.current_outfit.legs =
+          merged.player.current_outfit.legs ||
+          "assets/cookie/slices/bodyposes/03.png";
+        return merged;
+      }
+
+      function saveCookieLocalState() {
+        try {
+          localStorage.setItem(cookieStorageKey, JSON.stringify(state));
+        } catch (error) {
+          return;
+        }
+      }
+
+      function loadCookieLocalState() {
+        try {
+          const raw = localStorage.getItem(cookieStorageKey);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== "object") return null;
+          return parsed;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function renderCookieStars() {
+        const gridContainer = document.getElementById("cookie-subject-grids");
+        if (!gridContainer) return;
+        gridContainer.innerHTML = cookieSubjects
+          .map(
+            (subject) => `
+              <div>
+                <div class="flex justify-between text-[11px] font-bold mb-2 uppercase cookie-title">
+                  <span>${subject}</span>
+                  <span>${
+                    state.weekly_stars[subject].filter((s) => s === 1).length
+                  }/5</span>
+                </div>
+                <div class="flex justify-between gap-2">
+                  ${state.weekly_stars[subject]
+                    .map(
+                      (val, idx) => `
+                        <div onclick="toggleCookieStar('${subject}', ${idx})"
+                          class="cookie-star w-10 h-10 rounded-xl flex items-center justify-center border-2 border-amber-200 ${
+                            val
+                              ? "active border-amber-500 bg-amber-100 shadow-inner"
+                              : "bg-white text-amber-400"
+                          }">
+                          ${val ? "⭐" : cookieDays[idx]}
+                        </div>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function toggleCookieStar(subject, dayIdx) {
+        if (!state.weekly_stars[subject]) return;
+        if (state.weekly_stars[subject][dayIdx] === 1) return;
+        state.weekly_stars[subject][dayIdx] = 1;
+        state.player.crystals += cookieRewards.starCrystals;
+        state.player.exp += cookieRewards.starExp;
+        checkCookieLevelUp();
+        saveKingdom();
+        renderUI();
+      }
+
+      function checkCookieLevelUp() {
+        const needed = state.player.level * 1000;
+        if (state.player.exp >= needed) {
+          state.player.level++;
+          state.player.exp -= needed;
+          triggerLevelUpAnimation();
+        }
+      }
+
+      function updateCookieStarFromSchedule() {
+        const today = new Date();
+        const day = today.getDay();
+        if (day < 1 || day > 5) return;
+        const dayIdx = day - 1;
+        const todayItems = getScheduleItemsForDate(getTodayString());
+        if (!todayItems.length) return;
+        const allDone = todayItems.every((item) => item.completed);
+        if (allDone) {
+          toggleCookieStar("Schedule", dayIdx);
+        }
       }
 
       async function ensureHouseholdMeta() {
@@ -790,51 +1599,89 @@
     </style>
   </head>
   <body>
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="container mx-auto px-4 py-8 max-w-5xl kingdom-shell">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-center mb-8">
-        <div>
+      <div class="cookie-panel kingdom-hero p-6 flex flex-col lg:flex-row justify-between items-center gap-6 mb-8 fade-in">
+        <div class="relative z-10">
+          <img
+            src="assets/crk/cookie-run-kingdom-logo.png"
+            alt="Cookie Run Kingdom"
+            class="kingdom-logo mb-3"
+          />
           <div class="flex flex-wrap items-center gap-2">
-            <h1 class="text-3xl md:text-4xl font-bold text-blue-600">
+            <h1 class="text-3xl md:text-4xl font-bold cookie-title">
               My Daily Adventure
             </h1>
-            <span
-              class="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-semibold text-yellow-800"
-              >✨ Allowance Quest</span
-            >
+            <span class="kingdom-pill">✨ Allowance Quest</span>
           </div>
-          <p class="text-gray-600" id="current-date">Loading date...</p>
+          <div class="flex items-center gap-2 mt-2">
+            <div
+              id="main-avatar"
+              class="cursor-pointer"
+              onclick="openAvatarBuilder()"
+            ></div>
+            <div>
+              <div id="player-name" class="text-xl font-bold text-amber-800">
+                New Cookie
+              </div>
+              <div
+                id="lvl-badge"
+                class="bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full inline-block"
+              >
+                LVL 1
+              </div>
+            </div>
+          </div>
+          <p class="text-amber-700" id="current-date">Loading date...</p>
         </div>
-        <div class="mt-4 md:mt-0 flex flex-col items-end gap-2">
-          <div class="flex items-center gap-3 text-sm"></div>
+        <div class="relative z-10 flex flex-col items-end gap-2">
+          <div class="flex items-center gap-3 text-sm">
+            <button
+              onclick="openShop()"
+              class="kingdom-button px-4 py-2 text-xs"
+            >
+              Shop
+            </button>
+            <button
+              class="kingdom-button secondary px-4 py-2 text-xs"
+              onclick="openAvatarBuilder()"
+            >
+              Collection
+            </button>
+          </div>
           <button
             id="admin-toggle"
-            class="text-sm text-blue-600 hover:text-blue-800 underline"
+            class="text-sm text-amber-900 hover:text-amber-950 underline"
           >
             Admin Sign In
           </button>
-          <div class="bg-white p-4 rounded-lg shadow-md">
-            <p class="text-xl font-bold text-center" id="current-time">
+          <div class="bg-[#fff9ea] border-2 border-amber-200 p-4 rounded-2xl shadow-md">
+            <p class="text-xl font-bold text-center cookie-title" id="current-time">
               Loading time...
             </p>
-            <p class="text-sm text-gray-500 text-center">Current Time</p>
+            <p class="text-sm text-amber-700 text-center">Current Time</p>
           </div>
         </div>
+        <img
+          src="assets/crk/brave-hurray.webp"
+          alt="Brave Cookie"
+          class="kingdom-mascot hidden lg:block"
+        />
       </div>
 
       <!-- Progress Bar -->
-      <div class="mb-8">
+      <div class="mb-8 fade-in">
         <div class="flex justify-between mb-2">
-          <span class="text-sm font-medium text-blue-700"
+          <span class="text-sm font-medium text-amber-800"
             >Adventure Progress</span
           >
-          <span class="text-sm font-medium text-blue-700" id="progress-text"
+          <span class="text-sm font-medium text-amber-800" id="progress-text"
             >0%</span
           >
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-4">
+        <div class="kingdom-progress-track w-full">
           <div
-            class="bg-blue-600 h-4 rounded-full transition-all duration-500"
+            class="kingdom-progress-fill"
             id="progress-bar"
             style="width: 0%"
           ></div>
@@ -842,36 +1689,15 @@
       </div>
 
       <!-- Tabs -->
-      <div class="mb-6">
-        <div class="flex border-b border-gray-200">
-          <button
-            class="tab-btn py-2 px-4 font-semibold border-b-2 border-blue-500 text-blue-600"
-            data-tab="schedule"
-          >
+      <div class="mb-6 fade-in">
+        <div class="kingdom-tabbar flex flex-wrap gap-2">
+          <button class="tab-btn active" data-tab="schedule">
             Daily Adventure
           </button>
-          <button
-            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
-            data-tab="missions"
-          >
-            Missions
-          </button>
-          <button
-            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
-            data-tab="journal"
-          >
-            Journal
-          </button>
-          <button
-            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
-            data-tab="habits"
-          >
-            Habits & Tasks
-          </button>
-          <button
-            class="tab-btn py-2 px-4 font-semibold text-gray-500 hover:text-gray-700"
-            data-tab="rewards"
-          >
+          <button class="tab-btn" data-tab="missions">Missions</button>
+          <button class="tab-btn" data-tab="journal">Journal</button>
+          <button class="tab-btn" data-tab="habits">Habits & Tasks</button>
+          <button class="tab-btn" data-tab="rewards">
             Allowance & Rewards
           </button>
         </div>
@@ -879,15 +1705,15 @@
 
       <!-- Schedule Tab Content -->
       <div id="schedule-tab" class="tab-content">
-        <div class="text-center mb-10">
+        <div class="text-center mb-10 fade-in">
           <span
-            class="text-blue-600 font-semibold text-sm uppercase tracking-wide"
+            class="text-amber-700 font-semibold text-sm uppercase tracking-wide"
             >Today's Work</span
           >
-          <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mt-2 mb-3">
+          <h2 class="text-2xl md:text-3xl font-bold cookie-title mt-2 mb-3">
             Live Schedule &amp; Unfinished Tasks
           </h2>
-          <p class="text-gray-600 max-w-2xl mx-auto">
+          <p class="text-amber-800 max-w-2xl mx-auto">
             The schedule updates automatically based on the current time.
             Unfinished tasks collect anything earlier today that isn't marked
             complete, plus anytime tasks.
@@ -895,13 +1721,13 @@
           <div class="flex flex-wrap items-center justify-center gap-2 mt-5">
             <button
               id="refactor-schedule"
-              class="bg-white text-blue-600 px-3 py-1 rounded-md border border-blue-200 hover:bg-blue-50 transition"
+              class="kingdom-pill text-sm"
             >
               Refactor Schedule
             </button>
             <button
               id="edit-schedule"
-              class="admin-only bg-blue-100 text-blue-600 px-3 py-1 rounded-md hover:bg-blue-200 transition"
+              class="admin-only kingdom-pill text-sm"
             >
               Edit Adventure
             </button>
@@ -909,13 +1735,13 @@
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2">
-            <div class="bg-white p-4 rounded-lg shadow-md">
-              <h3 class="text-lg font-semibold text-gray-800 mb-3">
+            <div class="cookie-panel p-5">
+              <h3 class="text-lg font-semibold cookie-title mb-3">
                 Schedule (Today)
               </h3>
               <div id="schedule-container" class="space-y-3"></div>
               <div id="anytime-section" class="mt-6 hidden">
-                <h4 class="text-lg font-semibold text-gray-800 mb-2">
+                <h4 class="text-lg font-semibold cookie-title mb-2">
                   Anytime Tasks
                 </h4>
                 <div id="anytime-container" class="space-y-3"></div>
@@ -923,19 +1749,19 @@
             </div>
 
             <!-- Notes Section -->
-            <div class="mt-6 bg-white p-4 rounded-lg shadow-md">
-              <h3 class="text-lg font-semibold text-gray-800 mb-2">
+            <div class="cookie-panel p-4 mt-6">
+              <h3 class="text-lg font-semibold cookie-title mb-2">
                 Today's Notes
               </h3>
               <textarea
                 id="daily-notes"
-                class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full h-24 p-2 border border-amber-200 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white/80"
                 placeholder="Write your notes here..."
               ></textarea>
               <div class="mt-2 text-right">
                 <button
                   id="save-notes"
-                  class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition"
+                  class="kingdom-button px-4 py-2 text-xs"
                 >
                   Save Notes
                 </button>
@@ -943,14 +1769,40 @@
             </div>
           </div>
           <div class="lg:col-span-1">
-            <div class="bg-white p-4 rounded-lg shadow-md">
-              <h3 class="text-lg font-semibold text-gray-800 mb-3">
+            <div class="cookie-panel p-5">
+              <h3 class="text-lg font-semibold cookie-title mb-3">
                 Unfinished Tasks
               </h3>
               <div id="unfinished-container" class="space-y-2"></div>
             </div>
           </div>
         </div>
+
+        <section class="cookie-panel p-6 mt-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div>
+              <div class="text-xs uppercase cookie-label">Cookie Kingdom</div>
+              <h3 class="text-2xl font-bold cookie-title">
+                Weekly Exploration
+              </h3>
+            </div>
+            <div class="text-right text-sm cookie-title">
+              <div class="flex items-center justify-end gap-2">
+                <span id="cookie-avatar"></span>
+                <span id="cookie-name">New Cookie</span>
+              </div>
+              <div>LVL <span id="cookie-level">1</span></div>
+              <div>💎 <span id="cookie-crystals">0</span></div>
+              <button
+                id="open-avatar-builder"
+                class="mt-2 kingdom-button px-4 py-2 text-[10px]"
+              >
+                Collection
+              </button>
+            </div>
+          </div>
+          <div id="cookie-subject-grids" class="space-y-4"></div>
+        </section>
       </div>
 
       <!-- Missions Tab Content -->
@@ -1058,11 +1910,19 @@
 
       <!-- Habits Tab Content -->
       <div id="habits-tab" class="tab-content hidden">
-        <div class="flex justify-between mb-4">
-          <h2 class="text-xl font-bold text-gray-800">Habit Tracker</h2>
-          <p class="text-sm text-gray-500">
-            Track micro tasks by category and add new ones as needed.
-          </p>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">Habit Tracker</h2>
+            <p class="text-sm text-gray-500">
+              Track micro tasks by category and add new ones as needed.
+            </p>
+          </div>
+          <button
+            id="habit-save"
+            class="kingdom-button px-4 py-2 text-xs"
+          >
+            Save Habits
+          </button>
         </div>
         <div class="mb-4 flex flex-wrap gap-2">
           <input
@@ -1799,6 +2659,106 @@
       </div>
     </div>
 
+    <div
+      id="setup-screen"
+      class="fixed inset-0 z-50 bg-[#fdf5e6] flex items-center justify-center p-6 hidden"
+    >
+      <div class="cookie-panel p-8 w-full max-w-sm text-center">
+        <h1 class="text-3xl font-bold mb-4 cookie-title">Bake Your Cookie</h1>
+        <input
+          type="text"
+          id="name-input"
+          placeholder="Cookie Name..."
+          class="w-full p-3 border-2 border-amber-200 rounded-2xl mb-6 text-center focus:border-amber-500 outline-none"
+        />
+        <button
+          onclick="bakeCookie()"
+          class="w-full bg-[#8b4513] text-white py-4 rounded-2xl font-bold shadow-lg"
+        >
+          START ADVENTURE
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="level-up-modal"
+      class="fixed inset-0 z-50 level-up-overlay flex items-center justify-center hidden p-6 text-center"
+    >
+      <div class="level-up-card rounded-[40px] p-8 relative">
+        <h1 class="text-4xl font-bold text-amber-700">LEVEL UP!</h1>
+        <div class="text-8xl my-6">👑</div>
+        <button
+          onclick="closeLevelUp()"
+          class="bg-amber-600 text-white px-8 py-3 rounded-full font-bold"
+        >
+          AWESOME!
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="avatar-builder-modal"
+      class="fixed inset-0 z-50 bg-[#fdf5e6]/95 backdrop-blur-sm flex items-center justify-center p-6 hidden"
+    >
+      <div class="cookie-panel p-6 w-full max-w-lg text-center relative">
+        <button
+          onclick="document.getElementById('avatar-builder-modal').classList.add('hidden')"
+          class="absolute top-4 right-4 text-xl text-amber-800 hover:text-amber-950"
+          aria-label="Close cookie collection"
+        >
+          ✕
+        </button>
+        <h2 class="text-2xl font-bold mb-4 cookie-title">Cookie Collection</h2>
+
+        <div class="flex justify-around items-center mb-4">
+          <div id="avatar-preview" class="cookie-avatar-pill"></div>
+        </div>
+
+        <p class="text-sm text-amber-800 mb-4">
+          Unlock cookies with crystals and select your favorite.
+        </p>
+
+        <div id="cookie-collection-grid" class="cookie-collection-grid mb-6"></div>
+
+        <button
+          onclick="document.getElementById('avatar-builder-modal').classList.add('hidden')"
+          class="text-sm text-amber-800 underline"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
+    <div
+      id="shop-modal"
+      class="fixed inset-0 z-50 bg-[#fdf5e6]/95 backdrop-blur-sm flex items-center justify-center p-6 hidden"
+    >
+      <div class="cookie-panel p-6 w-full max-w-lg">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold cookie-title">
+            The Magic Oven (Shop)
+          </h2>
+          <button
+            onclick="document.getElementById('shop-modal').classList.add('hidden')"
+            class="text-xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div id="shop-items-list" class="space-y-4 max-h-80 overflow-y-auto">
+          <!-- Items injected here -->
+        </div>
+
+        <button
+          onclick="openShop()"
+          class="w-full mt-4 bg-gray-300 text-gray-500 py-3 rounded-2xl font-bold"
+        >
+          Refresh Shop
+        </button>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
     <script>
       // Initial data (loaded from /data/default-tasks.json)
@@ -2011,6 +2971,7 @@
       );
       const habitItemInput = document.getElementById("habit-item-input");
       const habitItemAdd = document.getElementById("habit-item-add");
+      const habitSaveButton = document.getElementById("habit-save");
 
       // Tab functionality
       const tabButtons = document.querySelectorAll(".tab-btn");
@@ -2023,19 +2984,9 @@
           // Update button styles
           tabButtons.forEach((btn) => {
             if (btn === button) {
-              btn.classList.add(
-                "border-b-2",
-                "border-blue-500",
-                "text-blue-600"
-              );
-              btn.classList.remove("text-gray-500");
+              btn.classList.add("active");
             } else {
-              btn.classList.remove(
-                "border-b-2",
-                "border-blue-500",
-                "text-blue-600"
-              );
-              btn.classList.add("text-gray-500");
+              btn.classList.remove("active");
             }
           });
 
@@ -2080,6 +3031,18 @@
       function getTodayString() {
         const today = new Date();
         return today.toISOString().split("T")[0];
+      }
+
+      function getYesterdayString() {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        return yesterday.toISOString().split("T")[0];
+      }
+
+      function isSchoolTask(item) {
+        if (!item || !item.type) return false;
+        return item.type === "focus";
       }
 
       function formatTime(timeString) {
@@ -2355,6 +3318,9 @@
               const durationField = item.requiresDuration
                 ? `<input type="text" data-id="${item.id}" class="habit-duration ml-2 w-28 border border-gray-300 rounded-md px-2 py-1 text-sm" placeholder="Duration" value="${durationValue}">`
                 : "";
+              const streakValue = Number.isFinite(item.streak)
+                ? item.streak
+                : 0;
               return `
                         <div class="flex items-center justify-between gap-2 py-1">
                             <label class="flex items-center gap-2 text-sm text-gray-700">
@@ -2365,7 +3331,12 @@
               }>
                                 <span>${item.label}</span>
                             </label>
-                            ${durationField}
+                            <div class="flex items-center gap-2">
+                              <span class="text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-1 rounded-full">
+                                Streak ${streakValue}
+                              </span>
+                              ${durationField}
+                            </div>
                         </div>
                     `;
             })
@@ -2410,14 +3381,30 @@
         habitsContainer.querySelectorAll(".habit-toggle").forEach((toggle) => {
           toggle.addEventListener("change", () => {
             const id = toggle.dataset.id;
+            const today = getTodayString();
+            const yesterday = getYesterdayString();
             habitCategories.forEach((category) => {
               const item = category.items.find((entry) => entry.id === id);
               if (item) {
                 item.completed = toggle.checked;
+                if (toggle.checked) {
+                  if (item.lastCompleted !== today) {
+                    if (item.lastCompleted === yesterday) {
+                      item.streak = (item.streak || 0) + 1;
+                    } else {
+                      item.streak = 1;
+                    }
+                    item.lastCompleted = today;
+                  }
+                } else if (item.lastCompleted === today) {
+                  item.lastCompleted = null;
+                  item.streak = Math.max((item.streak || 1) - 1, 0);
+                }
               }
             });
             saveHabitsToStorage();
             saveHabitsToServer();
+            renderHabits();
           });
         });
 
@@ -2461,6 +3448,21 @@
         saveHabitsToStorage();
         saveHabitsToServer();
         renderHabits();
+      }
+
+      function handleHabitSave() {
+        if (!habitSaveButton) return;
+        habitSaveButton.disabled = true;
+        const originalText = habitSaveButton.textContent;
+        habitSaveButton.textContent = "Saving...";
+        saveHabitsToStorage();
+        Promise.resolve(saveHabitsToServer()).finally(() => {
+          habitSaveButton.textContent = "Saved!";
+          window.setTimeout(() => {
+            habitSaveButton.textContent = originalText;
+            habitSaveButton.disabled = false;
+          }, 800);
+        });
       }
 
       function updateDateTime() {
@@ -2535,6 +3537,7 @@
 
         progressBarEl.style.width = `${progressPercentage}%`;
         progressTextEl.textContent = `${progressPercentage}%`;
+        updateCookieStarFromSchedule();
       }
 
       function triggerLevelUpAnimation() {
@@ -2692,6 +3695,9 @@
       function approveTask(item, label) {
         item.pendingApproval = false;
         item.completed = true;
+        if (item.requiresHomeworkCheck) {
+          item.completedDate = item.proofDate || getTodayString();
+        }
         if (settings.pointsEnabled) {
           const itemPoints = getEffectivePoints(item);
           if (itemPoints > 0) {
@@ -2722,6 +3728,7 @@
         item.pendingApproval = false;
         item.completed = false;
         item.proofImage = "";
+        item.proofDate = null;
         item.pendingRelease = false;
         if (settings.pointsEnabled) {
           pendingPoints = Math.max(0, pendingPoints - getEffectivePoints(item));
@@ -2792,6 +3799,22 @@
         anytimeContainer.innerHTML = "";
 
         let itemsForToday = getScheduleItemsForDate(getTodayString());
+        const todayString = getTodayString();
+        itemsForToday.forEach((item) => {
+          if (
+            item.requiresHomeworkCheck &&
+            item.completedDate &&
+            item.completedDate !== todayString
+          ) {
+            item.completed = false;
+            item.pendingApproval = false;
+            item.pendingRelease = false;
+            item.proofImage = "";
+            item.autoReviewStatus = "";
+            item.completedDate = null;
+            item.proofDate = null;
+          }
+        });
         if (scheduleRefactorActive) {
           itemsForToday = reorderScheduleForNow(itemsForToday);
         } else {
@@ -2805,7 +3828,11 @@
         ) => {
           items.forEach((item) => {
             const itemEl = document.createElement("div");
-            itemEl.className = `schedule-item task-card flex items-center p-3 rounded-lg shadow-sm ${getTypeClass(
+            const requiresPhoto = item.requiresPhoto || isSchoolTask(item);
+            if (requiresPhoto && !item.requiresPhoto) {
+              item.requiresPhoto = true;
+            }
+            itemEl.className = `schedule-item task-card cookie-task flex items-center p-3 rounded-lg shadow-sm ${getTypeClass(
               item.type
             )} ${getTypeColor(item.type)} ${item.completed ? "completed" : ""}`;
             itemEl.dataset.id = item.id;
@@ -2830,7 +3857,7 @@
               pointsDisplay =
                 '<span class="text-xs font-semibold text-blue-600 ml-2">⭐</span>';
             }
-            const cameraButton = item.requiresPhoto
+            const cameraButton = requiresPhoto
               ? `<button class="open-camera ml-2 w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
                   isPending ? "opacity-50 cursor-not-allowed" : ""
                 }" ${
@@ -2847,7 +3874,7 @@
             let approvalActions = "";
             let proofPreviewHtml = "";
 
-            if (item.requiresPhoto) {
+            if (requiresPhoto) {
               if (isPending) {
                 statusLabel =
                   '<span class="ml-2 text-xs font-semibold text-amber-600">Pending approval</span>';
@@ -3001,9 +4028,24 @@
           showCelebration(`"${item.task}" is waiting for approval.`);
           return;
         }
+        const requiresPhoto = item.requiresPhoto || isSchoolTask(item);
+        if (requiresPhoto && !item.requiresPhoto) {
+          item.requiresPhoto = true;
+        }
         const itemPoints = getEffectivePoints(item);
         if (!item.completed) {
-          if (item.requiresPhoto) {
+          if (
+            item.requiresHomeworkCheck &&
+            item.completedDate &&
+            item.completedDate !== getTodayString()
+          ) {
+            showCelebration(
+              "School check-offs can only be completed on the same day unless approved with a photo."
+            );
+            openProofModal({ type: "schedule", item });
+            return;
+          }
+          if (requiresPhoto) {
             openProofModal({ type: "schedule", item });
             return;
           }
@@ -3014,6 +4056,9 @@
             return;
           }
           item.completed = true;
+          if (item.requiresHomeworkCheck) {
+            item.completedDate = getTodayString();
+          }
           if (settings.pointsEnabled) {
             if (itemPoints > 0) {
               if (areBasicsComplete()) {
@@ -4313,6 +5358,7 @@
           }
 
           item.proofImage = proofPreview.src;
+          item.proofDate = getTodayString();
 
           if (item.requiresHomeworkCheck) {
             item.autoReviewStatus = "pending";
@@ -4434,6 +5480,20 @@
       if (habitItemAdd) {
         habitItemAdd.addEventListener("click", () => {
           addHabitFromInputs();
+        });
+      }
+      if (habitSaveButton) {
+        habitSaveButton.addEventListener("click", () => {
+          handleHabitSave();
+        });
+      }
+
+      const openAvatarBuilderButton = document.getElementById(
+        "open-avatar-builder"
+      );
+      if (openAvatarBuilderButton) {
+        openAvatarBuilderButton.addEventListener("click", () => {
+          openAvatarBuilder();
         });
       }
 
