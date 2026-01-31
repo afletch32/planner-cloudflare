@@ -1135,6 +1135,7 @@
       function normalizeRarity(rarity = "") {
         const trimmed = String(rarity).trim();
         if (!trimmed) return "Common";
+        if (trimmed.toLowerCase() === "superepic") return "Super Epic";
         return trimmed
           .split(" ")
           .map((word) =>
@@ -1170,6 +1171,26 @@
         } catch (error) {
           cookieCatalog = applyCatalogDefaults(cookieCatalog);
         } finally {
+          // Reconcile profile/active cookies against the loaded catalog.
+          if (cookieCatalog.length) {
+            const catalogIds = new Set(cookieCatalog.map((c) => c.id));
+            const unlocked = Array.isArray(state.player.unlockedCookies)
+              ? state.player.unlockedCookies.filter((id) => catalogIds.has(id))
+              : [];
+            if (!unlocked.length) {
+              unlocked.push(cookieCatalog[0].id);
+            }
+            state.player.unlockedCookies = unlocked;
+            if (!catalogIds.has(state.player.activeCookie)) {
+              state.player.activeCookie = unlocked[0];
+            }
+            if (!catalogIds.has(state.player.profileCookie)) {
+              state.player.profileCookie = state.player.activeCookie;
+            }
+            saveKingdom();
+            renderUI();
+            renderCookieCollection();
+          }
           gachaLoading = false;
         }
       }
@@ -2194,6 +2215,43 @@
         return labels[type] || type;
       }
 
+      function getQuestBadgeLabel(item) {
+        const raw =
+          item?.questType ||
+          item?.category ||
+          item?.frequency ||
+          item?.cadence ||
+          "";
+        const lowered = String(raw).toLowerCase();
+        if (["daily", "weekly", "epic"].includes(lowered)) {
+          return lowered;
+        }
+        return "";
+      }
+
+      function getQuestRewardValues(item) {
+        if (!item || typeof item !== "object") {
+          return { coins: null, crystals: null };
+        }
+        const coins =
+          item.coins ??
+          item.rewardCoins ??
+          item.rewardCoin ??
+          item.reward?.coins ??
+          null;
+        const crystals =
+          item.crystals ??
+          item.diamonds ??
+          item.gems ??
+          item.rewardDiamonds ??
+          item.rewardGems ??
+          (settings.diamondsEnabled ? getEffectivePoints(item) : null);
+        return {
+          coins: Number.isFinite(coins) ? coins : null,
+          crystals: Number.isFinite(crystals) ? crystals : null,
+        };
+      }
+
       const blockDefinitions = {
         "Morning Routine": { start: "07:00", end: "08:00" },
         "Morning Block": { start: "08:30", end: "11:30" },
@@ -2371,6 +2429,7 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/questify-tasks.css" />
     <style>
       body {
         font-family: "CookieRun", "Fredoka", "Nunito", sans-serif;
@@ -5392,12 +5451,24 @@
             const isBasic = item.isBasic;
             const autoStatus = item.autoReviewStatus;
 
-            const itemPoints = getEffectivePoints(item);
-            let pointsDisplay = "";
-            if (settings.diamondsEnabled && itemPoints > 0) {
-              pointsDisplay =
-                '<span class="text-xs font-semibold text-blue-600 ml-2">💎</span>';
-            }
+            const rewardValues = getQuestRewardValues(item);
+            const questBadge = getQuestBadgeLabel(item);
+            const rewardLine =
+              rewardValues.coins || rewardValues.crystals
+                ? `<div class="quest-reward text-xs text-gray-600 mt-1">
+                    Reward:
+                    ${
+                      rewardValues.coins
+                        ? `🪙 ${rewardValues.coins}`
+                        : ""
+                    }
+                    ${
+                      rewardValues.crystals
+                        ? ` 💎 ${rewardValues.crystals}`
+                        : ""
+                    }
+                  </div>`
+                : "";
             const cameraButton = requiresPhoto
               ? `<button class="open-camera ml-2 w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-800 hover:border-gray-400 ${
                   isPending ? "opacity-50 cursor-not-allowed" : ""
@@ -5457,17 +5528,33 @@
             }
 
 
+            itemEl.classList.add("quest-card");
+            if (rewardValues.coins !== null) {
+              itemEl.dataset.coins = String(rewardValues.coins);
+            }
+            if (rewardValues.crystals !== null) {
+              itemEl.dataset.crystals = String(rewardValues.crystals);
+            }
+            if (questBadge) {
+              itemEl.dataset.questType = questBadge;
+            }
+
             itemEl.innerHTML = `
                         <div class="flex-shrink-0 w-24 text-center">
                             <span class="font-semibold text-gray-700">${timeDisplay}</span>
                         </div>
                         <div class="ml-4 flex-grow">
-                            <div class="flex items-center">
+                            <div class="flex items-center gap-2">
+                                ${
+                                  questBadge
+                                    ? `<span class="quest-badge text-[10px] uppercase font-bold">${questBadge}</span>`
+                                    : ""
+                                }
                                 <p class="text-gray-800">${item.task}</p>
-                                ${pointsDisplay}
                                 ${cameraButton}
                                 ${statusLabel}
                             </div>
+                            ${rewardLine}
                             <div class="task-details">
                               ${
                                 item.hasMealInput && item.completed && mealNotes
@@ -5478,16 +5565,10 @@
                             </div>
                         </div>
                         <div class="flex-shrink-0 ml-2 flex items-center">
-                            <button class="complete-task w-6 h-6 rounded-full border-2 border-blue-500 flex items-center justify-center ${
-                              item.completed ? "bg-blue-500" : ""
-                            } ${
-              isPending ? "opacity-50 cursor-not-allowed" : ""
-            }" ${isPending ? 'aria-disabled="true"' : ""}>
-                                ${
-                                  item.completed
-                                    ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
-                                    : ""
-                                }
+                            <button class="quest-action px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition ${
+                              isPending ? "opacity-50 cursor-not-allowed" : ""
+                            }" ${isPending ? 'aria-disabled="true"' : ""}>
+                              ${item.completed ? "Completed" : "Start Quest"}
                             </button>
                             ${isAdmin ? approvalActions : ""}
                         </div>
@@ -5495,23 +5576,14 @@
 
             targetContainer.appendChild(itemEl);
 
-            itemEl.addEventListener("click", (event) => {
-              if (
-                event.target.closest("button") ||
-                event.target.closest("input") ||
-                event.target.closest("textarea")
-              ) {
-                return;
-              }
-              itemEl.classList.toggle("collapsed");
-            });
-
-            // Add event listener to complete button
-            const completeBtn = itemEl.querySelector(".complete-task");
+            // Add event listener to quest flow
+            const questBtn = itemEl.querySelector(".quest-action");
             const cameraBtn = itemEl.querySelector(".open-camera");
-            completeBtn.addEventListener("click", () => {
-              handleScheduleItemToggle(item);
-            });
+            if (questBtn) {
+              questBtn.addEventListener("click", (event) => {
+                event.stopPropagation();
+              });
+            }
 
             if (cameraBtn) {
               cameraBtn.addEventListener("click", (event) => {
@@ -5686,6 +5758,9 @@
         // Update daily notes textarea
         dailyNotesEl.value = dailyNotes;
         updateAdminVisibility();
+        if (typeof window.questifyScheduleTasks === "function") {
+          window.questifyScheduleTasks();
+        }
       }
 
       function handleScheduleItemToggle(item) {
@@ -7603,6 +7678,7 @@
       // Update time every second
       setInterval(updateDateTime, 1000);
     </script>
+    <script src="/questify-tasks.js" defer></script>
     <script src="/planner-schedule.js" defer></script>
   </body>
 </html>

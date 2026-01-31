@@ -1,0 +1,55 @@
+.quest-card {
+  cursor: pointer;
+  position: relative;
+}
+.quest-card .quest-reward.hidden {
+  display: none;
+}
+.quest-badge {
+  background: #ffd35c;
+  color: #793a1a;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid #793a1a;
+}
+.quest-sparkle {
+  animation: quest-sparkle 0.8s ease;
+}
+.quest-float {
+  position: absolute;
+  right: 16px;
+  top: 12px;
+  background: #fff4df;
+  border: 2px solid #f59e0b;
+  color: #7a3f1a;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  animation: quest-float 0.9s ease forwards;
+  pointer-events: none;
+}
+@keyframes quest-sparkle {
+  0% {
+    box-shadow: 0 0 0 rgba(255, 215, 106, 0);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255, 215, 106, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(255, 215, 106, 0);
+  }
+}
+@keyframes quest-float {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+}
