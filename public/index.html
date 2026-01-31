@@ -597,7 +597,7 @@
           avatar: "🍪",
           unlockedCookies: ["brave-default"],
           activeCookie: "brave-default",
-          inventory: ["hat_01"],
+          inventory: [],
           current_outfit: {
             body: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/cookiebody/01.png",
             head: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/hair/05.png",
@@ -631,32 +631,39 @@
       let selectedDough = { class: "Charge", avatar: "🍪" };
       const ItemDatabase = [
         {
-          id: "hat_01",
-          type: "accessory",
-          name: "Adventurer Hat",
+          id: "reward_screen_time",
+          type: "reward",
+          name: "Extra 30 Minutes Screen Time",
+          cost: 200,
+          emoji: "📺",
+        },
+        {
+          id: "reward_playdate",
+          type: "reward",
+          name: "Choose a Playdate",
+          cost: 350,
+          emoji: "🎮",
+        },
+        {
+          id: "reward_snack",
+          type: "reward",
+          name: "Pick a Special Snack",
+          cost: 150,
+          emoji: "🍪",
+        },
+        {
+          id: "reward_craft",
+          type: "reward",
+          name: "New Craft Supplies",
           cost: 500,
-          emoji: "🤠",
+          emoji: "🧶",
         },
         {
-          id: "eyes_01",
-          type: "accessory",
-          name: "Cool Shades",
-          cost: 1000,
-          emoji: "😎",
-        },
-        {
-          id: "skin_choco",
-          type: "avatar",
-          name: "Chocolate Dough",
-          cost: 1500,
-          emoji: "🍫",
-        },
-        {
-          id: "skin_berry",
-          type: "avatar",
-          name: "Berry Dough",
-          cost: 1500,
-          emoji: "🍇",
+          id: "reward_outing",
+          type: "reward",
+          name: "Choose the Next Outing",
+          cost: 800,
+          emoji: "🛍️",
         },
       ];
       const cookieCatalog = [
@@ -1052,18 +1059,7 @@
         ) {
           state.player.crystals -= item.cost;
           state.player.inventory.push(itemId);
-          if (item.type === "avatar") {
-            state.player.avatar = item.emoji;
-            if (!state.player.current_outfit) {
-              state.player.current_outfit = {
-                avatar: item.emoji,
-                accessory: null,
-              };
-            } else {
-              state.player.current_outfit.avatar = item.emoji;
-            }
-          }
-          alert(`🎉 You unlocked: ${item.name}!`);
+          alert(`🎉 Reward unlocked: ${item.name}!`);
           await saveKingdom();
           renderUI();
           renderShopItems();
@@ -1092,7 +1088,7 @@
           merged.weekly_stars[subject] = filled;
         });
         if (!Array.isArray(merged.player.inventory)) {
-          merged.player.inventory = ["hat_01"];
+          merged.player.inventory = [];
         }
         if (!Array.isArray(merged.player.unlockedCookies)) {
           merged.player.unlockedCookies = ["brave-default"];
@@ -1218,14 +1214,14 @@
         });
       }
 
-      function loadPointsFromServer() {
+      function loadDiamondsFromServer() {
         return apiGetJson(
           `/points?householdId=${encodeURIComponent(
             HOUSEHOLD_ID
           )}&personId=${encodeURIComponent(PERSON_ID)}`
         )
           .then((data) => {
-            userPoints = parseInt(data.totalPoints, 10) || 0;
+            userDiamonds = parseInt(data.totalPoints, 10) || 0;
             updatePointsDisplay();
           })
           .catch(() => {
@@ -1233,11 +1229,11 @@
           });
       }
 
-      function savePointsToServer() {
+      function saveDiamondsToServer() {
         return apiPostJson("/points", {
           householdId: HOUSEHOLD_ID,
           personId: PERSON_ID,
-          totalPoints: userPoints,
+          totalPoints: userDiamonds,
         }).catch(() => {
           // Ignore save errors to allow offline usage.
         });
@@ -1499,8 +1495,8 @@
                 }
               }
             });
-            if (settings.pointsEnabled) {
-              pendingPoints = getScheduleItemsForDate(getTodayString()).reduce(
+            if (settings.diamondsEnabled) {
+              pendingDiamonds = getScheduleItemsForDate(getTodayString()).reduce(
                 (total, item) => {
                   if (item.pendingApproval || item.pendingRelease) {
                     return total + getEffectivePoints(item);
@@ -2945,7 +2941,7 @@
       <div class="cookie-panel p-6 w-full max-w-lg">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold cookie-title">
-            The Magic Oven (Shop)
+            Reward Vault (Shop)
           </h2>
           <button
             onclick="document.getElementById('shop-modal').classList.add('hidden')"
@@ -3074,20 +3070,20 @@
 
       // Settings
       let settings = {
-        pointsEnabled: true,
-        defaultPoints: {
+        diamondsEnabled: true,
+        defaultDiamonds: {
           dailyTask: 5,
           weeklyChore: 10,
           monthlyChore: 20,
         },
       };
 
-      let userPoints = 0;
-      let pendingPoints = 0;
+      let userDiamonds = 0;
+      let pendingDiamonds = 0;
       let isAdmin = false;
       let scheduleRefactorActive = false;
       const adminPasscode = "1234";
-      const maxPoints = 200;
+      const maxDiamonds = 200;
       let dailyNotes = "";
       let mealNotes = "";
       let selectedMood = null;
@@ -3230,7 +3226,7 @@
         await loadMoodAndJournalHistory();
         updateDateTime();
         updatePointsDisplay();
-        await loadPointsFromServer();
+        await loadDiamondsFromServer();
         await loadTodayTasks().finally(() => {
           renderSchedule();
           updateProgress();
@@ -3867,16 +3863,16 @@
       }
 
       function updatePointsDisplay() {
-        pointsDisplay.textContent = userPoints;
-        pendingPointsDisplay.textContent = pendingPoints;
+        pointsDisplay.textContent = userDiamonds;
+        pendingPointsDisplay.textContent = pendingDiamonds;
         if (pointsTotalDisplay) {
-          pointsTotalDisplay.textContent = userPoints + pendingPoints;
+          pointsTotalDisplay.textContent = userDiamonds + pendingDiamonds;
         }
-        const percentage = Math.min((userPoints / maxPoints) * 100, 100);
+        const percentage = Math.min((userDiamonds / maxDiamonds) * 100, 100);
         pointsProgress.style.width = `${percentage}%`;
 
         // Show/hide points display based on settings
-        if (settings.pointsEnabled) {
+        if (settings.diamondsEnabled) {
           if (pointsCard) {
             pointsCard.classList.remove("hidden");
           }
@@ -3990,8 +3986,8 @@
         getAllItems().forEach((item) => {
           if (item.pendingRelease && item.completed && !item.pendingApproval) {
             const itemPoints = getEffectivePoints(item);
-            pendingPoints = Math.max(0, pendingPoints - itemPoints);
-            userPoints += itemPoints;
+            pendingDiamonds = Math.max(0, pendingDiamonds - itemPoints);
+            userDiamonds += itemPoints;
             item.pendingRelease = false;
           }
         });
@@ -4001,8 +3997,8 @@
       function requestApproval(item) {
         item.pendingApproval = true;
         item.completed = false;
-        if (settings.pointsEnabled) {
-          pendingPoints += getEffectivePoints(item);
+        if (settings.diamondsEnabled) {
+          pendingDiamonds += getEffectivePoints(item);
           updatePointsDisplay();
         }
         if (scheduleItems.includes(item)) {
@@ -4032,12 +4028,12 @@
           item.proofCoversYesterday = false;
           item.proofCoversYesterdayDate = null;
         }
-        if (settings.pointsEnabled) {
+        if (settings.diamondsEnabled) {
           const itemPoints = getEffectivePoints(item);
           if (itemPoints > 0) {
             if (areBasicsComplete()) {
-              pendingPoints = Math.max(0, pendingPoints - itemPoints);
-              userPoints += itemPoints;
+              pendingDiamonds = Math.max(0, pendingDiamonds - itemPoints);
+              userDiamonds += itemPoints;
               updatePointsDisplay();
               showCelebration(`"${label}" approved! Diamonds added to balance.`);
             } else {
@@ -4066,8 +4062,8 @@
         item.proofCoversYesterday = false;
         item.proofCoversYesterdayDate = null;
         item.pendingRelease = false;
-        if (settings.pointsEnabled) {
-          pendingPoints = Math.max(0, pendingPoints - getEffectivePoints(item));
+        if (settings.diamondsEnabled) {
+          pendingDiamonds = Math.max(0, pendingDiamonds - getEffectivePoints(item));
           updatePointsDisplay();
         }
         showCelebration(
@@ -4196,7 +4192,7 @@
 
             const itemPoints = getEffectivePoints(item);
             let pointsDisplay = "";
-            if (settings.pointsEnabled && itemPoints > 0) {
+            if (settings.diamondsEnabled && itemPoints > 0) {
               pointsDisplay =
                 '<span class="text-xs font-semibold text-blue-600 ml-2">💎</span>';
             }
@@ -4401,17 +4397,17 @@
           if (item.requiresHomeworkCheck) {
             item.completedDate = getTodayString();
           }
-          if (settings.pointsEnabled) {
+          if (settings.diamondsEnabled) {
             if (itemPoints > 0) {
               if (areBasicsComplete()) {
-                userPoints += itemPoints;
+                userDiamonds += itemPoints;
                 updatePointsDisplay();
                 showCelebration(
                   `You completed "${item.task}"! +${itemPoints} diamonds`
                 );
               } else {
                 item.pendingRelease = true;
-                pendingPoints += itemPoints;
+                pendingDiamonds += itemPoints;
                 updatePointsDisplay();
                 showCelebration(
                   `You completed "${item.task}"! Diamonds are pending until basics are done.`
@@ -4431,12 +4427,12 @@
         }
 
         item.completed = false;
-        if (settings.pointsEnabled) {
-          userPoints = Math.max(0, userPoints - itemPoints);
+        if (settings.diamondsEnabled) {
+          userDiamonds = Math.max(0, userDiamonds - itemPoints);
           updatePointsDisplay();
         }
         if (item.pendingRelease) {
-          pendingPoints = Math.max(0, pendingPoints - itemPoints);
+          pendingDiamonds = Math.max(0, pendingDiamonds - itemPoints);
           item.pendingRelease = false;
           updatePointsDisplay();
         }
@@ -4805,7 +4801,7 @@
       function renderRewards() {
         rewardsContainer.innerHTML = "";
 
-        if (!settings.pointsEnabled) {
+        if (!settings.diamondsEnabled) {
           rewardsContainer.innerHTML = `
                     <div class="col-span-1 md:col-span-2 p-6 bg-gray-50 rounded-lg text-center">
                         <p class="text-gray-600">Allowance diamonds are currently disabled.</p>
@@ -4819,7 +4815,7 @@
           const rewardEl = document.createElement("div");
           rewardEl.className = "task-card p-4 bg-white rounded-lg shadow-sm";
 
-          const canAfford = userPoints >= reward.points;
+          const canAfford = userDiamonds >= reward.points;
 
           rewardEl.innerHTML = `
                     <div class="flex items-center mb-3">
@@ -4855,7 +4851,7 @@
           const redeemBtn = rewardEl.querySelector(".redeem-reward");
           if (canAfford) {
             redeemBtn.addEventListener("click", () => {
-              userPoints -= reward.points;
+              userDiamonds -= reward.points;
               updatePointsDisplay();
               renderRewards();
               showCelebration(
@@ -4978,10 +4974,10 @@
                 `;
 
           let pointsInput = "";
-          if (settings.pointsEnabled) {
+          if (settings.diamondsEnabled) {
             pointsInput = `
                         <div class="flex items-center">
-                            <label class="w-24 text-sm text-gray-600">Stars:</label>
+                            <label class="w-24 text-sm text-gray-600">Diamonds:</label>
                             <input type="number" value="${item.points}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
                         </div>
                     `;
@@ -5119,9 +5115,9 @@
               completed: previous ? previous.completed : false,
               type: typeSelect ? typeSelect.value : "personal",
               points:
-                settings.pointsEnabled && pointsInput
+                settings.diamondsEnabled && pointsInput
                   ? parseInt(pointsInput.value)
-                  : settings.defaultPoints.dailyTask,
+                  : settings.defaultDiamonds.dailyTask,
               requiresPhoto: photoInput ? photoInput.checked : false,
               isBasic: basicInput ? basicInput.checked : false,
               recurringDays: Array.from(recurringInputs)
@@ -5165,19 +5161,19 @@
 
       function renderPointSettings() {
         document.getElementById("points-toggle").checked =
-          settings.pointsEnabled;
+          settings.diamondsEnabled;
         document.getElementById("daily-task-points").value =
-          settings.defaultPoints.dailyTask;
+          settings.defaultDiamonds.dailyTask;
         document.getElementById("weekly-chore-points").value =
-          settings.defaultPoints.weeklyChore;
+          settings.defaultDiamonds.weeklyChore;
         document.getElementById("monthly-chore-points").value =
-          settings.defaultPoints.monthlyChore;
+          settings.defaultDiamonds.monthlyChore;
 
         // Show/hide point values container based on toggle
         const pointValuesContainer = document.getElementById(
           "point-values-container"
         );
-        if (settings.pointsEnabled) {
+        if (settings.diamondsEnabled) {
           pointValuesContainer.classList.remove("hidden");
         } else {
           pointValuesContainer.classList.add("hidden");
@@ -5284,11 +5280,11 @@
           itemEl.className = "space-y-2";
 
           let pointsInput = "";
-          if (settings.pointsEnabled) {
+          if (settings.diamondsEnabled) {
             pointsInput = `
                     <div class="flex items-center">
-                        <label class="w-24 text-sm text-gray-600">Stars:</label>
-                        <input type="number" value="${settings.defaultPoints.dailyTask}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
+                        <label class="w-24 text-sm text-gray-600">Diamonds:</label>
+                        <input type="number" value="${settings.defaultDiamonds.dailyTask}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
                     </div>
                 `;
           }
@@ -5588,16 +5584,16 @@
       document
         .getElementById("save-points-settings")
         .addEventListener("click", () => {
-          settings.pointsEnabled =
+          settings.diamondsEnabled =
             document.getElementById("points-toggle").checked;
 
-          if (settings.pointsEnabled) {
-            settings.defaultPoints.dailyTask =
+          if (settings.diamondsEnabled) {
+            settings.defaultDiamonds.dailyTask =
               parseInt(document.getElementById("daily-task-points").value) || 5;
-            settings.defaultPoints.weeklyChore =
+            settings.defaultDiamonds.weeklyChore =
               parseInt(document.getElementById("weekly-chore-points").value) ||
               10;
-            settings.defaultPoints.monthlyChore =
+            settings.defaultDiamonds.monthlyChore =
               parseInt(document.getElementById("monthly-chore-points").value) ||
               20;
           }
@@ -5615,7 +5611,7 @@
 
       document.getElementById("reset-points").addEventListener("click", () => {
         if (confirm("Are you sure you want to reset all diamonds to zero?")) {
-          userPoints = 0;
+          userDiamonds = 0;
           updatePointsDisplay();
           showCelebration("Diamonds have been reset to zero.");
         }
@@ -5643,18 +5639,18 @@
             return;
           }
           item.completed = true;
-          if (settings.pointsEnabled) {
+          if (settings.diamondsEnabled) {
             const itemPoints = getEffectivePoints(item);
             if (itemPoints > 0) {
               if (areBasicsComplete()) {
-                userPoints += itemPoints;
+                userDiamonds += itemPoints;
                 updatePointsDisplay();
                 showCelebration(
                   `You completed "${item.task}"! +${itemPoints} diamonds`
                 );
               } else {
                 item.pendingRelease = true;
-                pendingPoints += itemPoints;
+                pendingDiamonds += itemPoints;
                 updatePointsDisplay();
                 showCelebration(
                   `You completed "${item.task}"! Diamonds are pending until basics are done.`
