@@ -2478,6 +2478,66 @@
       .toggle-checkbox:checked + .toggle-label {
         background-color: #68d391;
       }
+      .alert-banner {
+        background: linear-gradient(135deg, #ffefc7 0%, #ffe0b2 100%);
+        border: 2px solid #f59e0b;
+        border-radius: 14px;
+        padding: 10px 14px;
+        color: #7a3f1a;
+        font-weight: 700;
+        box-shadow: 0 10px 18px rgba(245, 158, 11, 0.2);
+      }
+      .alert-badge {
+        background: #f97316;
+        color: #fff;
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+      .schedule-block {
+        border: 3px solid rgba(201, 130, 59, 0.35);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 10px 20px rgba(93, 58, 26, 0.18);
+        margin-top: 16px;
+      }
+      .schedule-block-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 8px;
+        border-bottom: 2px dashed rgba(201, 130, 59, 0.35);
+        margin-bottom: 10px;
+      }
+      .block-pill {
+        font-size: 0.65rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 3px 10px;
+        border-radius: 999px;
+        color: #6b2e10;
+        background: rgba(255, 215, 106, 0.65);
+      }
+      .block-morning {
+        border-color: rgba(255, 182, 94, 0.8);
+        box-shadow: 0 12px 24px rgba(255, 182, 94, 0.25);
+      }
+      .block-lunch {
+        border-color: rgba(255, 159, 139, 0.8);
+        box-shadow: 0 12px 24px rgba(255, 159, 139, 0.25);
+      }
+      .block-afternoon {
+        border-color: rgba(139, 210, 255, 0.8);
+        box-shadow: 0 12px 24px rgba(139, 210, 255, 0.25);
+      }
+      .block-evening {
+        border-color: rgba(189, 160, 255, 0.8);
+        box-shadow: 0 12px 24px rgba(189, 160, 255, 0.25);
+      }
     </style>
   </head>
   <body>
@@ -2623,6 +2683,7 @@
               <h3 class="text-lg font-semibold cookie-title mb-3">
                 Schedule (Today)
               </h3>
+              <div id="alert-banner-container" class="space-y-2 mb-3 hidden"></div>
               <div id="schedule-container" class="space-y-3"></div>
               <div id="anytime-section" class="mt-6 hidden">
                 <h4 class="text-lg font-semibold cookie-title mb-2">
@@ -4071,6 +4132,9 @@
       const scheduleContainer = document.getElementById("schedule-container");
       const anytimeSection = document.getElementById("anytime-section");
       const anytimeContainer = document.getElementById("anytime-container");
+      const alertBannerContainer = document.getElementById(
+        "alert-banner-container"
+      );
       const weeklyContainer = document.getElementById("weekly-container");
       const monthlyContainer = document.getElementById("monthly-container");
       const dailyBonusContainer = document.getElementById("daily-bonus-container");
@@ -5270,6 +5334,10 @@
       function renderSchedule() {
         scheduleContainer.innerHTML = "";
         anytimeContainer.innerHTML = "";
+        if (alertBannerContainer) {
+          alertBannerContainer.innerHTML = "";
+          alertBannerContainer.classList.add("hidden");
+        }
 
         let itemsForToday = getScheduleItemsForDate(getTodayString());
         const todayString = getTodayString();
@@ -5484,7 +5552,28 @@
         const blocks = new Map();
         const timedItems = [];
         const anytimeItems = [];
+        const alertItems = [];
+        const nowMinutes = timeToMinutes(
+          `${new Date().getHours().toString().padStart(2, "0")}:${new Date()
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`
+        );
+        const ALERT_WINDOW_MINUTES = 120;
         itemsForToday.forEach((item) => {
+          if (item.alertEnabled && !item.completed) {
+            if (!item.time) {
+              alertItems.push(item);
+            } else {
+              const itemMinutes = timeToMinutes(item.time);
+              if (itemMinutes !== null) {
+                const diff = itemMinutes - nowMinutes;
+                if (diff <= ALERT_WINDOW_MINUTES && diff >= -30) {
+                  alertItems.push(item);
+                }
+              }
+            }
+          }
           if (item.blockLabel) {
             const label = item.blockLabel;
             const start = item.blockStart || blockDefinitions[label]?.start || "";
@@ -5522,13 +5611,23 @@
           a.sortTime.localeCompare(b.sortTime)
         );
 
+        const blockStyleByLabel = (label) => {
+          const key = label.toLowerCase();
+          if (key.includes("morning")) return "block-morning";
+          if (key.includes("lunch")) return "block-lunch";
+          if (key.includes("afternoon")) return "block-afternoon";
+          if (key.includes("evening") || key.includes("night")) return "block-evening";
+          return "";
+        };
+
         timeline.forEach((entry) => {
           if (entry.type === "task") {
             renderScheduleItems([entry.item], scheduleContainer, false);
             return;
           }
           const blockWrapper = document.createElement("div");
-          blockWrapper.className = "cookie-panel p-4 mt-4";
+          const blockClass = blockStyleByLabel(entry.block.label);
+          blockWrapper.className = `cookie-panel p-4 schedule-block ${blockClass}`;
           const block = entry.block;
           const timeLabel =
             block.start && block.end
@@ -5537,11 +5636,12 @@
               ? formatTime(block.start)
               : "Anytime";
           blockWrapper.innerHTML = `
-            <div class="flex items-center justify-between">
+            <div class="schedule-block-header">
               <div>
                 <h4 class="text-lg font-semibold cookie-title">${block.label}</h4>
                 <div class="text-xs text-amber-700">${timeLabel}</div>
               </div>
+              <span class="block-pill">Time Block</span>
               <button class="block-toggle text-xs uppercase font-semibold text-amber-800" type="button">
                 Collapse
               </button>
@@ -5562,6 +5662,23 @@
 
         renderScheduleItems(anytimeItems, anytimeContainer, true);
         anytimeSection.classList.toggle("hidden", anytimeItems.length === 0);
+        if (alertBannerContainer && alertItems.length) {
+          alertItems.forEach((item) => {
+            const banner = document.createElement("div");
+            banner.className = "alert-banner flex items-center justify-between gap-2";
+            const label = item.alertMessage || item.task;
+            const timeLabel = item.time ? formatTime(item.time) : "Anytime";
+            banner.innerHTML = `
+              <div class="flex items-center gap-2">
+                <span class="alert-badge">Alert</span>
+                <span>${label}</span>
+              </div>
+              <span class="text-xs font-semibold text-amber-900">${timeLabel}</span>
+            `;
+            alertBannerContainer.appendChild(banner);
+          });
+          alertBannerContainer.classList.remove("hidden");
+        }
         renderUnfinishedTasks(itemsForToday);
 
         updateCurrentTask();
@@ -6178,6 +6295,8 @@
           const mealInput = itemEl.querySelector(".meal-input");
           const photoInput = itemEl.querySelector(".photo-input");
           const basicInput = itemEl.querySelector(".basic-input");
+          const alertInput = itemEl.querySelector(".alert-input");
+          const alertMessageInput = itemEl.querySelector(".alert-message");
           const pointsInput = itemEl.querySelector(".points-value");
           const recurringInputs = itemEl.querySelectorAll(".recurring-day");
           const recurringEveryday = itemEl.querySelector(".recurring-everyday");
@@ -6228,6 +6347,8 @@
                   : settings.defaultDiamonds.dailyTask,
               requiresPhoto: photoInput ? photoInput.checked : false,
               isBasic: basicInput ? basicInput.checked : false,
+              alertEnabled: alertInput ? alertInput.checked : false,
+              alertMessage: alertMessageInput ? alertMessageInput.value.trim() : "",
               recurringDays,
             };
 
@@ -6486,6 +6607,17 @@
                       data.isBasic ? "checked" : ""
                     }>
                     <label class="text-sm text-gray-600">Basic requirement (unlocks paid tasks)</label>
+                </div>
+                <div class="flex items-center mt-1 gap-2">
+                    <label class="flex items-center gap-2 text-sm text-gray-600">
+                      <input type="checkbox" class="alert-input" ${
+                        data.alertEnabled ? "checked" : ""
+                      }>
+                      Banner alert
+                    </label>
+                    <input type="text" value="${
+                      data.alertMessage || ""
+                    }" placeholder="Optional alert message" class="alert-message border border-gray-300 rounded-md px-2 py-1 flex-grow text-sm">
                 </div>
                 <div class="flex flex-wrap items-center gap-2 mt-1">
                     <span class="text-sm text-gray-600">Repeat on:</span>
