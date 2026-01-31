@@ -164,6 +164,309 @@
         background: linear-gradient(135deg, #ffffff 0%, #f1fbff 100%);
         border-color: rgba(59, 209, 255, 0.25);
       }
+      .gacha-card {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(145deg, #fff7ea 0%, #fff0d6 50%, #fef9f2 100%);
+        border: 2px solid rgba(201, 130, 59, 0.35);
+        box-shadow: 0 16px 28px rgba(93, 58, 26, 0.18);
+      }
+      .gacha-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+            circle at 20% 20%,
+            rgba(255, 255, 255, 0.7),
+            transparent 55%
+          ),
+          radial-gradient(
+            circle at 85% 30%,
+            rgba(255, 231, 196, 0.7),
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+      .gacha-pill {
+        background: rgba(201, 130, 59, 0.18);
+        border-color: rgba(201, 130, 59, 0.2);
+        color: #7a3f1a;
+      }
+      .gacha-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+      }
+      .gacha-button {
+        position: relative;
+        border-radius: 16px;
+        padding: 12px 14px;
+        font-weight: 900;
+        color: #fff7e5;
+        background: linear-gradient(135deg, #b55b22 0%, #8b4513 100%);
+        box-shadow: 0 10px 18px rgba(93, 58, 26, 0.35);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .gacha-button.secondary {
+        background: linear-gradient(135deg, #f6a24d 0%, #ff7f3f 100%);
+        color: #4a2208;
+      }
+      .gacha-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 20px rgba(93, 58, 26, 0.38);
+      }
+      .gacha-button[disabled] {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .gacha-badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #ffda6b;
+        color: #6b2e10;
+        font-size: 0.65rem;
+        font-weight: 900;
+        padding: 4px 8px;
+        border-radius: 999px;
+        box-shadow: 0 6px 12px rgba(93, 58, 26, 0.2);
+      }
+      .gacha-stage {
+        position: relative;
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.75);
+        border: 2px dashed rgba(201, 130, 59, 0.3);
+        min-height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .gacha-stage.gacha-animating {
+        animation: gacha-pulse 0.9s ease-in-out;
+      }
+      .gacha-results {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 10px;
+        z-index: 1;
+      }
+      .gacha-card-item {
+        background: #fffdf7;
+        border-radius: 14px;
+        padding: 10px;
+        border: 2px solid rgba(201, 130, 59, 0.3);
+        text-align: center;
+        box-shadow: 0 8px 14px rgba(93, 58, 26, 0.16);
+        animation: gacha-reveal 0.5s ease forwards;
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+      }
+      .gacha-card-item img {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+        margin: 0 auto 6px;
+      }
+      .gacha-overlay {
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+            circle at 30% 20%,
+            rgba(255, 255, 255, 0.9),
+            rgba(255, 245, 230, 0.98) 45%,
+            rgba(255, 230, 196, 0.98) 100%
+          ),
+          linear-gradient(160deg, #fff0d6 0%, #fef9f2 55%, #fff7ea 100%);
+        z-index: 80;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .gacha-overlay.hidden {
+        display: none;
+      }
+      .gacha-overlay-card {
+        width: min(920px, 92vw);
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 32px;
+        border: 4px solid rgba(201, 130, 59, 0.4);
+        box-shadow: 0 24px 50px rgba(93, 58, 26, 0.25);
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .gacha-overlay-stage {
+        min-height: 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .gacha-jar {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #fff5e6, #ffd7a6);
+        border: 6px solid #8b4513;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 64px;
+        box-shadow: 0 12px 24px rgba(93, 58, 26, 0.25);
+      }
+      .gacha-jar.shake {
+        animation: gacha-shake 0.6s ease-in-out infinite;
+      }
+      .gacha-flash {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.9),
+          transparent 60%
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .gacha-flash.active {
+        opacity: 1;
+      }
+      .gacha-reveal-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 14px;
+      }
+      .gacha-reveal-card {
+        background: #fffdf7;
+        border-radius: 18px;
+        padding: 12px;
+        border: 2px solid rgba(201, 130, 59, 0.35);
+        text-align: center;
+        box-shadow: 0 12px 18px rgba(93, 58, 26, 0.2);
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+        animation: gacha-reveal 0.45s ease forwards;
+        position: relative;
+        overflow: hidden;
+      }
+      .gacha-reveal-card img {
+        width: 88px;
+        height: 88px;
+        object-fit: contain;
+        margin: 0 auto 6px;
+      }
+      .gacha-overlay-footer {
+        margin-top: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .rarity-burst {
+        position: absolute;
+        inset: -30%;
+        border-radius: 999px;
+        opacity: 0;
+        animation: rarity-burst 0.6s ease forwards;
+        mix-blend-mode: screen;
+      }
+      .rarity-common {
+        background: radial-gradient(circle, rgba(255, 223, 151, 0.7), transparent 60%);
+      }
+      .rarity-rare {
+        background: radial-gradient(circle, rgba(93, 183, 255, 0.75), transparent 60%);
+      }
+      .rarity-epic {
+        background: radial-gradient(circle, rgba(255, 106, 160, 0.8), transparent 60%);
+      }
+      .rarity-super-epic {
+        background: radial-gradient(circle, rgba(255, 210, 96, 0.9), transparent 60%);
+      }
+      .rarity-legendary {
+        background: radial-gradient(circle, rgba(255, 171, 71, 0.9), transparent 60%);
+      }
+      .rarity-ancient {
+        background: radial-gradient(circle, rgba(255, 141, 161, 0.9), transparent 60%);
+      }
+      .rarity-dragon {
+        background: radial-gradient(circle, rgba(120, 214, 255, 0.9), transparent 60%);
+      }
+      @keyframes rarity-burst {
+        0% {
+          transform: scale(0.4);
+          opacity: 0;
+        }
+        60% {
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(1.05);
+          opacity: 0;
+        }
+      }
+      .gacha-skip {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #7a3f1a;
+      }
+      @keyframes gacha-shake {
+        0%,
+        100% {
+          transform: rotate(0deg);
+        }
+        25% {
+          transform: rotate(-6deg);
+        }
+        75% {
+          transform: rotate(6deg);
+        }
+      }
+      .gacha-rarity {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #7a3f1a;
+      }
+      .gacha-new {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 0.65rem;
+        font-weight: 900;
+        color: #fff;
+        background: #ff6aa0;
+        padding: 2px 6px;
+        border-radius: 999px;
+      }
+      @keyframes gacha-pulse {
+        0% {
+          transform: scale(0.98);
+          box-shadow: 0 0 0 rgba(201, 130, 59, 0.2);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 0 30px rgba(201, 130, 59, 0.35);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 rgba(201, 130, 59, 0.2);
+        }
+      }
+      @keyframes gacha-reveal {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
       .credit-stat {
         display: flex;
         align-items: baseline;
@@ -273,6 +576,14 @@
         font-family: "CookieRun", "Fredoka", sans-serif;
         font-weight: 900;
         color: var(--crk-choco);
+      }
+      .app-title {
+        font-family: "CookieRun", sans-serif;
+        font-size: 2.5em;
+        color: #ffffff;
+        text-shadow: -2px -2px 0 #793a1a, 2px -2px 0 #793a1a,
+          -2px 2px 0 #793a1a, 2px 2px 0 #793a1a;
+        margin: 0;
       }
       .cookie-label {
         color: #8b4513;
@@ -500,16 +811,25 @@
         border: 2px solid rgba(201, 130, 59, 0.25);
       }
       .tab-btn {
-        border-radius: 14px;
-        padding: 10px 14px;
+        font-family: "CookieRun", sans-serif;
+        border-radius: 20px;
+        padding: 10px 15px;
+        background-color: #ffd700;
+        color: #793a1a;
+        border: 2px solid #793a1a;
+        box-shadow: 0 3px #793a1a;
+        text-transform: uppercase;
+        cursor: pointer;
         font-weight: 700;
-        color: rgba(42, 28, 20, 0.7);
-        transition: all 0.2s ease;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .tab-btn:hover {
+        transform: translateY(-1px);
       }
       .tab-btn.active {
-        background: linear-gradient(135deg, #fff1c5, #ffd987);
+        background-color: #ffdf4d;
         color: #4b2a12;
-        box-shadow: 0 6px 12px rgba(93, 58, 26, 0.18);
+        box-shadow: 0 5px #793a1a;
       }
       .kingdom-progress-track {
         background: rgba(255, 255, 255, 0.75);
@@ -597,6 +917,7 @@
           avatar: "🍪",
           unlockedCookies: ["brave-default"],
           activeCookie: "brave-default",
+          profileCookie: null,
           inventory: [],
           current_outfit: {
             body: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/cookiebody/01.png",
@@ -666,7 +987,7 @@
           emoji: "🛍️",
         },
       ];
-      const cookieCatalog = [
+      let cookieCatalog = [
         {
           id: "brave-default",
           name: "Brave Cookie",
@@ -787,6 +1108,71 @@
           rarity: "Epic",
         },
       ];
+      const gachaRarityWeights = {
+        Common: 60,
+        Rare: 25,
+        Epic: 10,
+        "Super Epic": 4,
+        Legendary: 1,
+        Ancient: 1,
+        Dragon: 1,
+      };
+      const gachaRarityCosts = {
+        Common: 150,
+        Rare: 300,
+        Epic: 600,
+        "Super Epic": 900,
+        Legendary: 1200,
+        Ancient: 1400,
+        Dragon: 1400,
+      };
+      const gachaPricing = {
+        1: 300,
+        10: 3000,
+      };
+      let gachaLoading = false;
+
+      function normalizeRarity(rarity = "") {
+        const trimmed = String(rarity).trim();
+        if (!trimmed) return "Common";
+        return trimmed
+          .split(" ")
+          .map((word) =>
+            word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : ""
+          )
+          .join(" ");
+      }
+
+      function applyCatalogDefaults(catalog) {
+        return catalog.map((cookie) => {
+          const rarity = normalizeRarity(cookie.rarity);
+          return {
+            ...cookie,
+            rarity,
+            cost:
+              typeof cookie.cost === "number"
+                ? cookie.cost
+                : gachaRarityCosts[rarity] || 300,
+          };
+        });
+      }
+
+      async function loadCookieCatalog() {
+        if (gachaLoading) return;
+        gachaLoading = true;
+        try {
+          const response = await fetch("/data/cookie-catalog.json");
+          if (!response.ok) throw new Error("catalog not found");
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            cookieCatalog = applyCatalogDefaults(data);
+          }
+        } catch (error) {
+          cookieCatalog = applyCatalogDefaults(cookieCatalog);
+        } finally {
+          gachaLoading = false;
+        }
+      }
       let cookieUnlockingId = null;
       const moodEntries = new Map();
       const journalEntries = new Map();
@@ -897,9 +1283,9 @@
         const crystalEl = document.getElementById("cookie-crystals");
         if (crystalEl) crystalEl.textContent = state.player.crystals;
         const avatarEl = document.getElementById("cookie-avatar");
-        if (avatarEl) renderCookieAvatar(avatarEl, 44);
+        if (avatarEl) renderCookieAvatar(avatarEl, 44, state.player.profileCookie);
         const mainAvatarEl = document.getElementById("main-avatar");
-        if (mainAvatarEl) renderCookieAvatar(mainAvatarEl, 52);
+        if (mainAvatarEl) renderCookieAvatar(mainAvatarEl, 52, state.player.profileCookie);
         renderCookieStars();
       }
 
@@ -954,9 +1340,10 @@
         return cookieCatalog.find((cookie) => cookie.id === cookieId);
       }
 
-      function renderCookieAvatar(targetEl, size) {
+      function renderCookieAvatar(targetEl, size, cookieId = null) {
         if (!targetEl) return;
-        const cookie = getCookieById(state.player.activeCookie);
+        const chosenId = cookieId || state.player.activeCookie;
+        const cookie = getCookieById(chosenId);
         targetEl.innerHTML = "";
         if (cookie) {
           const img = document.createElement("img");
@@ -984,6 +1371,14 @@
       function selectCookie(cookieId) {
         state.player.activeCookie = cookieId;
         saveKingdom();
+        renderUI();
+        renderCookieCollection(cookieId, "select");
+      }
+
+      async function setProfileCookie(cookieId) {
+        if (!cookieId || !isCookieUnlocked(cookieId)) return;
+        state.player.profileCookie = cookieId;
+        await saveKingdom();
         renderUI();
         renderCookieCollection(cookieId, "select");
       }
@@ -1030,6 +1425,9 @@
           const rarity = document.createElement("div");
           rarity.className = "cookie-rarity";
           rarity.textContent = cookie.rarity;
+          const actionGroup = document.createElement("div");
+          actionGroup.style.display = "flex";
+          actionGroup.style.gap = "8px";
           const action = document.createElement("button");
           action.className = `cookie-action${unlocked ? " secondary" : ""}`;
           action.textContent = unlocked
@@ -1047,10 +1445,21 @@
               unlockCookie(cookie.id);
             }
           });
+          if (unlocked) {
+            const profileBtn = document.createElement("button");
+            profileBtn.className = "cookie-action secondary";
+            profileBtn.textContent =
+              state.player.profileCookie === cookie.id ? "Profile ✓" : "Profile";
+            profileBtn.addEventListener("click", () => {
+              setProfileCookie(cookie.id);
+            });
+            actionGroup.appendChild(profileBtn);
+          }
           card.appendChild(img);
           card.appendChild(title);
           card.appendChild(rarity);
-          card.appendChild(action);
+          actionGroup.appendChild(action);
+          card.appendChild(actionGroup);
           grid.appendChild(card);
           if (cookie.id === focusId) {
             card.classList.add("cookie-select-pop");
@@ -1068,6 +1477,196 @@
           window.setTimeout(() => {
             grid.classList.remove("selecting");
           }, 500);
+        }
+      }
+
+      function pickGachaCookie() {
+        if (!cookieCatalog.length) return null;
+        const weights = cookieCatalog.map((cookie) => {
+          const rarity = normalizeRarity(cookie.rarity);
+          return gachaRarityWeights[rarity] || 10;
+        });
+        const totalWeight = weights.reduce((sum, value) => sum + value, 0);
+        let roll = Math.random() * totalWeight;
+        for (let i = 0; i < cookieCatalog.length; i++) {
+          roll -= weights[i];
+          if (roll <= 0) {
+            return cookieCatalog[i];
+          }
+        }
+        return cookieCatalog[cookieCatalog.length - 1];
+      }
+
+      function updateGachaButtons() {
+        const pullOne = document.getElementById("gacha-pull-1");
+        const pullTen = document.getElementById("gacha-pull-10");
+        if (pullOne) pullOne.disabled = userDiamonds < gachaPricing[1];
+        if (pullTen) pullTen.disabled = userDiamonds < gachaPricing[10];
+      }
+
+      function renderGachaResults(results) {
+        const stage = document.getElementById("gacha-stage");
+        const resultsEl = document.getElementById("gacha-results");
+        if (!stage || !resultsEl) return;
+        resultsEl.innerHTML = "";
+        results.forEach((cookie, index) => {
+          const card = document.createElement("div");
+          card.className = "gacha-card-item";
+          card.style.animationDelay = `${index * 0.05}s`;
+          const img = document.createElement("img");
+          img.src = cookie.image;
+          img.alt = cookie.name;
+          const name = document.createElement("div");
+          name.className = "font-semibold text-sm text-[#5d3a1a]";
+          name.textContent = cookie.name;
+          const rarity = document.createElement("div");
+          rarity.className = "gacha-rarity";
+          rarity.textContent = normalizeRarity(cookie.rarity);
+          const isNew = !isCookieUnlocked(cookie.id);
+          card.appendChild(img);
+          card.appendChild(name);
+          card.appendChild(rarity);
+          if (isNew) {
+            const badge = document.createElement("div");
+            badge.className = "gacha-new";
+            badge.textContent = "New!";
+            card.appendChild(badge);
+          }
+          resultsEl.appendChild(card);
+        });
+        stage.classList.add("gacha-animating");
+        window.setTimeout(() => {
+          stage.classList.remove("gacha-animating");
+        }, 900);
+      }
+
+      function renderGachaOverlayResults(results) {
+        const stage = document.getElementById("gacha-overlay-stage");
+        if (!stage) return;
+        stage.innerHTML = `<div class="gacha-reveal-grid"></div>`;
+        const grid = stage.querySelector(".gacha-reveal-grid");
+        results.forEach((cookie, index) => {
+          const card = document.createElement("div");
+          card.className = "gacha-reveal-card";
+          card.style.animationDelay = `${index * 0.05}s`;
+          const rarityClass = normalizeRarity(cookie.rarity)
+            .toLowerCase()
+            .replace(/\s+/g, "-");
+          const burst = document.createElement("div");
+          burst.className = `rarity-burst rarity-${rarityClass}`;
+          const img = document.createElement("img");
+          img.src = cookie.image;
+          img.alt = cookie.name;
+          const name = document.createElement("div");
+          name.className = "font-semibold text-sm text-[#5d3a1a]";
+          name.textContent = cookie.name;
+          const rarity = document.createElement("div");
+          rarity.className = "gacha-rarity";
+          rarity.textContent = normalizeRarity(cookie.rarity);
+          card.appendChild(burst);
+          card.appendChild(img);
+          card.appendChild(name);
+          card.appendChild(rarity);
+          grid.appendChild(card);
+        });
+      }
+
+      function playGachaOverlay(results) {
+        const overlay = document.getElementById("gacha-overlay");
+        const jar = document.getElementById("gacha-jar");
+        const flash = document.getElementById("gacha-flash");
+        const statusEl = document.getElementById("gacha-overlay-status");
+        const skipBtn = document.getElementById("gacha-overlay-skip");
+        const closeBtn = document.getElementById("gacha-overlay-close");
+        if (!overlay || !jar || !flash || !statusEl) return;
+        overlay.classList.remove("hidden");
+        jar.classList.add("shake");
+        statusEl.textContent = "Summoning cookies...";
+        let revealTimeout = null;
+
+        const reveal = () => {
+          jar.classList.remove("shake");
+          flash.classList.remove("active");
+          renderGachaOverlayResults(results);
+          statusEl.textContent = "Tap to close";
+        };
+
+        const run = () => {
+          flash.classList.remove("active");
+          revealTimeout = window.setTimeout(() => {
+            flash.classList.add("active");
+          }, 500);
+          window.setTimeout(reveal, 900);
+        };
+
+        run();
+
+        const close = () => {
+          overlay.classList.add("hidden");
+          jar.classList.remove("shake");
+          flash.classList.remove("active");
+          if (revealTimeout) {
+            window.clearTimeout(revealTimeout);
+          }
+        };
+        overlay.onclick = (event) => {
+          if (event.target === overlay) close();
+        };
+        if (skipBtn) {
+          skipBtn.onclick = () => {
+            reveal();
+          };
+        }
+        if (closeBtn) {
+          closeBtn.onclick = () => {
+            close();
+          };
+        }
+      }
+
+      async function performGachaPull(count) {
+        const stage = document.getElementById("gacha-stage");
+        const statusEl = document.getElementById("gacha-status");
+        const resultsEl = document.getElementById("gacha-results");
+        if (!count || !gachaPricing[count]) return;
+        if (userDiamonds < gachaPricing[count]) {
+          if (statusEl) {
+            statusEl.textContent = "Not enough diamonds for that pull.";
+          }
+          return;
+        }
+        const pulls = Math.max(1, Math.min(count, 10));
+        userDiamonds -= gachaPricing[pulls];
+        state.player.crystals = userDiamonds;
+        saveDiamondsToServer();
+        updatePointsDisplay();
+        renderUI();
+        if (statusEl) {
+          statusEl.textContent = "Summoning cookies...";
+        }
+        if (resultsEl) {
+          resultsEl.innerHTML =
+            '<div class="text-sm text-[#7a3f1a] text-center">✨ Shaking the cookie jar... ✨</div>';
+        }
+        const results = [];
+        for (let i = 0; i < pulls; i++) {
+          const cookie = pickGachaCookie();
+          if (cookie) results.push(cookie);
+        }
+        const unlocked = new Set(state.player.unlockedCookies || []);
+        results.forEach((cookie) => unlocked.add(cookie.id));
+        state.player.unlockedCookies = Array.from(unlocked);
+        if (results[0]) {
+          state.player.activeCookie = results[0].id;
+        }
+        await saveKingdom();
+        playGachaOverlay(results);
+        renderGachaResults(results);
+        renderCookieCollection(results[0]?.id || null, "unlock");
+        renderUI();
+        updateGachaButtons();
+        if (statusEl) {
+          statusEl.textContent = "Pull complete! Check your new cookies.";
         }
       }
 
@@ -1164,6 +1763,9 @@
           !merged.player.unlockedCookies.includes(merged.player.activeCookie)
         ) {
           merged.player.activeCookie = merged.player.unlockedCookies[0];
+        }
+        if (!merged.player.profileCookie) {
+          merged.player.profileCookie = merged.player.activeCookie;
         }
         if (!merged.player.current_outfit) {
           merged.player.current_outfit = {
@@ -1468,6 +2070,7 @@
           journalEntryEl.value = saved;
         }
         journalEntries.set(key, saved || "");
+        renderJournalHistoryList();
       }
 
       async function saveJournal() {
@@ -1477,6 +2080,7 @@
         journalEntries.set(key, payload);
         await saveStateValue("journal", key, payload);
         showCelebration("Journal saved!");
+        renderJournalHistoryList();
         renderDailyBonusMissions();
         renderWeeklyChores();
         renderMonthlyChores();
@@ -1523,6 +2127,7 @@
             journalEntries.set(item.key, item.value);
           }
         });
+        renderJournalHistoryList();
       }
 
       function loadTodayTasks() {
@@ -1584,9 +2189,20 @@
           break: "Break",
           chore: "Mission",
           personal: "Personal",
+          family: "Family",
         };
         return labels[type] || type;
       }
+
+      const blockDefinitions = {
+        "Morning Routine": { start: "07:00", end: "08:00" },
+        "Morning Block": { start: "08:30", end: "11:30" },
+        Lunch: { start: "12:00", end: "12:45" },
+        "Early Afternoon": { start: "13:00", end: "15:00" },
+        "Late Afternoon": { start: "15:00", end: "17:00" },
+        Evening: { start: "17:30", end: "19:30" },
+        Nighttime: { start: "20:00", end: "21:00" },
+      };
 
       async function loadDefaultTasks() {
         try {
@@ -1852,6 +2468,9 @@
       .personal-block {
         border-left: 4px solid #8b5cf6;
       }
+      .family-block {
+        border-left: 4px solid #f97316;
+      }
       .toggle-checkbox:checked {
         right: 0;
         border-color: #68d391;
@@ -1872,7 +2491,7 @@
             class="kingdom-logo mb-3"
           />
           <div class="flex flex-wrap items-center gap-2">
-            <h1 class="text-3xl md:text-4xl font-bold cookie-title">
+            <h1 class="text-3xl md:text-4xl font-bold cookie-title app-title">
               My Daily Adventure
             </h1>
             <span class="kingdom-pill">✨ Allowance Quest</span>
@@ -2187,16 +2806,13 @@
               <h3 class="text-lg font-semibold text-gray-800 mb-2">
                 Past Entries
               </h3>
-              <input
-                id="journal-history-date"
-                type="date"
-                class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm mb-3"
-              />
               <div
-                id="journal-history-display"
-                class="text-sm text-gray-700 whitespace-pre-wrap"
+                id="journal-history-list"
+                class="space-y-3 max-h-[360px] overflow-y-auto pr-1"
               >
-                Select a date to view past journal entries.
+                <p class="text-sm text-gray-500">
+                  No journal entries yet.
+                </p>
               </div>
             </div>
           </div>
@@ -2311,38 +2927,46 @@
                   </p>
                 </div>
               </div>
-              <div class="credit-card alt">
-                <div class="flex items-center justify-between mb-3">
-                  <h4 class="text-lg font-extrabold text-[#1e1b3a]">
-                    Cash Balance
+              <div class="credit-card alt gacha-card">
+                <div class="flex items-center justify-between mb-2">
+                  <h4 class="text-lg font-extrabold text-[#5d3a1a]">
+                    Cookie Gacha
                   </h4>
-                  <span class="credit-pill">Money</span>
+                  <span class="credit-pill gacha-pill">Gacha</span>
                 </div>
-                <div class="space-y-1">
-                  <div class="credit-stat">
-                    <span>Total earnings</span>
-                    <span>$<span id="money-total-earnings">0.00</span></span>
-                  </div>
-                  <div class="credit-stat">
-                    <span>Pending earnings</span>
-                    <span>$<span id="money-pending-earnings">0.00</span></span>
-                  </div>
-                  <div class="credit-stat">
-                    <span>Current balance</span>
-                    <span>$<span id="money-current-balance">0.00</span></span>
-                  </div>
+                <p class="text-sm text-[#7a3f1a] mb-3">
+                  Spend diamonds to pull new cookie friends and expand your
+                  collection.
+                </p>
+                <div class="gacha-actions mb-3">
+                  <button
+                    id="gacha-pull-1"
+                    class="gacha-button"
+                    onclick="performGachaPull(1)"
+                  >
+                    1 Pull (300 Diamonds)
+                  </button>
+                  <button
+                    id="gacha-pull-10"
+                    class="gacha-button secondary"
+                    onclick="performGachaPull(10)"
+                  >
+                    <span class="gacha-badge">Best Value!</span>
+                    10 Pulls (3000 Diamonds)
+                  </button>
                 </div>
-                <div class="mt-4">
-                  <div class="w-full bg-white rounded-full h-4 mb-2">
-                    <div
-                      class="bg-[#3bd1ff] h-4 rounded-full transition-all duration-500"
-                      id="money-progress"
-                      style="width: 0%"
-                    ></div>
+                <div
+                  id="gacha-status"
+                  class="text-xs font-semibold text-[#7a3f1a]"
+                >
+                  Ready to pull!
+                </div>
+                <div id="gacha-stage" class="gacha-stage">
+                  <div id="gacha-results" class="gacha-results">
+                    <div class="text-sm text-[#7a3f1a] text-center">
+                      Your pulls will appear here.
+                    </div>
                   </div>
-                  <p class="text-xs text-[#2d6f85]">
-                    Money rewards release after approval.
-                  </p>
                 </div>
               </div>
             </div>
@@ -2406,6 +3030,159 @@
             </button>
           </div>
           <div id="edit-schedule-container" class="space-y-4"></div>
+          <div class="mt-4">
+            <div class="text-xs uppercase text-gray-500 font-semibold mb-2">
+              Quick Add Templates
+            </div>
+            <div class="flex flex-wrap gap-2" id="schedule-templates">
+              <button
+                type="button"
+                class="bg-amber-200 text-amber-900 px-3 py-1 rounded-md text-sm font-semibold hover:bg-amber-300 transition"
+                data-template="flow"
+              >
+                Daily Flow Blocks
+              </button>
+              <button
+                type="button"
+                class="bg-amber-100 text-amber-800 px-3 py-1 rounded-md text-sm font-semibold hover:bg-amber-200 transition"
+                data-template="morning"
+              >
+                Morning Routine
+              </button>
+              <button
+                type="button"
+                class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-md text-sm font-semibold hover:bg-emerald-200 transition"
+                data-template="school"
+              >
+                School Block
+              </button>
+              <button
+                type="button"
+                class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-md text-sm font-semibold hover:bg-indigo-200 transition"
+                data-template="bedtime"
+              >
+                Bedtime Wind-down
+              </button>
+              <button
+                type="button"
+                id="add-schedule-block"
+                class="bg-slate-100 text-slate-700 px-3 py-1 rounded-md text-sm font-semibold hover:bg-slate-200 transition"
+              >
+                Add Block
+              </button>
+            </div>
+          </div>
+          <div
+            id="schedule-bulk-actions"
+            class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg"
+          >
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <label class="flex items-center gap-2 text-gray-700">
+                <input type="checkbox" id="bulk-select-all" />
+                Select all
+              </label>
+              <label class="flex items-center gap-1 text-gray-700">
+                <input type="checkbox" id="bulk-apply-type" />
+                Type
+              </label>
+              <select
+                id="bulk-type"
+                class="border border-gray-300 rounded-md px-2 py-1"
+              >
+                <option value="focus">School</option>
+                <option value="hygiene">Hygiene</option>
+                <option value="break">Break</option>
+                <option value="chore">Mission</option>
+                <option value="personal">Personal</option>
+                <option value="family">Family</option>
+              </select>
+              <label class="flex items-center gap-1 text-gray-700">
+                <input type="checkbox" id="bulk-apply-anytime" />
+                Anytime
+              </label>
+              <input type="checkbox" id="bulk-anytime" />
+              <label class="flex items-center gap-1 text-gray-700">
+                <input type="checkbox" id="bulk-apply-proof" />
+                Proof
+              </label>
+              <input type="checkbox" id="bulk-proof" />
+              <label class="flex items-center gap-1 text-gray-700">
+                <input type="checkbox" id="bulk-apply-basic" />
+                Basic
+              </label>
+              <input type="checkbox" id="bulk-basic" />
+              <label class="flex items-center gap-1 text-gray-700">
+                <input type="checkbox" id="bulk-apply-diamonds" />
+                Diamonds
+              </label>
+              <input
+                id="bulk-diamonds"
+                type="number"
+                min="0"
+                placeholder="Diamonds"
+                class="border border-gray-300 rounded-md px-2 py-1 w-28"
+              />
+              <button
+                type="button"
+                id="bulk-apply"
+                class="bg-amber-600 text-white px-3 py-1 rounded-md font-semibold hover:bg-amber-700 transition"
+              >
+                Apply
+              </button>
+              <button
+                type="button"
+                id="bulk-delete"
+                class="bg-rose-100 text-rose-700 px-3 py-1 rounded-md font-semibold hover:bg-rose-200 transition"
+              >
+                Delete Selected
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-gray-600">
+              <span class="font-semibold">Repeat on:</span>
+              <label class="flex items-center gap-1 text-gray-700">
+                <input type="checkbox" id="bulk-recurring-apply" />
+                Apply recurring selection
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Monday" />
+                Mon
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Tuesday" />
+                Tue
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Wednesday" />
+                Wed
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Thursday" />
+                Thu
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Friday" />
+                Fri
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Saturday" />
+                Sat
+              </label>
+              <label class="flex items-center gap-1">
+                <input type="checkbox" class="bulk-recurring" value="Sunday" />
+                Sun
+              </label>
+              <button
+                type="button"
+                id="bulk-clear-recurring"
+                class="text-amber-700 underline"
+              >
+                Clear
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">
+              Applies only to checked items in the list.
+            </p>
+          </div>
           <div class="mt-6 flex justify-between">
             <button
               id="add-schedule-item"
@@ -2482,6 +3259,7 @@
                   >
                     <option value="mood">Mood check-ins</option>
                     <option value="journal">Journal entries</option>
+                    <option value="task">Schedule task</option>
                   </select>
                   <input
                     type="number"
@@ -2490,6 +3268,12 @@
                     value="5"
                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+                <div class="mt-2 hidden" id="mission-req-1-task-row">
+                  <select
+                    id="mission-req-1-task"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  ></select>
                 </div>
               </div>
               <div>
@@ -2502,6 +3286,7 @@
                     <option value="">None</option>
                     <option value="mood">Mood check-ins</option>
                     <option value="journal">Journal entries</option>
+                    <option value="task">Schedule task</option>
                   </select>
                   <input
                     type="number"
@@ -2511,7 +3296,55 @@
                     class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div class="mt-2 hidden" id="mission-req-2-task-row">
+                  <select
+                    id="mission-req-2-task"
+                    class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  ></select>
+                </div>
               </div>
+            </div>
+            <div class="border-t pt-4 mt-2">
+              <div class="text-sm font-semibold text-gray-700 mb-2">
+                Create a schedule task
+              </div>
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <input
+                  type="text"
+                  id="mission-task-name"
+                  placeholder="Task name"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <select
+                  id="mission-task-type"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="focus">School</option>
+                  <option value="hygiene">Hygiene</option>
+                  <option value="break">Break</option>
+                  <option value="chore">Mission</option>
+                  <option value="personal" selected>Personal</option>
+                  <option value="family">Family</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-2 items-center">
+                <input
+                  type="time"
+                  id="mission-task-time"
+                  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <label class="flex items-center gap-2 text-sm text-gray-600">
+                  <input type="checkbox" id="mission-task-anytime" />
+                  Anytime
+                </label>
+              </div>
+              <button
+                id="mission-create-task"
+                type="button"
+                class="mt-3 w-full bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition"
+              >
+                Create Task
+              </button>
             </div>
             <div id="chore-day-container" class="hidden">
               <label class="block text-gray-700 mb-1">Day</label>
@@ -3068,6 +3901,33 @@
       </div>
     </div>
 
+    <div id="gacha-overlay" class="gacha-overlay hidden">
+      <div class="gacha-overlay-card">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-bold cookie-title">Cookie Gacha</h2>
+          <button
+            id="gacha-overlay-close"
+            class="text-amber-800 font-bold text-xl"
+            aria-label="Close gacha"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="gacha-overlay-stage" id="gacha-overlay-stage">
+          <div class="gacha-flash" id="gacha-flash"></div>
+          <div class="gacha-jar" id="gacha-jar">🍪</div>
+        </div>
+        <div class="gacha-overlay-footer">
+          <div id="gacha-overlay-status" class="text-sm text-amber-800 font-semibold">
+            Summoning cookies...
+          </div>
+          <button id="gacha-overlay-skip" class="gacha-skip" type="button">
+            Skip
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://unpkg.com/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
     <script>
       // Initial data (loaded from /data/default-tasks.json)
@@ -3182,6 +4042,16 @@
         },
       };
 
+      function getDefaultDiamondsForType(type) {
+        if (type === "focus" || type === "school") {
+          return 12;
+        }
+        if (type === "hygiene") {
+          return 3;
+        }
+        return settings.defaultDiamonds.dailyTask;
+      }
+
       let userDiamonds = 0;
       let pendingDiamonds = 0;
       let isAdmin = false;
@@ -3191,6 +4061,7 @@
       let dailyNotes = "";
       let mealNotes = "";
       let selectedMood = null;
+      const completedTaskCache = new Map();
 
       // DOM Elements
       const currentDateEl = document.getElementById("current-date");
@@ -3328,6 +4199,7 @@
         if (!missionsLoaded) {
           await saveMissionsToServerState();
         }
+        await loadCookieCatalog();
         await loadMoodAndJournalHistory();
         updateDateTime();
         updatePointsDisplay();
@@ -3393,6 +4265,7 @@
           break: "Break",
           chore: "Mission",
           personal: "Personal",
+          family: "Family",
         };
         return labels[type] || type;
       }
@@ -3440,6 +4313,47 @@
         return entries;
       }
 
+      function renderJournalHistoryList() {
+        const listEl = document.getElementById("journal-history-list");
+        if (!listEl) return;
+        const entries = [];
+        journalEntries.forEach((value, key) => {
+          const text = String(value || "").trim();
+          if (!text) return;
+          const date = new Date(`${key}T00:00:00`);
+          if (Number.isNaN(date.getTime())) return;
+          entries.push({ date, text });
+        });
+        entries.sort((a, b) => b.date - a.date);
+        listEl.innerHTML = "";
+        if (!entries.length) {
+          const empty = document.createElement("p");
+          empty.className = "text-sm text-gray-500";
+          empty.textContent = "No journal entries yet.";
+          listEl.appendChild(empty);
+          return;
+        }
+        entries.forEach((entry) => {
+          const card = document.createElement("div");
+          card.className =
+            "rounded-lg border border-amber-200 bg-[#fff8ec] p-3 shadow-sm";
+          const title = document.createElement("div");
+          title.className = "text-sm font-semibold text-amber-900 mb-1";
+          title.textContent = entry.date.toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          });
+          const body = document.createElement("div");
+          body.className = "text-sm text-gray-700 whitespace-pre-wrap";
+          body.textContent = entry.text;
+          card.appendChild(title);
+          card.appendChild(body);
+          listEl.appendChild(card);
+        });
+      }
+
       function isDateInRange(date, startDate, endDate) {
         const time = date.getTime();
         return time >= startDate.getTime() && time <= endDate.getTime();
@@ -3461,14 +4375,17 @@
         }).length;
       }
 
-      function getRequirementCount(type, startDate, endDate) {
+      function getRequirementCount(type, startDate, endDate, taskId = null) {
         if (type === "mood") {
-          return countMoodEntriesInRange(startDate, endDate);
+          return { count: countMoodEntriesInRange(startDate, endDate), pending: false };
         }
         if (type === "journal") {
-          return countJournalEntriesInRange(startDate, endDate);
+          return { count: countJournalEntriesInRange(startDate, endDate), pending: false };
         }
-        return 0;
+        if (type === "task") {
+          return getTaskCompletionCountInRange(taskId, startDate, endDate);
+        }
+        return { count: 0, pending: false };
       }
 
       function getScheduleItemsForDate(dateString) {
@@ -3485,6 +4402,71 @@
           }
           return true;
         });
+      }
+
+      function getTaskLabelById(taskId) {
+        if (!taskId) return "Schedule task";
+        const task = scheduleItems.find((item) => item.id === taskId);
+        if (!task) return "Schedule task";
+        const prefix = task.blockLabel ? `${task.blockLabel} — ` : "";
+        return `${prefix}${task.task}`;
+      }
+
+      function getDateStringsInRange(startDate, endDate) {
+        const dates = [];
+        const cursor = new Date(startDate);
+        while (cursor <= endDate) {
+          dates.push(cursor.toISOString().split("T")[0]);
+          cursor.setDate(cursor.getDate() + 1);
+        }
+        return dates;
+      }
+
+      function fetchCompletedTasksForDate(dateString) {
+        if (completedTaskCache.has(dateString)) {
+          return Promise.resolve(completedTaskCache.get(dateString));
+        }
+        return apiGetJson(
+          `/completedTasks?householdId=${encodeURIComponent(
+            HOUSEHOLD_ID
+          )}&personId=${encodeURIComponent(
+            PERSON_ID
+          )}&date=${encodeURIComponent(dateString)}`
+        )
+          .then((data) => {
+            const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+            completedTaskCache.set(dateString, tasks);
+            return tasks;
+          })
+          .catch(() => {
+            completedTaskCache.set(dateString, []);
+            return [];
+          });
+      }
+
+      function getTaskCompletionCountInRange(taskId, startDate, endDate) {
+        if (!taskId) return { count: 0, pending: false };
+        const dates = getDateStringsInRange(startDate, endDate);
+        let count = 0;
+        let pending = false;
+        dates.forEach((dateString) => {
+          if (!completedTaskCache.has(dateString)) {
+            pending = true;
+            fetchCompletedTasksForDate(dateString).then(() => {
+              renderDailyBonusMissions();
+              renderWeeklyChores();
+              renderMonthlyChores();
+            });
+            return;
+          }
+          const tasks = completedTaskCache.get(dateString) || [];
+          tasks.forEach((task) => {
+            if (task.id === taskId && task.completed) {
+              count += 1;
+            }
+          });
+        });
+        return { count, pending };
       }
 
       function sortScheduleByTime(items) {
@@ -4012,6 +4994,11 @@
         }
         const percentage = Math.min((userDiamonds / maxDiamonds) * 100, 100);
         pointsProgress.style.width = `${percentage}%`;
+        if (state?.player) {
+          state.player.crystals = userDiamonds;
+          renderUI();
+        }
+        updateGachaButtons();
 
         // Show/hide points display based on settings
         if (settings.diamondsEnabled) {
@@ -4053,6 +5040,8 @@
             return "chore-block";
           case "personal":
             return "personal-block";
+          case "family":
+            return "family-block";
           default:
             return "";
         }
@@ -4492,9 +5481,85 @@
           });
         };
 
-        const timedItems = itemsForToday.filter((item) => item.time);
-        const anytimeItems = itemsForToday.filter((item) => !item.time);
-        renderScheduleItems(timedItems, scheduleContainer, false);
+        const blocks = new Map();
+        const timedItems = [];
+        const anytimeItems = [];
+        itemsForToday.forEach((item) => {
+          if (item.blockLabel) {
+            const label = item.blockLabel;
+            const start = item.blockStart || blockDefinitions[label]?.start || "";
+            const end = item.blockEnd || blockDefinitions[label]?.end || "";
+            const existing = blocks.get(label) || {
+              label,
+              start,
+              end,
+              items: [],
+            };
+            if (!existing.start && start) existing.start = start;
+            if (!existing.end && end) existing.end = end;
+            existing.items.push(item);
+            blocks.set(label, existing);
+            return;
+          }
+          if (item.time) {
+            timedItems.push(item);
+          } else {
+            anytimeItems.push(item);
+          }
+        });
+
+        const blockEntries = Array.from(blocks.values()).map((block) => ({
+          type: "block",
+          sortTime: block.start || "99:99",
+          block,
+        }));
+        const taskEntries = timedItems.map((item) => ({
+          type: "task",
+          sortTime: item.time || "99:99",
+          item,
+        }));
+        const timeline = [...taskEntries, ...blockEntries].sort((a, b) =>
+          a.sortTime.localeCompare(b.sortTime)
+        );
+
+        timeline.forEach((entry) => {
+          if (entry.type === "task") {
+            renderScheduleItems([entry.item], scheduleContainer, false);
+            return;
+          }
+          const blockWrapper = document.createElement("div");
+          blockWrapper.className = "cookie-panel p-4 mt-4";
+          const block = entry.block;
+          const timeLabel =
+            block.start && block.end
+              ? `${formatTime(block.start)} - ${formatTime(block.end)}`
+              : block.start
+              ? formatTime(block.start)
+              : "Anytime";
+          blockWrapper.innerHTML = `
+            <div class="flex items-center justify-between">
+              <div>
+                <h4 class="text-lg font-semibold cookie-title">${block.label}</h4>
+                <div class="text-xs text-amber-700">${timeLabel}</div>
+              </div>
+              <button class="block-toggle text-xs uppercase font-semibold text-amber-800" type="button">
+                Collapse
+              </button>
+            </div>
+            <div class="mt-3 space-y-3 block-items"></div>
+          `;
+          const blockItemsContainer = blockWrapper.querySelector(".block-items");
+          renderScheduleItems(block.items, blockItemsContainer, false);
+          const toggleBtn = blockWrapper.querySelector(".block-toggle");
+          toggleBtn.addEventListener("click", () => {
+            blockItemsContainer.classList.toggle("hidden");
+            toggleBtn.textContent = blockItemsContainer.classList.contains("hidden")
+              ? "Expand"
+              : "Collapse";
+          });
+          scheduleContainer.appendChild(blockWrapper);
+        });
+
         renderScheduleItems(anytimeItems, anytimeContainer, true);
         anytimeSection.classList.toggle("hidden", anytimeItems.length === 0);
         renderUnfinishedTasks(itemsForToday);
@@ -4708,18 +5773,27 @@
           return { html: '<p class="text-xs text-gray-500">No requirements.</p>', completed: false };
         }
         let completed = true;
+        let needsRefresh = false;
         const rows = requirements
           .filter((req) => req && req.type && req.target)
           .map((req) => {
-            const count = getRequirementCount(req.type, startDate, endDate);
+            const result = getRequirementCount(req.type, startDate, endDate, req.taskId);
+            const count = result.count;
+            if (result.pending) needsRefresh = true;
             const target = parseInt(req.target, 10);
             const progress = Math.min((count / target) * 100, 100);
             if (count < target) completed = false;
+            const label =
+              req.type === "task"
+                ? getTaskLabelById(req.taskId)
+                : req.type === "mood"
+                ? "Mood check-ins"
+                : "Journal entries";
             return `
               <div class="mt-2">
                 <div class="flex items-center justify-between text-xs text-gray-600">
-                  <span>${req.type === "mood" ? "Mood check-ins" : "Journal entries"}</span>
-                  <span>${count}/${target}</span>
+                  <span>${label}</span>
+                  <span>${count}/${target}${result.pending ? "…" : ""}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
                   <div class="bg-blue-600 h-2 rounded-full" style="width: ${progress}%"></div>
@@ -4728,6 +5802,13 @@
             `;
           })
           .join("");
+        if (needsRefresh) {
+          setTimeout(() => {
+            renderDailyBonusMissions();
+            renderWeeklyChores();
+            renderMonthlyChores();
+          }, 0);
+        }
         return { html: rows, completed };
       }
 
@@ -5019,193 +6100,36 @@
         );
         editContainer.innerHTML = "";
 
-        // Sort schedule by time
-        const sortedSchedule = [...scheduleItems].sort((a, b) =>
-          a.time.localeCompare(b.time)
-        );
-
-        sortedSchedule.forEach((item) => {
-          const itemEl = document.createElement("div");
-          itemEl.className = "space-y-2";
-          itemEl.dataset.itemId = item.id;
-
-          const isAnytime = !item.time;
-          let endTimeInput = "";
-          if (item.endTime) {
-            endTimeInput = `
-                        <div class="flex items-center">
-                            <label class="w-24 text-sm text-gray-600">End Time:</label>
-                            <input type="time" value="${
-                              item.endTime
-                            }" class="end-time border border-gray-300 rounded-md px-2 py-1 flex-grow" ${
-              isAnytime ? "disabled" : ""
-            }>
-                        </div>
-                    `;
-          }
-          const anytimeCheckbox = `
-                    <div class="flex items-center mt-1">
-                        <input type="checkbox" class="anytime-input mr-2" ${
-                          isAnytime ? "checked" : ""
-                        }>
-                        <label class="text-sm text-gray-600">Anytime task (no start time)</label>
-                    </div>
-                `;
-
-          let mealCheckbox = "";
-          if (item.hasMealInput) {
-            mealCheckbox = `
-                        <div class="flex items-center mt-1">
-                            <input type="checkbox" class="meal-input mr-2" checked>
-                            <label class="text-sm text-gray-600">Has meal input</label>
-                        </div>
-                    `;
+        const blocks = new Map();
+        const standaloneItems = [];
+        scheduleItems.forEach((item) => {
+          if (item.blockLabel) {
+            const key = item.blockLabel;
+            const block = blocks.get(key) || {
+              label: item.blockLabel,
+              start: item.blockStart || "",
+              end: item.blockEnd || "",
+              items: [],
+            };
+            block.items.push(item);
+            blocks.set(key, block);
           } else {
-            mealCheckbox = `
-                        <div class="flex items-center mt-1">
-                            <input type="checkbox" class="meal-input mr-2">
-                            <label class="text-sm text-gray-600">Has meal input</label>
-                        </div>
-                    `;
+            standaloneItems.push(item);
           }
+        });
 
-          const photoCheckbox = `
-                    <div class="flex items-center mt-1">
-                        <input type="checkbox" class="photo-input mr-2" ${
-                          item.requiresPhoto ? "checked" : ""
-                        }>
-                        <label class="text-sm text-gray-600">Requires photo proof</label>
-                    </div>
-                `;
-
-          const basicCheckbox = `
-                    <div class="flex items-center mt-1">
-                        <input type="checkbox" class="basic-input mr-2" ${
-                          item.isBasic ? "checked" : ""
-                        }>
-                        <label class="text-sm text-gray-600">Basic requirement (unlocks paid tasks)</label>
-                    </div>
-                `;
-
-          const recurringDays = Array.isArray(item.recurringDays)
-            ? item.recurringDays
-            : [];
-          const recurringCheckboxes = [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday",
-            "Saturday",
-            "Sunday",
-          ]
-            .map(
-              (day) => `
-                        <label class="flex items-center gap-2 text-xs text-gray-600">
-                            <input type="checkbox" class="recurring-day" value="${day}" ${
-                recurringDays.includes(day) ? "checked" : ""
-              }>
-                            ${day.slice(0, 3)}
-                        </label>
-                    `
-            )
-            .join("");
-          const recurringInput = `
-                    <div class="flex flex-wrap items-center gap-2 mt-1">
-                        <span class="text-sm text-gray-600">Repeat on:</span>
-                        ${recurringCheckboxes}
-                        <span class="text-xs text-gray-400">(leave blank for daily)</span>
-                    </div>
-                `;
-
-          let pointsInput = "";
-          if (settings.diamondsEnabled) {
-            pointsInput = `
-                        <div class="flex items-center">
-                            <label class="w-24 text-sm text-gray-600">Diamonds:</label>
-                            <input type="number" value="${item.points}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
-                        </div>
-                    `;
-          }
-
-          itemEl.innerHTML = `
-                    <div class="flex items-center">
-                        <label class="w-24 text-sm text-gray-600">Start Time:</label>
-                        <input type="time" value="${
-                          item.time || ""
-                        }" class="start-time border border-gray-300 rounded-md px-2 py-1 flex-grow" ${
-            isAnytime ? "disabled" : ""
-          }>
-                    </div>
-                    ${endTimeInput}
-                    ${anytimeCheckbox}
-                    <div class="flex items-center">
-                        <label class="w-24 text-sm text-gray-600">Task:</label>
-                        <input type="text" value="${
-                          item.task
-                        }" class="task-name border border-gray-300 rounded-md px-2 py-1 flex-grow">
-                    </div>
-                    <div class="flex items-center">
-                        <label class="w-24 text-sm text-gray-600">Type:</label>
-                        <select class="task-type border border-gray-300 rounded-md px-2 py-1 flex-grow">
-                            <option value="focus" ${
-                              item.type === "focus" ? "selected" : ""
-                            }>School</option>
-                            <option value="hygiene" ${
-                              item.type === "hygiene" ? "selected" : ""
-                            }>Hygiene</option>
-                            <option value="break" ${
-                              item.type === "break" ? "selected" : ""
-                            }>Break</option>
-                            <option value="chore" ${
-                              item.type === "chore" ? "selected" : ""
-                            }>Mission</option>
-                            <option value="personal" ${
-                              item.type === "personal" ? "selected" : ""
-                            }>Personal</option>
-                        </select>
-                    </div>
-                    ${pointsInput}
-                    ${mealCheckbox}
-                    ${photoCheckbox}
-                    ${basicCheckbox}
-                    ${recurringInput}
-                    <button class="delete-schedule-item text-red-500 hover:text-red-700 text-sm">
-                        Remove this item
-                    </button>
-                    <hr class="my-3">
-                `;
-
-          editContainer.appendChild(itemEl);
-          syncScheduleFromEditor();
-
-          // Add event listener to delete button
-          const deleteBtn = itemEl.querySelector(".delete-schedule-item");
-          const anytimeInput = itemEl.querySelector(".anytime-input");
-          const startTimeInput = itemEl.querySelector(".start-time");
-          const endTimeInputEl = itemEl.querySelector(".end-time");
-          deleteBtn.addEventListener("click", () => {
-            itemEl.remove();
-            syncScheduleFromEditor();
+        const sortedStandalone = [...standaloneItems].sort((a, b) =>
+          (a.time || "").localeCompare(b.time || "")
+        );
+        sortedStandalone.forEach((item) => {
+          createScheduleEditorItem(item, {
+            container: editContainer,
+            itemId: item.id,
           });
-          if (anytimeInput) {
-            anytimeInput.addEventListener("change", () => {
-              const isChecked = anytimeInput.checked;
-              if (startTimeInput) {
-                startTimeInput.disabled = isChecked;
-                if (isChecked) {
-                  startTimeInput.value = "";
-                }
-              }
-              if (endTimeInputEl) {
-                endTimeInputEl.disabled = isChecked;
-                if (isChecked) {
-                  endTimeInputEl.value = "";
-                }
-              }
-              syncScheduleFromEditor();
-            });
-          }
+        });
+
+        Array.from(blocks.values()).forEach((block) => {
+          createScheduleBlockEditor(block);
         });
 
         editContainer.oninput = () => {
@@ -5214,6 +6138,18 @@
         editContainer.onchange = () => {
           syncScheduleFromEditor();
         };
+      }
+
+      function applyTypeDefaultPoints(typeSelect, pointsInput) {
+        if (!typeSelect || !pointsInput) return;
+        const previousType = typeSelect.dataset.lastType || typeSelect.value;
+        const previousDefault = getDefaultDiamondsForType(previousType);
+        const currentValue = parseInt(pointsInput.value, 10);
+        const nextType = typeSelect.value;
+        if (!Number.isFinite(currentValue) || currentValue === previousDefault) {
+          pointsInput.value = getDefaultDiamondsForType(nextType);
+        }
+        typeSelect.dataset.lastType = nextType;
       }
 
       function syncScheduleFromEditor() {
@@ -5235,11 +6171,16 @@
           const endTimeInput = itemEl.querySelector(".end-time");
           const taskInput = itemEl.querySelector(".task-name");
           const typeSelect = itemEl.querySelector(".task-type");
+          const blockParent = itemEl.closest(".block-editor");
+          const blockLabel = blockParent?.querySelector(".block-label-input");
+          const blockStart = blockParent?.querySelector(".block-start-input");
+          const blockEnd = blockParent?.querySelector(".block-end-input");
           const mealInput = itemEl.querySelector(".meal-input");
           const photoInput = itemEl.querySelector(".photo-input");
           const basicInput = itemEl.querySelector(".basic-input");
           const pointsInput = itemEl.querySelector(".points-value");
           const recurringInputs = itemEl.querySelectorAll(".recurring-day");
+          const recurringEveryday = itemEl.querySelector(".recurring-everyday");
 
           if (taskInput && taskInput.value) {
             let rawId = itemEl.dataset.itemId;
@@ -5250,6 +6191,26 @@
             }
             const previous = existingById.get(String(id));
 
+            const rawPoints =
+              settings.diamondsEnabled && pointsInput
+                ? parseInt(pointsInput.value, 10)
+                : NaN;
+            const taskType = typeSelect ? typeSelect.value : "personal";
+            const allDays = [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday",
+            ];
+            const recurringDays = recurringEveryday?.checked
+              ? allDays
+              : Array.from(recurringInputs)
+                  .filter((input) => input.checked)
+                  .map((input) => input.value);
+
             const newItem = {
               id,
               time:
@@ -5258,17 +6219,23 @@
                   : "",
               task: taskInput.value,
               completed: previous ? previous.completed : false,
-              type: typeSelect ? typeSelect.value : "personal",
+              type: taskType,
               points:
                 settings.diamondsEnabled && pointsInput
-                  ? parseInt(pointsInput.value)
+                  ? Number.isFinite(rawPoints)
+                    ? rawPoints
+                    : getDefaultDiamondsForType(taskType)
                   : settings.defaultDiamonds.dailyTask,
               requiresPhoto: photoInput ? photoInput.checked : false,
               isBasic: basicInput ? basicInput.checked : false,
-              recurringDays: Array.from(recurringInputs)
-                .filter((input) => input.checked)
-                .map((input) => input.value),
+              recurringDays,
             };
+
+            if (blockLabel && blockLabel.value) {
+              newItem.blockLabel = blockLabel.value;
+              newItem.blockStart = blockStart ? blockStart.value || "" : "";
+              newItem.blockEnd = blockEnd ? blockEnd.value || "" : "";
+            }
 
             if (endTimeInput && endTimeInput.value) {
               newItem.endTime = endTimeInput.value;
@@ -5415,67 +6382,122 @@
         editModal.classList.add("hidden");
       });
 
-      document
-        .getElementById("add-schedule-item")
-        .addEventListener("click", () => {
-          const editContainer = document.getElementById(
-            "edit-schedule-container"
-          );
-          const itemEl = document.createElement("div");
-          itemEl.className = "space-y-2";
+      function createScheduleEditorItem(data = {}, options = {}) {
+        const editContainer =
+          options.container ||
+          document.getElementById("edit-schedule-container");
+        if (!editContainer) return;
+        const itemEl = document.createElement("div");
+        itemEl.className = "space-y-2";
+        if (options.itemId) {
+          itemEl.dataset.itemId = options.itemId;
+        }
+        const itemType = data.type || "personal";
+        const itemTime = data.time || "";
+        const itemEnd = data.endTime || "";
+        const isAnytime = !itemTime;
 
-          let pointsInput = "";
-          if (settings.diamondsEnabled) {
-            pointsInput = `
+        let pointsInput = "";
+        if (settings.diamondsEnabled) {
+          const pointsValue =
+            typeof data.points === "number"
+              ? data.points
+              : getDefaultDiamondsForType(itemType);
+          pointsInput = `
                     <div class="flex items-center">
                         <label class="w-24 text-sm text-gray-600">Diamonds:</label>
-                        <input type="number" value="${settings.defaultDiamonds.dailyTask}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
+                        <input type="number" value="${pointsValue}" min="0" class="points-value border border-gray-300 rounded-md px-2 py-1 w-20">
                     </div>
                 `;
-          }
+        }
 
-          itemEl.innerHTML = `
+        itemEl.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 text-xs text-gray-500">
+                        <input type="checkbox" class="schedule-select">
+                        Select
+                    </label>
+                </div>
                 <div class="flex items-center">
                     <label class="w-24 text-sm text-gray-600">Start Time:</label>
-                    <input type="time" value="12:00" class="start-time border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                    <input type="time" value="${itemTime}" class="start-time border border-gray-300 rounded-md px-2 py-1 flex-grow" ${
+          isAnytime ? "disabled" : ""
+        }>
                 </div>
                 <div class="flex items-center">
                     <label class="w-24 text-sm text-gray-600">End Time:</label>
-                    <input type="time" value="12:30" class="end-time border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                    <input type="time" value="${itemEnd}" class="end-time border border-gray-300 rounded-md px-2 py-1 flex-grow" ${
+          isAnytime ? "disabled" : ""
+        }>
                 </div>
                 <div class="flex items-center mt-1">
-                    <input type="checkbox" class="anytime-input mr-2">
+                    <input type="checkbox" class="anytime-input mr-2" ${
+                      isAnytime ? "checked" : ""
+                    }>
                     <label class="text-sm text-gray-600">Anytime task (no start time)</label>
                 </div>
                 <div class="flex items-center">
                     <label class="w-24 text-sm text-gray-600">Task:</label>
-                    <input type="text" value="New task" class="task-name border border-gray-300 rounded-md px-2 py-1 flex-grow">
+                    <input type="text" value="${
+                      data.task || "New task"
+                    }" class="task-name border border-gray-300 rounded-md px-2 py-1 flex-grow">
                 </div>
                 <div class="flex items-center">
                     <label class="w-24 text-sm text-gray-600">Type:</label>
                     <select class="task-type border border-gray-300 rounded-md px-2 py-1 flex-grow">
-                        <option value="focus">School</option>
-                        <option value="hygiene">Hygiene</option>
-                        <option value="break">Break</option>
-                        <option value="chore">Mission</option>
-                        <option value="personal" selected>Personal</option>
+                        <option value="focus" ${
+                          itemType === "focus" ? "selected" : ""
+                        }>School</option>
+                        <option value="hygiene" ${
+                          itemType === "hygiene" ? "selected" : ""
+                        }>Hygiene</option>
+                        <option value="break" ${
+                          itemType === "break" ? "selected" : ""
+                        }>Break</option>
+                        <option value="chore" ${
+                          itemType === "chore" ? "selected" : ""
+                        }>Mission</option>
+                        <option value="personal" ${
+                          itemType === "personal" ? "selected" : ""
+                        }>Personal</option>
+                        <option value="family" ${
+                          itemType === "family" ? "selected" : ""
+                        }>Family</option>
                     </select>
                 </div>
+                <p class="text-xs text-gray-500 -mt-1">
+                    Hygiene = brushing teeth, washing face, showering, getting dressed.
+                </p>
                 ${pointsInput}
                 <div class="flex items-center mt-1">
-                    <input type="checkbox" class="meal-input mr-2">
+                    <input type="checkbox" class="meal-input mr-2" ${
+                      data.hasMealInput ? "checked" : ""
+                    }>
                     <label class="text-sm text-gray-600">Has meal input</label>
                 </div>
                 <div class="flex items-center mt-1">
-                    <input type="checkbox" class="photo-input mr-2">
+                    <input type="checkbox" class="photo-input mr-2" ${
+                      data.requiresPhoto ? "checked" : ""
+                    }>
                     <label class="text-sm text-gray-600">Requires photo proof</label>
                 </div>
                 <div class="flex items-center mt-1">
-                    <input type="checkbox" class="basic-input mr-2">
+                    <input type="checkbox" class="basic-input mr-2" ${
+                      data.isBasic ? "checked" : ""
+                    }>
                     <label class="text-sm text-gray-600">Basic requirement (unlocks paid tasks)</label>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 mt-1">
                     <span class="text-sm text-gray-600">Repeat on:</span>
+                    <label class="flex items-center gap-2 text-xs text-gray-600">
+                        <input type="checkbox" class="recurring-everyday" ${
+                          Array.isArray(data.recurringDays) &&
+                          data.recurringDays.length === 7
+                            ? "checked"
+                            : ""
+                        }>
+                        Every day
+                    </label>
                     ${[
                       "Monday",
                       "Tuesday",
@@ -5485,14 +6507,19 @@
                       "Saturday",
                       "Sunday",
                     ]
-                      .map(
-                        (day) => `
+                      .map((day) => {
+                        const checked = Array.isArray(data.recurringDays)
+                          ? data.recurringDays.includes(day)
+                          : false;
+                        return `
                         <label class="flex items-center gap-2 text-xs text-gray-600">
-                            <input type="checkbox" class="recurring-day" value="${day}">
+                            <input type="checkbox" class="recurring-day" value="${day}" ${
+                          checked ? "checked" : ""
+                        }>
                             ${day.slice(0, 3)}
                         </label>
-                    `
-                      )
+                    `;
+                      })
                       .join("")}
                     <span class="text-xs text-gray-400">(leave blank for daily)</span>
                 </div>
@@ -5502,26 +6529,263 @@
                 <hr class="my-3">
             `;
 
-          editContainer.appendChild(itemEl);
+        editContainer.appendChild(itemEl);
 
-          // Add event listener to delete button
-          const deleteBtn = itemEl.querySelector(".delete-schedule-item");
-          const anytimeInput = itemEl.querySelector(".anytime-input");
-          const startTimeInput = itemEl.querySelector(".start-time");
-          const endTimeInputEl = itemEl.querySelector(".end-time");
-          deleteBtn.addEventListener("click", () => {
-            itemEl.remove();
-          });
+        const deleteBtn = itemEl.querySelector(".delete-schedule-item");
+        const anytimeInput = itemEl.querySelector(".anytime-input");
+        const startTimeInput = itemEl.querySelector(".start-time");
+        const endTimeInputEl = itemEl.querySelector(".end-time");
+        const typeSelectEl = itemEl.querySelector(".task-type");
+        const pointsInputEl = itemEl.querySelector(".points-value");
+
+        deleteBtn.addEventListener("click", () => {
+          itemEl.remove();
+        });
+        if (anytimeInput) {
           anytimeInput.addEventListener("change", () => {
-            const isChecked = anytimeInput.checked;
-            startTimeInput.disabled = isChecked;
-            endTimeInputEl.disabled = isChecked;
-            if (isChecked) {
-              startTimeInput.value = "";
-              endTimeInputEl.value = "";
+            const checked = anytimeInput.checked;
+            if (startTimeInput) {
+              startTimeInput.disabled = checked;
+              if (checked) startTimeInput.value = "";
+            }
+            if (endTimeInputEl) {
+              endTimeInputEl.disabled = checked;
+              if (checked) endTimeInputEl.value = "";
             }
           });
+        }
+        if (typeSelectEl && pointsInputEl) {
+          typeSelectEl.dataset.lastType = typeSelectEl.value;
+          typeSelectEl.addEventListener("change", () => {
+            applyTypeDefaultPoints(typeSelectEl, pointsInputEl);
+          });
+        }
+      }
+
+      function createScheduleBlockEditor(data = {}) {
+        const editContainer = document.getElementById(
+          "edit-schedule-container"
+        );
+        if (!editContainer) return;
+        const blockEl = document.createElement("div");
+        blockEl.className = "cookie-panel p-4 space-y-3 block-editor";
+        const label = data.label || "";
+        const defaults = label ? blockDefinitions[label] : null;
+        const start = data.start || defaults?.start || "";
+        const end = data.end || defaults?.end || "";
+        blockEl.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <label class="text-sm text-gray-600">Block name:</label>
+              <input type="text" value="${label}" class="block-label-input border border-gray-300 rounded-md px-2 py-1 w-48" placeholder="Morning Block">
+              <label class="text-sm text-gray-600">Start:</label>
+              <input type="time" value="${start}" class="block-start-input border border-gray-300 rounded-md px-2 py-1 w-28">
+              <label class="text-sm text-gray-600">End:</label>
+              <input type="time" value="${end}" class="block-end-input border border-gray-300 rounded-md px-2 py-1 w-28">
+            </div>
+            <button type="button" class="delete-block text-rose-600 text-xs font-semibold">
+              Delete block
+            </button>
+          </div>
+          <div class="block-items space-y-3"></div>
+          <button type="button" class="add-block-task bg-amber-100 text-amber-800 px-3 py-1 rounded-md text-sm font-semibold hover:bg-amber-200 transition">
+            Add task to block
+          </button>
+        `;
+        const itemsContainer = blockEl.querySelector(".block-items");
+        const deleteBtn = blockEl.querySelector(".delete-block");
+        const addTaskBtn = blockEl.querySelector(".add-block-task");
+        const labelInput = blockEl.querySelector(".block-label-input");
+        const startInput = blockEl.querySelector(".block-start-input");
+        const endInput = blockEl.querySelector(".block-end-input");
+        deleteBtn.addEventListener("click", () => {
+          blockEl.remove();
+          syncScheduleFromEditor();
         });
+        addTaskBtn.addEventListener("click", () => {
+          createScheduleEditorItem(
+            { task: "New task", type: "personal" },
+            { container: itemsContainer }
+          );
+          syncScheduleFromEditor();
+        });
+        if (labelInput && startInput && endInput) {
+          labelInput.addEventListener("change", () => {
+            const defaults = blockDefinitions[labelInput.value];
+            if (defaults) {
+              if (!startInput.value) startInput.value = defaults.start || "";
+              if (!endInput.value) endInput.value = defaults.end || "";
+            }
+          });
+        }
+        editContainer.appendChild(blockEl);
+
+        if (Array.isArray(data.items)) {
+          data.items.forEach((item) =>
+            createScheduleEditorItem(item, {
+              container: itemsContainer,
+              itemId: item.id,
+            })
+          );
+        }
+      }
+
+      document
+        .getElementById("add-schedule-item")
+        .addEventListener("click", () => {
+          createScheduleEditorItem({
+            time: "12:00",
+            endTime: "12:30",
+            task: "New task",
+            type: "personal",
+          });
+        });
+
+      const addScheduleBlockButton =
+        document.getElementById("add-schedule-block");
+      if (addScheduleBlockButton) {
+        addScheduleBlockButton.addEventListener("click", () => {
+          createScheduleBlockEditor({
+            label: "",
+            start: "",
+            end: "",
+            items: [],
+          });
+        });
+      }
+
+      const scheduleTemplates = {
+        flow: [
+          {
+            blockLabel: "Morning Routine",
+            blockStart: "07:00",
+            blockEnd: "08:00",
+            items: [
+              { task: "Brush teeth", type: "hygiene" },
+              { task: "Wash face", type: "hygiene" },
+              { task: "Get dressed", type: "hygiene" },
+              {
+                task: "Eat breakfast",
+                type: "personal",
+                hasMealInput: true,
+              },
+            ],
+          },
+          {
+            blockLabel: "Morning Block",
+            blockStart: "08:30",
+            blockEnd: "11:30",
+            items: [
+              { task: "Schoolwork", type: "focus" },
+              { task: "Chore", type: "chore" },
+            ],
+          },
+          {
+            blockLabel: "Lunch",
+            blockStart: "12:00",
+            blockEnd: "12:45",
+            items: [
+              { task: "Lunch", type: "personal", hasMealInput: true },
+              { task: "Clean up after lunch", type: "family" },
+            ],
+          },
+          {
+            blockLabel: "Early Afternoon",
+            blockStart: "13:00",
+            blockEnd: "15:00",
+            items: [
+              { task: "Schoolwork", type: "focus" },
+              { task: "Clean room", type: "chore" },
+            ],
+          },
+          {
+            blockLabel: "Late Afternoon",
+            blockStart: "15:00",
+            blockEnd: "17:00",
+            items: [
+              { task: "Finish homework if needed", type: "focus" },
+              { task: "Help around the house", type: "family" },
+              { task: "Pick up kids from the bus", type: "family" },
+            ],
+          },
+          {
+            blockLabel: "Evening",
+            blockStart: "17:30",
+            blockEnd: "19:30",
+            items: [
+              { task: "Dinner", type: "personal", hasMealInput: true },
+              { task: "Chore", type: "chore" },
+              { task: "Laundry", type: "family" },
+            ],
+          },
+          {
+            blockLabel: "Nighttime",
+            blockStart: "20:00",
+            blockEnd: "21:00",
+            items: [
+              { task: "Brush teeth", type: "hygiene" },
+              { task: "Shower", type: "hygiene" },
+              { task: "Laundry", type: "family" },
+              { task: "Take meds", type: "personal" },
+            ],
+          },
+        ],
+        morning: [
+          { time: "07:00", task: "Wake up", type: "personal" },
+          { time: "07:10", task: "Brush teeth", type: "hygiene" },
+          { time: "07:15", task: "Wash face", type: "hygiene" },
+          { time: "07:25", task: "Get dressed", type: "hygiene" },
+          {
+            time: "07:40",
+            task: "Breakfast",
+            type: "personal",
+            hasMealInput: true,
+          },
+          { time: "08:00", task: "Pack bag", type: "family" },
+        ],
+        school: [
+          { time: "09:00", task: "Math", type: "focus" },
+          { time: "09:45", task: "Reading", type: "focus" },
+          { time: "10:30", task: "Language Arts", type: "focus" },
+          { time: "11:15", task: "Science", type: "focus" },
+          {
+            time: "12:00",
+            task: "Lunch",
+            type: "personal",
+            hasMealInput: true,
+          },
+        ],
+        bedtime: [
+          { time: "19:30", task: "Tidy room", type: "family" },
+          { time: "19:45", task: "Shower", type: "hygiene" },
+          { time: "20:00", task: "Brush teeth", type: "hygiene" },
+          { time: "20:10", task: "Pajamas", type: "hygiene" },
+          { time: "20:20", task: "Read a book", type: "personal" },
+          { time: "20:45", task: "Lights out", type: "personal" },
+        ],
+      };
+
+      const templateBar = document.getElementById("schedule-templates");
+      if (templateBar) {
+        templateBar.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-template]");
+          if (!button) return;
+          const template = scheduleTemplates[button.dataset.template];
+          if (!Array.isArray(template)) return;
+          if (button.dataset.template === "flow") {
+            template.forEach((block) => {
+              createScheduleBlockEditor({
+                label: block.blockLabel,
+                start: block.blockStart,
+                end: block.blockEnd,
+                items: block.items,
+              });
+            });
+            return;
+          }
+          template.forEach((item) => createScheduleEditorItem(item));
+        });
+      }
 
       document.getElementById("save-schedule").addEventListener("click", () => {
         syncScheduleFromEditor();
@@ -5534,6 +6798,8 @@
           document.getElementById("chore-modal-title").textContent =
             "Add Guild Training Goal";
           document.getElementById("chore-name").value = "";
+          populateMissionTaskOptions();
+          syncMissionRequirementVisibility();
           document
             .getElementById("chore-day-container")
             .classList.add("hidden");
@@ -5558,6 +6824,8 @@
           document.getElementById("chore-modal-title").textContent =
             "Add Bounty";
           document.getElementById("chore-name").value = "";
+          populateMissionTaskOptions();
+          syncMissionRequirementVisibility();
           document
             .getElementById("chore-day-container")
             .classList.remove("hidden");
@@ -5580,6 +6848,8 @@
           document.getElementById("chore-modal-title").textContent =
             "Add Epic Quest";
           document.getElementById("chore-name").value = "";
+          populateMissionTaskOptions();
+          syncMissionRequirementVisibility();
           document
             .getElementById("chore-day-container")
             .classList.add("hidden");
@@ -5608,21 +6878,31 @@
         const name = document.getElementById("chore-name").value.trim();
         const type = document.getElementById("save-chore").dataset.type;
         const req1Type = document.getElementById("mission-req-1-type").value;
+        const req1Task = document.getElementById("mission-req-1-task").value;
         const req1Target = parseInt(
           document.getElementById("mission-req-1-target").value,
           10
         );
         const req2Type = document.getElementById("mission-req-2-type").value;
+        const req2Task = document.getElementById("mission-req-2-task").value;
         const req2Target = parseInt(
           document.getElementById("mission-req-2-target").value,
           10
         );
         const requirements = [];
         if (req1Type && req1Target > 0) {
-          requirements.push({ type: req1Type, target: req1Target });
+          const req = { type: req1Type, target: req1Target };
+          if (req1Type === "task") {
+            req.taskId = parseInt(req1Task, 10) || null;
+          }
+          requirements.push(req);
         }
         if (req2Type && req2Target > 0) {
-          requirements.push({ type: req2Type, target: req2Target });
+          const req = { type: req2Type, target: req2Target };
+          if (req2Type === "task") {
+            req.taskId = parseInt(req2Task, 10) || null;
+          }
+          requirements.push(req);
         }
 
         if (name) {
@@ -5979,6 +7259,76 @@
         });
       }
 
+      function populateMissionTaskOptions() {
+        const selects = [
+          document.getElementById("mission-req-1-task"),
+          document.getElementById("mission-req-2-task"),
+        ];
+        selects.forEach((select) => {
+          if (!select) return;
+          select.innerHTML = "";
+          scheduleItems.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = `${item.blockLabel ? `${item.blockLabel} — ` : ""}${item.task}`;
+            select.appendChild(option);
+          });
+          if (!scheduleItems.length) {
+            const option = document.createElement("option");
+            option.value = "";
+            option.textContent = "No tasks available";
+            select.appendChild(option);
+          }
+        });
+      }
+
+      function syncMissionRequirementVisibility() {
+        const req1Type = document.getElementById("mission-req-1-type")?.value;
+        const req2Type = document.getElementById("mission-req-2-type")?.value;
+        const req1Row = document.getElementById("mission-req-1-task-row");
+        const req2Row = document.getElementById("mission-req-2-task-row");
+        if (req1Row) req1Row.classList.toggle("hidden", req1Type !== "task");
+        if (req2Row) req2Row.classList.toggle("hidden", req2Type !== "task");
+      }
+
+      const req1TypeSelect = document.getElementById("mission-req-1-type");
+      const req2TypeSelect = document.getElementById("mission-req-2-type");
+      if (req1TypeSelect) {
+        req1TypeSelect.addEventListener("change", syncMissionRequirementVisibility);
+      }
+      if (req2TypeSelect) {
+        req2TypeSelect.addEventListener("change", syncMissionRequirementVisibility);
+      }
+
+      const missionCreateTaskButton = document.getElementById("mission-create-task");
+      if (missionCreateTaskButton) {
+        missionCreateTaskButton.addEventListener("click", () => {
+          const name = document.getElementById("mission-task-name")?.value.trim();
+          const type = document.getElementById("mission-task-type")?.value || "personal";
+          const time = document.getElementById("mission-task-time")?.value || "";
+          const anytime = document.getElementById("mission-task-anytime")?.checked;
+          if (!name) return;
+          const nextId =
+            scheduleItems.length > 0
+              ? Math.max(...scheduleItems.map((item) => item.id || 0)) + 1
+              : 1;
+          const newItem = {
+            id: nextId,
+            task: name,
+            type,
+            time: anytime ? "" : time,
+            points: getDefaultDiamondsForType(type),
+          };
+          scheduleItems.push(newItem);
+          saveScheduleToServer();
+          renderSchedule();
+          populateMissionTaskOptions();
+          document.getElementById("mission-task-name").value = "";
+          document.getElementById("mission-task-time").value = "";
+          document.getElementById("mission-task-anytime").checked = false;
+        });
+      }
+
       if (habitItemAdd) {
         habitItemAdd.addEventListener("click", () => {
           addHabitFromInputs();
@@ -5987,6 +7337,121 @@
       if (habitSaveButton) {
         habitSaveButton.addEventListener("click", () => {
           handleHabitSave();
+        });
+      }
+
+      function getSelectedScheduleEditors() {
+        const container = document.getElementById("edit-schedule-container");
+        if (!container) return [];
+        return Array.from(
+          container.querySelectorAll(".schedule-select:checked")
+        )
+          .map((checkbox) => checkbox.closest("div.space-y-2"))
+          .filter(Boolean);
+      }
+
+      const bulkSelectAll = document.getElementById("bulk-select-all");
+      if (bulkSelectAll) {
+        bulkSelectAll.addEventListener("change", () => {
+          const container = document.getElementById("edit-schedule-container");
+          if (!container) return;
+          container
+            .querySelectorAll(".schedule-select")
+            .forEach((checkbox) => {
+              checkbox.checked = bulkSelectAll.checked;
+            });
+        });
+      }
+
+      const bulkApply = document.getElementById("bulk-apply");
+      if (bulkApply) {
+        bulkApply.addEventListener("click", () => {
+          const selected = getSelectedScheduleEditors();
+          if (!selected.length) return;
+          const applyType = document.getElementById("bulk-apply-type")?.checked;
+          const applyAnytime = document.getElementById("bulk-apply-anytime")?.checked;
+          const applyProof = document.getElementById("bulk-apply-proof")?.checked;
+          const applyBasic = document.getElementById("bulk-apply-basic")?.checked;
+          const applyDiamonds = document.getElementById("bulk-apply-diamonds")?.checked;
+          const typeValue = document.getElementById("bulk-type")?.value || "";
+          const anytimeValue = document.getElementById("bulk-anytime")?.checked || false;
+          const proofValue = document.getElementById("bulk-proof")?.checked || false;
+          const basicValue = document.getElementById("bulk-basic")?.checked || false;
+          const applyRecurring =
+            document.getElementById("bulk-recurring-apply")?.checked || false;
+          const recurringValues = Array.from(
+            document.querySelectorAll(".bulk-recurring:checked")
+          ).map((el) => el.value);
+          const diamondsValueRaw =
+            document.getElementById("bulk-diamonds")?.value || "";
+          const diamondsValue = parseInt(diamondsValueRaw, 10);
+          selected.forEach((itemEl) => {
+            const typeSelect = itemEl.querySelector(".task-type");
+            const pointsInput = itemEl.querySelector(".points-value");
+            const anytimeInput = itemEl.querySelector(".anytime-input");
+            const startTimeInput = itemEl.querySelector(".start-time");
+            const endTimeInput = itemEl.querySelector(".end-time");
+            const proofInput = itemEl.querySelector(".photo-input");
+            const basicInput = itemEl.querySelector(".basic-input");
+            const recurringInputs = itemEl.querySelectorAll(".recurring-day");
+            if (applyType && typeValue && typeSelect) {
+              typeSelect.value = typeValue;
+              if (pointsInput) {
+                applyTypeDefaultPoints(typeSelect, pointsInput);
+              }
+            }
+            if (applyDiamonds && Number.isFinite(diamondsValue) && pointsInput) {
+              pointsInput.value = diamondsValue;
+            }
+            if (anytimeInput && applyAnytime) {
+              anytimeInput.checked = anytimeValue;
+              if (startTimeInput) {
+                startTimeInput.disabled = anytimeValue;
+                if (anytimeValue) {
+                  startTimeInput.value = "";
+                }
+              }
+              if (endTimeInput) {
+                endTimeInput.disabled = anytimeValue;
+                if (anytimeValue) {
+                  endTimeInput.value = "";
+                }
+              }
+            }
+            if (proofInput && applyProof) {
+              proofInput.checked = proofValue;
+            }
+            if (basicInput && applyBasic) {
+              basicInput.checked = basicValue;
+            }
+            if (applyRecurring && recurringInputs.length) {
+              recurringInputs.forEach((input) => {
+                input.checked = recurringValues.includes(input.value);
+              });
+            }
+          });
+          syncScheduleFromEditor();
+        });
+      }
+
+      const bulkDelete = document.getElementById("bulk-delete");
+      if (bulkDelete) {
+        bulkDelete.addEventListener("click", () => {
+          const selected = getSelectedScheduleEditors();
+          if (!selected.length) return;
+          selected.forEach((itemEl) => itemEl.remove());
+          syncScheduleFromEditor();
+        });
+      }
+
+      const bulkClearRecurring = document.getElementById("bulk-clear-recurring");
+      if (bulkClearRecurring) {
+        bulkClearRecurring.addEventListener("click", () => {
+          document.querySelectorAll(".bulk-recurring").forEach((input) => {
+            input.checked = false;
+          });
+          const applyCheckbox = document.getElementById("bulk-recurring-apply");
+          if (applyCheckbox) applyCheckbox.checked = true;
         });
       }
 

@@ -1,0 +1,962 @@
+[
+  {
+    "id": "adventurer-cookie",
+    "name": "Adventurer Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/adventurer-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "affogato-cookie",
+    "name": "Affogato Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/affogato-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "agar-agar-cookie",
+    "name": "Agar Agar Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/agar-agar-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "alchemist-cookie",
+    "name": "Alchemist Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/alchemist-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "almond-cookie",
+    "name": "Almond Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/almond-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "angel-cookie",
+    "name": "Angel Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/angel-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "aquamarine-cookie",
+    "name": "Aquamarine Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/aquamarine-cookie/default.png",
+    "rarity": "Special"
+  },
+  {
+    "id": "avocado-cookie",
+    "name": "Avocado Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/avocado-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "beet-cookie",
+    "name": "Beet Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/beet-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "black-forest-cookie",
+    "name": "Black Forest Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/black-forest-cookie/default.png",
+    "rarity": "Legendary"
+  },
+  {
+    "id": "black-lemonade-cookie",
+    "name": "Black Lemonade Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/black-lemonade-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "black-pearl-cookie",
+    "name": "Black Pearl Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/black-pearl-cookie/default.png",
+    "rarity": "Legendary"
+  },
+  {
+    "id": "black-raisin-cookie",
+    "name": "Black Raisin Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/black-raisin-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "black-sapphire-cookie",
+    "name": "Black Sapphire Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/black-sapphire-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "blackberry-cookie",
+    "name": "Blackberry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/blackberry-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "blueberry-pie-cookie",
+    "name": "Blueberry Pie Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/blueberry-pie-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "burning-spice-cookie",
+    "name": "Burning Spice Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/burning-spice-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "burnt-cheese-cookie",
+    "name": "Burnt Cheese Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/burnt-cheese-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "butter-roll-cookie",
+    "name": "Butter Roll Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/butter-roll-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "candy-apple-cookie",
+    "name": "Candy Apple Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/candy-apple-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "candy-diver-cookie",
+    "name": "Candy Diver Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/candy-diver-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "capsaicin-cookie",
+    "name": "Capsaicin Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/capsaicin-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "captain-caviar-cookie",
+    "name": "Captain Caviar Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/captain-caviar-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "caramel-arrow-cookie",
+    "name": "Caramel Arrow Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/caramel-arrow-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "caramel-choux-cookie",
+    "name": "Caramel Choux Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/caramel-choux-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "carol-cookie",
+    "name": "Carol Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/carol-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "carrot-cookie",
+    "name": "Carrot Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/carrot-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "charcoal-cookie",
+    "name": "Charcoal Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/charcoal-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cherry-blossom-cookie",
+    "name": "Cherry Blossom Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cherry-blossom-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cherry-cookie",
+    "name": "Cherry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cherry-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "chess-choco-cookie",
+    "name": "Chess Choco Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/chess-choco-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "chili-pepper-cookie",
+    "name": "Chili Pepper Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/chili-pepper-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "choco-drizzle-cookie",
+    "name": "Choco Drizzle Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/choco-drizzle-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "clotted-cream-cookie",
+    "name": "Clotted Cream Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/clotted-cream-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cloud-haetae-cookie",
+    "name": "Cloud Haetae Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cloud-haetae-cookie/default.png",
+    "rarity": "Special"
+  },
+  {
+    "id": "clover-cookie",
+    "name": "Clover Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/clover-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "cocoa-cookie",
+    "name": "Cocoa Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cocoa-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cotton-cookie",
+    "name": "Cotton Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cotton-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cream-ferret-cookie",
+    "name": "Cream Ferret Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cream-ferret-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cream-puff-cookie",
+    "name": "Cream Puff Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cream-puff-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cream-soda-cookie",
+    "name": "Cream Soda Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cream-soda-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "cream-unicorn-cookie",
+    "name": "Cream Unicorn Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/cream-unicorn-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "creme-brulee-cookie",
+    "name": "Crème Brûlée Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/creme-brulee-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "crimson-coral-cookie",
+    "name": "Crimson Coral Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/crimson-coral-cookie/default.png",
+    "rarity": "SuperEpic"
+  },
+  {
+    "id": "crunchy-chip-cookie",
+    "name": "Crunchy Chip Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/crunchy-chip-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "custard-cookie-iii",
+    "name": "Custard Cookie III",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/custard-cookie-iii/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "dark-cacao-cookie",
+    "name": "Dark Cacao Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/dark-cacao-cookie/default.png",
+    "rarity": "Ancient"
+  },
+  {
+    "id": "dark-choco-cookie",
+    "name": "Dark Choco Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/dark-choco-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "dawnbringer-white-lily-cookie",
+    "name": "Dawnbringer White Lily Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/dawnbringer-white-lily-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "devil-cookie",
+    "name": "Devil Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/devil-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "doughael",
+    "name": "Doughael",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/doughael/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "eclair-cookie",
+    "name": "Eclair Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/eclair-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "elder-faerie-cookie",
+    "name": "Elder Faerie Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/elder-faerie-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "espresso-cookie",
+    "name": "Espresso Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/espresso-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "eternal-sugar-cookie",
+    "name": "Eternal Sugar Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/eternal-sugar-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "fettuccine-cookie",
+    "name": "Fettuccine Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/fettuccine-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "fig-cookie",
+    "name": "Fig Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/fig-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "financier-cookie",
+    "name": "Financier Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/financier-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "fire-spirit-cookie",
+    "name": "Fire Spirit Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/fire-spirit-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "frilled-jellyfish-cookie",
+    "name": "Frilled Jellyfish Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/frilled-jellyfish-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "frost-queen-cookie",
+    "name": "Frost Queen Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/frost-queen-cookie/default.png",
+    "rarity": "Legendary"
+  },
+  {
+    "id": "gingerbrave",
+    "name": "GingerBrave",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/gingerbrave/default.png",
+    "rarity": "Common"
+  },
+  {
+    "id": "gold-citrine-cookie",
+    "name": "Gold Citrine Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/gold-citrine-cookie/default.png",
+    "rarity": "Special"
+  },
+  {
+    "id": "golden-cheese-cookie",
+    "name": "Golden Cheese Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/golden-cheese-cookie/default.png",
+    "rarity": "Ancient"
+  },
+  {
+    "id": "grapefruit-cookie",
+    "name": "Grapefruit Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/grapefruit-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "green-tea-mousse-cookie",
+    "name": "Green Tea Mousse Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/green-tea-mousse-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "gumball-cookie",
+    "name": "Gumball Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/gumball-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "herb-cookie",
+    "name": "Herb Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/herb-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "hollyberry-cookie",
+    "name": "Hollyberry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/hollyberry-cookie/default.png",
+    "rarity": "Ancient"
+  },
+  {
+    "id": "icicle-yeti-cookie",
+    "name": "Icicle Yeti Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/icicle-yeti-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "jagae-cookie",
+    "name": "Jagae Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/jagae-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "knight-cookie",
+    "name": "Knight Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/knight-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "kouign-amann-cookie",
+    "name": "Kouign-Amann Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/kouign-amann-cookie/default.png",
+    "rarity": "SuperEpic"
+  },
+  {
+    "id": "kumiho-cookie",
+    "name": "Kumiho Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/kumiho-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "latte-cookie",
+    "name": "Latte Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/latte-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "lemon-cookie",
+    "name": "Lemon Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/lemon-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "licorice-cookie",
+    "name": "Licorice Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/licorice-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "lilac-cookie",
+    "name": "Lilac Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/lilac-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "lime-cookie",
+    "name": "Lime Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/lime-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "linzer-cookie",
+    "name": "Linzer Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/linzer-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "macaron-cookie",
+    "name": "Macaron Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/macaron-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "madeleine-cookie",
+    "name": "Madeleine Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/madeleine-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "mala-sauce-cookie",
+    "name": "Mala Sauce Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mala-sauce-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "mango-cookie",
+    "name": "Mango Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mango-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "manju-cookie",
+    "name": "Manju Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/manju-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "marshmallow-bunny-cookie",
+    "name": "Marshmallow Bunny Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/marshmallow-bunny-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "matcha-cookie",
+    "name": "Matcha Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/matcha-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "menthol-cookie",
+    "name": "Menthol Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/menthol-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "mercurial-knight-cookie",
+    "name": "Mercurial Knight Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mercurial-knight-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "milk-cookie",
+    "name": "Milk Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/milk-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "milky-way-cookie",
+    "name": "Milky Way Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/milky-way-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "mint-choco-cookie",
+    "name": "Mint Choco Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mint-choco-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "moonlight-cookie",
+    "name": "Moonlight Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/moonlight-cookie/default.png",
+    "rarity": "Legendary"
+  },
+  {
+    "id": "mozzarella-cookie",
+    "name": "Mozzarella Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mozzarella-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "muscle-cookie",
+    "name": "Muscle Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/muscle-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "mystic-flour-cookie",
+    "name": "Mystic Flour Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mystic-flour-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "mystic-opal-cookie",
+    "name": "Mystic Opal Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/mystic-opal-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "ninja-cookie",
+    "name": "Ninja Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/ninja-cookie/default.png",
+    "rarity": "Common"
+  },
+  {
+    "id": "nutmeg-tiger-cookie",
+    "name": "Nutmeg Tiger Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/nutmeg-tiger-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "okchun-cookie",
+    "name": "Okchun Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/okchun-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "olive-cookie",
+    "name": "Olive Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/olive-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "onion-cookie",
+    "name": "Onion Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/onion-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "orange-cookie",
+    "name": "Orange Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/orange-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "oyster-cookie",
+    "name": "Oyster Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/oyster-cookie/default.png",
+    "rarity": "SuperEpic"
+  },
+  {
+    "id": "pancake-cookie",
+    "name": "Pancake Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pancake-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "parfait-cookie",
+    "name": "Parfait Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/parfait-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pastry-cookie",
+    "name": "Pastry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pastry-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pavlova-cookie",
+    "name": "Pavlova Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pavlova-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "peach-blossom-cookie",
+    "name": "Peach Blossom Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/peach-blossom-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "peppermint-cookie",
+    "name": "Peppermint Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/peppermint-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pinecone-cookie",
+    "name": "Pinecone Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pinecone-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pitaya-dragon-cookie",
+    "name": "Pitaya Dragon Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pitaya-dragon-cookie/default.png",
+    "rarity": "Dragon"
+  },
+  {
+    "id": "poison-mushroom-cookie",
+    "name": "Poison Mushroom Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/poison-mushroom-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pomegranate-cookie",
+    "name": "Pomegranate Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pomegranate-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "princess-cookie",
+    "name": "Princess Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/princess-cookie/default.png",
+    "rarity": "Rare"
+  },
+  {
+    "id": "prophet-cookie",
+    "name": "Prophet Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/prophet-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pudding-a-la-mode-cookie",
+    "name": "Pudding à la Mode Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pudding-a-la-mode-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pumpkin-pie-cookie",
+    "name": "Pumpkin Pie Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pumpkin-pie-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "pure-vanilla-cookie",
+    "name": "Pure Vanilla Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/pure-vanilla-cookie/default.png",
+    "rarity": "Ancient"
+  },
+  {
+    "id": "purple-yam-cookie",
+    "name": "Purple Yam Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/purple-yam-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "raspberry-cookie",
+    "name": "Raspberry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/raspberry-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "rebel-cookie",
+    "name": "Rebel Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/rebel-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "red-velvet-cookie",
+    "name": "Red Velvet Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/red-velvet-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "rockstar-cookie",
+    "name": "Rockstar Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/rockstar-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "royal-margarine-cookie",
+    "name": "Royal Margarine Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/royal-margarine-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "rye-cookie",
+    "name": "Rye Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/rye-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "salt-cellar-cookie",
+    "name": "Salt Cellar Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/salt-cellar-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "schwarzwalder",
+    "name": "Schwarzwälder",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/schwarzwalder/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "sea-fairy-cookie",
+    "name": "Sea Fairy Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/sea-fairy-cookie/default.png",
+    "rarity": "Legendary"
+  },
+  {
+    "id": "seltzer-cookie",
+    "name": "Seltzer Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/seltzer-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "shadow-milk-cookie",
+    "name": "Shadow Milk Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/shadow-milk-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "sherbet-cookie",
+    "name": "Sherbet Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/sherbet-cookie/default.png",
+    "rarity": "SuperEpic"
+  },
+  {
+    "id": "shining-glitter-cookie",
+    "name": "Shining Glitter Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/shining-glitter-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "silentsalt-cookie",
+    "name": "SilentSalt Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/silentsalt-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "silverbell-cookie",
+    "name": "Silverbell Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/silverbell-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "smoked-cheese-cookie",
+    "name": "Smoked Cheese Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/smoked-cheese-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "snapdragon-cookie",
+    "name": "Snapdragon Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/snapdragon-cookie/default.png",
+    "rarity": "Special"
+  },
+  {
+    "id": "snow-sugar-cookie",
+    "name": "Snow Sugar Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/snow-sugar-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "sorbet-shark-cookie",
+    "name": "Sorbet Shark Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/sorbet-shark-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "space-doughnut",
+    "name": "Space Doughnut",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/space-doughnut/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "sparkling-cookie",
+    "name": "Sparkling Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/sparkling-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "squid-ink-cookie",
+    "name": "Squid Ink Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/squid-ink-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "star-coral-cookie",
+    "name": "Star Coral Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/star-coral-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "stardust-cookie",
+    "name": "Stardust Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/stardust-cookie/default.png",
+    "rarity": "SuperEpic"
+  },
+  {
+    "id": "stormbringer-cookie",
+    "name": "Stormbringer Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/stormbringer-cookie/default.png",
+    "rarity": "Legendary"
+  },
+  {
+    "id": "strawberry-cookie",
+    "name": "Strawberry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/strawberry-cookie/default.png",
+    "rarity": "Common"
+  },
+  {
+    "id": "strawberry-crepe-cookie",
+    "name": "Strawberry Crepe Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/strawberry-crepe-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "street-urchin-cookie",
+    "name": "Street Urchin Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/street-urchin-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "sugarfly-cookie",
+    "name": "Sugarfly Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/sugarfly-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "tarte-tatin-cookie",
+    "name": "Tarte Tatin Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/tarte-tatin-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "tea-knight-cookie",
+    "name": "Tea Knight Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/tea-knight-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "tiger-lily-cookie",
+    "name": "Tiger Lily Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/tiger-lily-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "twizzly-gummy-cookie",
+    "name": "Twizzly Gummy Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/twizzly-gummy-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "vampire-cookie",
+    "name": "Vampire Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/vampire-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "wedding-cake-cookie",
+    "name": "Wedding Cake Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/wedding-cake-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "werewolf-cookie",
+    "name": "Werewolf Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/werewolf-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "white-lily-cookie",
+    "name": "White Lily Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/white-lily-cookie/default.png",
+    "rarity": "Ancient"
+  },
+  {
+    "id": "wildberry-cookie",
+    "name": "Wildberry Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/wildberry-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "wind-archer-cookie",
+    "name": "Wind Archer Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/wind-archer-cookie/default.png",
+    "rarity": "Epic"
+  },
+  {
+    "id": "wizard-cookie",
+    "name": "Wizard Cookie",
+    "image": "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/wizard-cookie/default.png",
+    "rarity": "Epic"
+  }
+]
