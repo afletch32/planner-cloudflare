@@ -671,7 +671,7 @@
           id: "brave-default",
           name: "Brave Cookie",
           image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookies/brave/default.webp",
-          cost: 0,
+          cost: 150,
           rarity: "Common",
         },
         {
@@ -685,14 +685,77 @@
           id: "brave-hurray",
           name: "Brave Cookie (Hurray)",
           image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookies/brave/hurray.webp",
-          cost: 200,
+          cost: 150,
           rarity: "Common",
         },
         {
           id: "brave-angry",
           name: "Brave Cookie (Angry)",
           image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookies/brave/angry.webp",
-          cost: 200,
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "strawberry-default",
+          name: "Strawberry Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/strawberry.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "ninja-base",
+          name: "Ninja Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/ninjabase.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "princess-base",
+          name: "Princess Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/princessbase.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "angel-default",
+          name: "Angel Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/angel_default.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "devil-base",
+          name: "Devil Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/devil_base.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "kumiho-base",
+          name: "Kumiho Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/kumiho_base.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "rebel-normal",
+          name: "Rebel Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/rebel_cookie_normal.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "knight-sprite",
+          name: "Knight Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/knight_sprite.webp",
+          cost: 150,
+          rarity: "Common",
+        },
+        {
+          id: "muscle-sprite",
+          name: "Muscle Cookie",
+          image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/cookies/muscle_sprite.webp",
+          cost: 150,
           rarity: "Common",
         },
         {
@@ -706,21 +769,21 @@
           id: "white-lily-smile",
           name: "White Lily (Smile)",
           image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookies/white-lily/smile.png",
-          cost: 650,
+          cost: 600,
           rarity: "Epic",
         },
         {
           id: "white-lily-happy",
           name: "White Lily (Happy)",
           image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookies/white-lily/happy.png",
-          cost: 650,
+          cost: 600,
           rarity: "Epic",
         },
         {
           id: "white-lily-motivated",
           name: "White Lily (Motivated)",
           image: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookies/white-lily/motivated.png",
-          cost: 700,
+          cost: 600,
           rarity: "Epic",
         },
       ];
@@ -2309,7 +2372,7 @@
           </h3>
           <button
             id="add-reward"
-            class="bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white px-4 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
+            class="admin-only bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 text-white px-4 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition"
           >
             Add Reward
           </button>
@@ -5474,7 +5537,7 @@
         .getElementById("add-weekly-chore")
         .addEventListener("click", () => {
           document.getElementById("chore-modal-title").textContent =
-            "Add Weekly Mission";
+            "Add Guild Training Goal";
           document.getElementById("chore-name").value = "";
           document
             .getElementById("chore-day-container")
@@ -5498,7 +5561,7 @@
         .getElementById("add-daily-bonus")
         .addEventListener("click", () => {
           document.getElementById("chore-modal-title").textContent =
-            "Add Daily Bonus Mission";
+            "Add Bounty";
           document.getElementById("chore-name").value = "";
           document
             .getElementById("chore-day-container")
@@ -5520,7 +5583,7 @@
         .getElementById("add-monthly-chore")
         .addEventListener("click", () => {
           document.getElementById("chore-modal-title").textContent =
-            "Add Monthly Mission";
+            "Add Epic Quest";
           document.getElementById("chore-name").value = "";
           document
             .getElementById("chore-day-container")
