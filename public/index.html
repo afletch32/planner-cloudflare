@@ -564,12 +564,27 @@
         { id: "mimi-papa", name: "Mimi and Papa" },
       ];
 
-      const FUNCTIONS_BASE_URL = localStorage.getItem("functionsBaseUrl") || "";
-      const API_BASE = FUNCTIONS_BASE_URL
-        ? FUNCTIONS_BASE_URL.replace(/\/$/, "")
-        : "/api";
+      const API_BASE = window.PLANNER_API_BASE || "/api";
+      window.PLANNER_API_BASE = API_BASE;
       const KINGDOM_API_URL =
         "https://planner-cloudflare-api.afletcherr32.workers.dev";
+
+      const cookieSubjects = [
+        "Math",
+        "Science",
+        "Language Arts",
+        "Reading",
+        "Social Studies",
+      ];
+      const cookieDays = ["M", "T", "W", "T", "F", "S", "S"];
+      const cookieRewards = { starCrystals: 200, starExp: 100 };
+      const buildWeeklyStars = () =>
+        Object.fromEntries(
+          cookieSubjects.map((subject) => [
+            subject,
+            Array(cookieDays.length).fill(0),
+          ])
+        );
 
       const initialState = {
         player: {
@@ -592,9 +607,7 @@
             accessory: null,
           },
         },
-        weekly_stars: {
-          Schedule: [0, 0, 0, 0, 0],
-        },
+        weekly_stars: buildWeeklyStars(),
         inventory: [],
         quests: [
           {
@@ -616,10 +629,6 @@
 
       let state = { ...initialState };
       let selectedDough = { class: "Charge", avatar: "🍪" };
-      const cookieSubjects = ["Schedule"];
-      const cookieDays = ["M", "T", "W", "T", "F"];
-      const cookieStorageKey = "cookie-kingdom-state-v1";
-      const cookieRewards = { starCrystals: 200, starExp: 100 };
       const ItemDatabase = [
         {
           id: "hat_01",
@@ -709,6 +718,8 @@
         },
       ];
       let cookieUnlockingId = null;
+      const moodEntries = new Map();
+      const journalEntries = new Map();
 
       async function apiFetch(path, options = {}) {
         const headers = {
@@ -743,8 +754,56 @@
         return resp.json();
       }
 
+      async function loadStateValue(namespace, key, fallback) {
+        try {
+          const data = await apiGetJson(
+            `/state?householdId=${encodeURIComponent(
+              HOUSEHOLD_ID
+            )}&personId=${encodeURIComponent(
+              PERSON_ID
+            )}&namespace=${encodeURIComponent(namespace)}&key=${encodeURIComponent(
+              key
+            )}`
+          );
+          return typeof data?.value === "undefined" ? fallback : data.value;
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      async function saveStateValue(namespace, key, value) {
+        try {
+          await apiPostJson("/state", {
+            householdId: HOUSEHOLD_ID,
+            personId: PERSON_ID,
+            namespace,
+            key,
+            value,
+          });
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }
+
+      async function listStateValues(namespace, prefix = "") {
+        try {
+          const data = await apiGetJson(
+            `/state/list?householdId=${encodeURIComponent(
+              HOUSEHOLD_ID
+            )}&personId=${encodeURIComponent(
+              PERSON_ID
+            )}&namespace=${encodeURIComponent(
+              namespace
+            )}&prefix=${encodeURIComponent(prefix)}`
+          );
+          return Array.isArray(data?.items) ? data.items : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
       async function saveKingdom() {
-        saveCookieLocalState();
         try {
           await fetch(KINGDOM_API_URL, {
             method: "POST",
@@ -793,19 +852,17 @@
             const data = await response.json();
             if (!data || !data.player || data.player.name === "New Cookie") {
               document.getElementById("setup-screen")?.classList.remove("hidden");
+              renderUI();
             } else {
               state = normalizeCookieState(data);
               renderUI();
             }
+          } else {
+            renderUI();
           }
         } catch (error) {
-          const localState = loadCookieLocalState();
-          if (localState) {
-            state = normalizeCookieState(localState);
-            renderUI();
-            return;
-          }
           console.log("Starting fresh Kingdom.");
+          renderUI();
         }
       }
 
@@ -1019,9 +1076,21 @@
           ...data,
           player: { ...initialState.player, ...(data?.player || {}) },
         };
-        if (!merged.weekly_stars || !merged.weekly_stars.Schedule) {
-          merged.weekly_stars = { Schedule: [0, 0, 0, 0, 0] };
+        if (!merged.weekly_stars || typeof merged.weekly_stars !== "object") {
+          merged.weekly_stars = {};
         }
+        cookieSubjects.forEach((subject) => {
+          const existing = merged.weekly_stars[subject];
+          if (!Array.isArray(existing)) {
+            merged.weekly_stars[subject] = Array(cookieDays.length).fill(0);
+            return;
+          }
+          const filled = Array(cookieDays.length).fill(0);
+          for (let i = 0; i < Math.min(existing.length, cookieDays.length); i++) {
+            filled[i] = existing[i] ? 1 : 0;
+          }
+          merged.weekly_stars[subject] = filled;
+        });
         if (!Array.isArray(merged.player.inventory)) {
           merged.player.inventory = ["hat_01"];
         }
@@ -1062,26 +1131,6 @@
           merged.player.current_outfit.legs ||
           "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/03.png";
         return merged;
-      }
-
-      function saveCookieLocalState() {
-        try {
-          localStorage.setItem(cookieStorageKey, JSON.stringify(state));
-        } catch (error) {
-          return;
-        }
-      }
-
-      function loadCookieLocalState() {
-        try {
-          const raw = localStorage.getItem(cookieStorageKey);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          if (!parsed || typeof parsed !== "object") return null;
-          return parsed;
-        } catch (error) {
-          return null;
-        }
       }
 
       function renderCookieStars() {
@@ -1140,6 +1189,7 @@
       }
 
       function updateCookieStarFromSchedule() {
+        if (!state.weekly_stars?.Schedule) return;
         const today = new Date();
         const day = today.getDay();
         if (day < 1 || day > 5) return;
@@ -1287,11 +1337,11 @@
       }
 
       function moodStorageKey(dateString) {
-        return `mood:${HOUSEHOLD_ID}:${PERSON_ID}:${dateString}`;
+        return dateString;
       }
 
       function journalStorageKey(dateString) {
-        return `journal:${HOUSEHOLD_ID}:${PERSON_ID}:${dateString}`;
+        return dateString;
       }
 
       function updateMoodButtons() {
@@ -1307,30 +1357,28 @@
         });
       }
 
-      function loadMoodCheckin() {
+      async function loadMoodCheckin() {
         const key = moodStorageKey(getTodayString());
-        const saved = localStorage.getItem(key);
+        const saved =
+          moodEntries.get(key) ||
+          (await loadStateValue("mood", key, null));
         if (!saved) {
           moodStatusEl.textContent = "";
           return;
         }
-        try {
-          const parsed = JSON.parse(saved);
-          selectedMood = parsed.mood || null;
-          if (parsed.note && moodNoteEl) {
-            moodNoteEl.value = parsed.note;
-          }
-          if (parsed.savedAt && moodStatusEl) {
-            const savedAt = new Date(parsed.savedAt);
-            moodStatusEl.textContent = `Saved at ${savedAt.toLocaleTimeString()}`;
-          }
-          updateMoodButtons();
-        } catch (error) {
-          console.warn("Failed to parse mood check-in", error);
+        selectedMood = saved.mood || null;
+        if (saved.note && moodNoteEl) {
+          moodNoteEl.value = saved.note;
         }
+        if (saved.savedAt && moodStatusEl) {
+          const savedAt = new Date(saved.savedAt);
+          moodStatusEl.textContent = `Saved at ${savedAt.toLocaleTimeString()}`;
+        }
+        moodEntries.set(key, saved);
+        updateMoodButtons();
       }
 
-      function saveMoodCheckin() {
+      async function saveMoodCheckin() {
         if (!selectedMood) {
           showCelebration("Pick a mood first.");
           return;
@@ -1340,10 +1388,9 @@
           note: moodNoteEl ? moodNoteEl.value : "",
           savedAt: new Date().toISOString(),
         };
-        localStorage.setItem(
-          moodStorageKey(getTodayString()),
-          JSON.stringify(payload)
-        );
+        const key = moodStorageKey(getTodayString());
+        moodEntries.set(key, payload);
+        await saveStateValue("mood", key, payload);
         moodStatusEl.textContent = `Saved at ${new Date(
           payload.savedAt
         ).toLocaleTimeString()}`;
@@ -1353,50 +1400,70 @@
         renderMonthlyChores();
       }
 
-      function loadJournal() {
+      async function loadJournal() {
         const key = journalStorageKey(getTodayString());
-        const saved = localStorage.getItem(key);
-        if (saved && journalEntryEl) {
+        const saved =
+          journalEntries.get(key) ||
+          (await loadStateValue("journal", key, ""));
+        if (typeof saved === "string" && journalEntryEl) {
           journalEntryEl.value = saved;
         }
+        journalEntries.set(key, saved || "");
       }
 
-      function saveJournal() {
+      async function saveJournal() {
         if (!journalEntryEl) return;
         const key = journalStorageKey(getTodayString());
-        localStorage.setItem(key, journalEntryEl.value || "");
+        const payload = journalEntryEl.value || "";
+        journalEntries.set(key, payload);
+        await saveStateValue("journal", key, payload);
         showCelebration("Journal saved!");
         renderDailyBonusMissions();
         renderWeeklyChores();
         renderMonthlyChores();
       }
 
-      function loadMissionsFromStorage() {
-        const saved = localStorage.getItem(missionsStorageKey);
-        if (!saved) return;
-        try {
-          const parsed = JSON.parse(saved);
-          weeklyChores = Array.isArray(parsed.weeklyMissions)
-            ? parsed.weeklyMissions
-            : weeklyChores;
-          monthlyChores = Array.isArray(parsed.monthlyMissions)
-            ? parsed.monthlyMissions
-            : monthlyChores;
-          dailyBonusMissions = Array.isArray(parsed.dailyBonusMissions)
-            ? parsed.dailyBonusMissions
-            : dailyBonusMissions;
-        } catch (error) {
-          console.warn("Failed to parse missions storage", error);
+      async function loadMissionsFromServerState() {
+        const saved = await loadStateValue("missions", "current", null);
+        if (!saved) return false;
+        if (Array.isArray(saved.weeklyMissions)) {
+          weeklyChores = saved.weeklyMissions;
         }
+        if (Array.isArray(saved.monthlyMissions)) {
+          monthlyChores = saved.monthlyMissions;
+        }
+        if (Array.isArray(saved.dailyBonusMissions)) {
+          dailyBonusMissions = saved.dailyBonusMissions;
+        }
+        return true;
       }
 
-      function saveMissionsToStorage() {
+      async function saveMissionsToServerState() {
         const payload = {
           weeklyMissions: weeklyChores,
           monthlyMissions: monthlyChores,
           dailyBonusMissions: dailyBonusMissions,
         };
-        localStorage.setItem(missionsStorageKey, JSON.stringify(payload));
+        await saveStateValue("missions", "current", payload);
+      }
+
+      async function loadMoodAndJournalHistory() {
+        const [moodItems, journalItems] = await Promise.all([
+          listStateValues("mood"),
+          listStateValues("journal"),
+        ]);
+        moodEntries.clear();
+        journalEntries.clear();
+        moodItems.forEach((item) => {
+          if (item && item.key) {
+            moodEntries.set(item.key, item.value);
+          }
+        });
+        journalItems.forEach((item) => {
+          if (item && item.key) {
+            journalEntries.set(item.key, item.value);
+          }
+        });
       }
 
       function loadTodayTasks() {
@@ -1452,7 +1519,9 @@
 
       function formatTaskType(type) {
         const labels = {
-          focus: "Focus Block",
+          focus: "School",
+          school: "School",
+          hygiene: "Hygiene",
           break: "Break",
           chore: "Mission",
           personal: "Personal",
@@ -1475,6 +1544,33 @@
         } catch (error) {
           console.warn("Unable to load default tasks", error);
         }
+      }
+
+      async function loadScheduleFromServer() {
+        const saved = await loadStateValue("schedule", "items", null);
+        if (Array.isArray(saved) && saved.length > 0) {
+          scheduleItems = saved;
+          return true;
+        }
+        return false;
+      }
+
+      async function saveScheduleToServer() {
+        const sanitized = scheduleItems.map((item) => {
+          const cleaned = { ...item };
+          delete cleaned.completed;
+          delete cleaned.pendingApproval;
+          delete cleaned.pendingRelease;
+          delete cleaned.actualActivity;
+          delete cleaned.proofImage;
+          delete cleaned.autoReviewStatus;
+          delete cleaned.completedDate;
+          delete cleaned.proofDate;
+          delete cleaned.proofCoversYesterday;
+          delete cleaned.proofCoversYesterdayDate;
+          return cleaned;
+        });
+        await saveStateValue("schedule", "items", sanitized);
       }
 
       async function loadDefaultMissions() {
@@ -1621,6 +1717,23 @@
       .current-task {
         animation: pulse 2s infinite;
       }
+      .current-time-card {
+        padding: 1.25rem 2rem;
+        min-width: 200px;
+      }
+      .current-time-card #current-time {
+        font-size: 1.75rem;
+        line-height: 1.2;
+      }
+      @media (min-width: 1024px) {
+        .current-time-card {
+          padding: 1.5rem 2.5rem;
+          min-width: 240px;
+        }
+        .current-time-card #current-time {
+          font-size: 2rem;
+        }
+      }
       @keyframes pulse {
         0% {
           box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
@@ -1641,6 +1754,9 @@
       }
       .focus-block {
         border-left: 4px solid #3b82f6;
+      }
+      .hygiene-block {
+        border-left: 4px solid #14b8a6;
       }
       .break-block {
         border-left: 4px solid #10b981;
@@ -1717,7 +1833,7 @@
           >
             Admin Sign In
           </button>
-          <div class="bg-[#fff9ea] border-2 border-amber-200 p-4 rounded-2xl shadow-md">
+          <div class="current-time-card bg-[#fff9ea] border-2 border-amber-200 p-4 rounded-2xl shadow-md">
             <p class="text-xl font-bold text-center cookie-title" id="current-time">
               Loading time...
             </p>
@@ -1845,7 +1961,7 @@
             <div>
               <div class="text-xs uppercase cookie-label">Cookie Kingdom</div>
               <h3 class="text-2xl font-bold cookie-title">
-                Weekly Exploration
+                Weekly Knowledge Quest
               </h3>
             </div>
             <div class="text-right text-sm cookie-title">
@@ -2937,8 +3053,6 @@
         },
       ];
 
-      const habitsStorageKey = "habitTrackerData";
-      const missionsStorageKey = `missions:${HOUSEHOLD_ID}:${PERSON_ID}`;
 
       // Settings
       let settings = {
@@ -3014,7 +3128,7 @@
           dailyBonusMissions = dailyBonusMissions.filter((m) => m.id !== id);
           renderDailyBonusMissions();
         }
-        saveMissionsToStorage();
+        saveMissionsToServerState();
       }
 
       if (weeklyContainer) weeklyContainer.addEventListener("click", handleMissionDelete);
@@ -3086,8 +3200,16 @@
 
       async function bootstrapApp() {
         await loadDefaultTasks();
+        const scheduleLoaded = await loadScheduleFromServer();
+        if (!scheduleLoaded) {
+          await saveScheduleToServer();
+        }
         await loadDefaultMissions();
-        loadMissionsFromStorage();
+        const missionsLoaded = await loadMissionsFromServerState();
+        if (!missionsLoaded) {
+          await saveMissionsToServerState();
+        }
+        await loadMoodAndJournalHistory();
         updateDateTime();
         updatePointsDisplay();
         await loadPointsFromServer();
@@ -3096,9 +3218,8 @@
           updateProgress();
         });
         await loadDailyNotes();
-        loadMoodCheckin();
-        loadJournal();
-        loadHabitsFromStorage();
+        await loadMoodCheckin();
+        await loadJournal();
         await loadHabitsFromServer().finally(() => {
           renderHabits();
         });
@@ -3123,9 +3244,16 @@
         return yesterday.toISOString().split("T")[0];
       }
 
+      function getTomorrowString() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        return tomorrow.toISOString().split("T")[0];
+      }
+
       function isSchoolTask(item) {
         if (!item || !item.type) return false;
-        return item.type === "focus";
+        return item.type === "focus" || item.type === "school";
       }
 
       function formatTime(timeString) {
@@ -3141,7 +3269,8 @@
 
       function formatTaskType(type) {
         const labels = {
-          focus: "Focus Block",
+          focus: "School",
+          hygiene: "Hygiene",
           break: "Break",
           chore: "Mission",
           personal: "Personal",
@@ -3181,16 +3310,14 @@
         return { startDate, endDate };
       }
 
-      function listDatedEntries(prefix) {
+      function listDatedEntries(cacheMap) {
         const entries = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (!key || !key.startsWith(prefix)) continue;
-          const dateString = key.slice(prefix.length);
-          const date = new Date(`${dateString}T00:00:00`);
-          if (Number.isNaN(date.getTime())) continue;
-          entries.push({ date, value: localStorage.getItem(key) });
-        }
+        if (!cacheMap || cacheMap.size === 0) return entries;
+        cacheMap.forEach((value, key) => {
+          const date = new Date(`${key}T00:00:00`);
+          if (Number.isNaN(date.getTime())) return;
+          entries.push({ date, value });
+        });
         return entries;
       }
 
@@ -3200,25 +3327,18 @@
       }
 
       function countMoodEntriesInRange(startDate, endDate) {
-        const prefix = `mood:${HOUSEHOLD_ID}:${PERSON_ID}:`;
-        const entries = listDatedEntries(prefix);
+        const entries = listDatedEntries(moodEntries);
         return entries.filter((entry) => {
           if (!isDateInRange(entry.date, startDate, endDate)) return false;
-          try {
-            const parsed = JSON.parse(entry.value || "{}");
-            return !!parsed.mood;
-          } catch {
-            return false;
-          }
+          return !!entry.value?.mood;
         }).length;
       }
 
       function countJournalEntriesInRange(startDate, endDate) {
-        const prefix = `journal:${HOUSEHOLD_ID}:${PERSON_ID}:`;
-        const entries = listDatedEntries(prefix);
+        const entries = listDatedEntries(journalEntries);
         return entries.filter((entry) => {
           if (!isDateInRange(entry.date, startDate, endDate)) return false;
-          return (entry.value || "").trim().length > 0;
+          return String(entry.value || "").trim().length > 0;
         }).length;
       }
 
@@ -3235,6 +3355,9 @@
       function getScheduleItemsForDate(dateString) {
         const dayName = getDayName(dateString);
         return scheduleItems.filter((item) => {
+          if (item.scheduledDate) {
+            return item.scheduledDate === dateString;
+          }
           if (
             Array.isArray(item.recurringDays) &&
             item.recurringDays.length > 0
@@ -3299,40 +3422,148 @@
         return 30;
       }
 
-      function reorderScheduleForNow(items) {
+      function getSchedulePriorityRank(type) {
+        switch (type) {
+          case "focus":
+          case "school":
+            return 1;
+          case "hygiene":
+            return 2;
+          case "chore":
+            return 3;
+          case "personal":
+            return 4;
+          case "break":
+            return 5;
+          default:
+            return 6;
+        }
+      }
+
+      function getNextScheduleId() {
+        return scheduleItems.reduce(
+          (max, item) => Math.max(max, item.id || 0),
+          0
+        );
+      }
+
+      function reorderScheduleForNow(items, options = {}) {
+        const { applyCarryover = false } = options;
         const now = new Date();
-        const currentTimeValue = `${now
-          .getHours()
-          .toString()
-          .padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
-        let cursorMinutes = roundUpToIncrement(now, 15);
+        const cutoffMinutes = 21 * 60;
+        const startMinutes = Math.min(
+          roundUpToIncrement(now, 15),
+          cutoffMinutes
+        );
+        const todayString = getTodayString();
+        const tomorrowString = getTomorrowString();
+        let cursorMinutes = startMinutes;
+
         const sortedSchedule = sortScheduleByTime(items);
         const incomplete = sortedSchedule.filter((item) => !item.completed);
         const completed = sortedSchedule.filter((item) => item.completed);
-        const timedIncomplete = incomplete.filter((item) => item.time);
-        const anytimeIncomplete = incomplete.filter((item) => !item.time);
-        const pivotIndex = timedIncomplete.findIndex(
-          (item) => item.time >= currentTimeValue
-        );
-        const reorderedTimed =
-          pivotIndex === -1
-            ? timedIncomplete
-            : [
-                ...timedIncomplete.slice(pivotIndex),
-                ...timedIncomplete.slice(0, pivotIndex),
-              ];
-        const refactoredTimed = reorderedTimed.map((item) => {
-          const duration = getItemDurationMinutes(item);
-          const startMinutes = cursorMinutes;
-          const endMinutes = cursorMinutes + duration;
-          cursorMinutes = endMinutes;
-          const updated = { ...item, time: minutesToTime(startMinutes) };
-          if (item.endTime) {
-            updated.endTime = minutesToTime(endMinutes);
-          }
-          return updated;
+
+        const prioritized = [...incomplete].sort((a, b) => {
+          const rankDiff =
+            getSchedulePriorityRank(a.type) - getSchedulePriorityRank(b.type);
+          if (rankDiff !== 0) return rankDiff;
+          const aTime = a.time || "99:99";
+          const bTime = b.time || "99:99";
+          if (aTime !== bTime) return aTime.localeCompare(bTime);
+          return (a.id || 0) - (b.id || 0);
         });
-        return [...refactoredTimed, ...anytimeIncomplete, ...completed];
+
+        const baseDurations = prioritized.map((item) => {
+          let duration = getItemDurationMinutes(item);
+          if (item.type === "focus" || item.type === "school") {
+            duration = Math.max(duration, 20);
+          }
+          return duration;
+        });
+
+        const availableMinutes = Math.max(0, cutoffMinutes - startMinutes);
+        const totalMinutes = baseDurations.reduce(
+          (sum, duration) => sum + duration,
+          0
+        );
+        const maxReduction = 0.4;
+        let scale = 1;
+        if (totalMinutes > availableMinutes && totalMinutes > 0) {
+          scale = Math.max(1 - maxReduction, availableMinutes / totalMinutes);
+        }
+
+        const scaledDurations = baseDurations.map((duration, index) => {
+          let scaled = Math.round(duration * scale);
+          scaled = Math.max(10, Math.round(scaled / 5) * 5);
+          if (
+            prioritized[index].type === "focus" ||
+            prioritized[index].type === "school"
+          ) {
+            scaled = Math.max(scaled, 20);
+          }
+          return scaled;
+        });
+
+        const refactored = [];
+        const carryoverCandidates = [];
+
+        prioritized.forEach((item, index) => {
+          const duration = scaledDurations[index];
+          if (cursorMinutes + duration <= cutoffMinutes && duration > 0) {
+            const start = cursorMinutes;
+            const end = cursorMinutes + duration;
+            cursorMinutes = end;
+            const updated = { ...item, time: minutesToTime(start) };
+            if (item.endTime) {
+              updated.endTime = minutesToTime(end);
+            }
+            refactored.push(updated);
+            return;
+          }
+          if (item.type === "hygiene") {
+            const updated = { ...item, time: "" };
+            if (updated.endTime) {
+              delete updated.endTime;
+            }
+            refactored.push(updated);
+            return;
+          }
+          carryoverCandidates.push(item);
+        });
+
+        if (applyCarryover && carryoverCandidates.length > 0) {
+          let nextId = getNextScheduleId();
+          const created = [];
+          carryoverCandidates.forEach((item) => {
+            const alreadyQueued = scheduleItems.some(
+              (existing) =>
+                existing.carryoverFrom === item.id &&
+                existing.scheduledDate === tomorrowString
+            );
+            if (alreadyQueued) return;
+            nextId += 1;
+            created.push({
+              ...item,
+              id: nextId,
+              time: "",
+              endTime: "",
+              completed: false,
+              pendingApproval: false,
+              pendingRelease: false,
+              proofImage: "",
+              autoReviewStatus: "",
+              scheduledDate: tomorrowString,
+              carryoverFrom: item.id,
+              carryoverFromDate: todayString,
+            });
+          });
+          if (created.length > 0) {
+            scheduleItems = [...scheduleItems, ...created];
+            saveScheduleToServer();
+          }
+        }
+
+        return [...refactored, ...completed];
       }
 
       function slugify(text) {
@@ -3340,21 +3571,6 @@
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)+/g, "");
-      }
-
-      function loadHabitsFromStorage() {
-        const saved = localStorage.getItem(habitsStorageKey);
-        if (!saved) {
-          return;
-        }
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            habitCategories = parsed;
-          }
-        } catch (error) {
-          console.warn("Failed to parse habits storage", error);
-        }
       }
 
       function loadHabitsFromServer() {
@@ -3366,16 +3582,11 @@
           .then((data) => {
             if (Array.isArray(data.habits)) {
               habitCategories = data.habits;
-              saveHabitsToStorage();
             }
           })
           .catch(() => {
             // Ignore load errors to allow offline usage.
           });
-      }
-
-      function saveHabitsToStorage() {
-        localStorage.setItem(habitsStorageKey, JSON.stringify(habitCategories));
       }
 
       function saveHabitsToServer() {
@@ -3673,7 +3884,10 @@
       function getTypeClass(type) {
         switch (type) {
           case "focus":
+          case "school":
             return "focus-block";
+          case "hygiene":
+            return "hygiene-block";
           case "break":
             return "break-block";
           case "chore":
@@ -3688,7 +3902,10 @@
       function getTypeColor(type) {
         switch (type) {
           case "focus":
+          case "school":
             return "bg-blue-50";
+          case "hygiene":
+            return "bg-teal-50";
           case "break":
             return "bg-green-50";
           case "chore":
@@ -4774,7 +4991,10 @@
                         <select class="task-type border border-gray-300 rounded-md px-2 py-1 flex-grow">
                             <option value="focus" ${
                               item.type === "focus" ? "selected" : ""
-                            }>Focus Block</option>
+                            }>School</option>
+                            <option value="hygiene" ${
+                              item.type === "hygiene" ? "selected" : ""
+                            }>Hygiene</option>
                             <option value="break" ${
                               item.type === "break" ? "selected" : ""
                             }>Break</option>
@@ -4905,6 +5125,13 @@
               newItem.pendingRelease = !!previous.pendingRelease;
               newItem.proofImage = previous.proofImage || "";
               newItem.autoReviewStatus = previous.autoReviewStatus || "";
+              if (previous.scheduledDate) {
+                newItem.scheduledDate = previous.scheduledDate;
+              }
+              if (previous.carryoverFrom) {
+                newItem.carryoverFrom = previous.carryoverFrom;
+                newItem.carryoverFromDate = previous.carryoverFromDate || null;
+              }
             }
 
             newSchedule.push(newItem);
@@ -4915,6 +5142,7 @@
         renderSchedule();
         updateProgress();
         saveCompletedTasks();
+        saveScheduleToServer();
       }
 
       function renderPointSettings() {
@@ -5007,10 +5235,12 @@
       document
         .getElementById("refactor-schedule")
         .addEventListener("click", () => {
+          const itemsForToday = getScheduleItemsForDate(getTodayString());
+          reorderScheduleForNow(itemsForToday, { applyCarryover: true });
           scheduleRefactorActive = true;
           renderSchedule();
           updateProgress();
-          showCelebration("Schedule refactored for the current time!");
+          showCelebration("Schedule refactored with tomorrow carry-overs!");
         });
 
       document.getElementById("edit-schedule").addEventListener("click", () => {
@@ -5065,7 +5295,8 @@
                 <div class="flex items-center">
                     <label class="w-24 text-sm text-gray-600">Type:</label>
                     <select class="task-type border border-gray-300 rounded-md px-2 py-1 flex-grow">
-                        <option value="focus">Focus Block</option>
+                        <option value="focus">School</option>
+                        <option value="hygiene">Hygiene</option>
                         <option value="break">Break</option>
                         <option value="chore">Mission</option>
                         <option value="personal" selected>Personal</option>
@@ -5283,7 +5514,7 @@
             renderMonthlyChores();
           }
 
-          saveMissionsToStorage();
+          saveMissionsToServerState();
           choreModal.classList.add("hidden");
         }
       });
