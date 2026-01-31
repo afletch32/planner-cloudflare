@@ -25,8 +25,6 @@
     return;
   }
 
-  const taskStorageKey = "fws-task-state-v1";
-  const authStorageKey = "fws-planner-auth-v1";
   const rolePermissions = {
     admin: {
       canComplete: true,
@@ -61,6 +59,12 @@
   };
   let sessionAuth = null;
   const plannerId = scheduleSection.getAttribute("data-planner-id") || "work";
+  const API_BASE = window.PLANNER_API_BASE || "/api";
+  const STATE_NAMESPACE = "planner-schedule";
+  const householdId =
+    typeof HOUSEHOLD_ID !== "undefined" ? HOUSEHOLD_ID : "planner-household";
+  const personId =
+    typeof PERSON_ID !== "undefined" ? PERSON_ID : plannerId;
   const fallbackTasks = [
     {
       id: "inbox-sweep",
@@ -99,9 +103,10 @@
   ];
 
   let taskState = [];
+  let taskOverrides = {};
 
   function applyTaskOverrides(tasks) {
-    const overrides = loadTaskOverrides();
+    const overrides = taskOverrides || {};
     return tasks.map((task) => {
       const override = overrides[task.id] || {};
       const baseCompleted =
@@ -118,17 +123,11 @@
     });
   }
 
-  function loadTaskOverrides() {
-    try {
-      const raw = localStorage.getItem(taskStorageKey);
-      if (!raw) {
-        return {};
-      }
-      const parsed = JSON.parse(raw);
-      return parsed && typeof parsed === "object" ? parsed : {};
-    } catch (error) {
-      return {};
-    }
+  async function loadTaskOverrides() {
+    const key = `overrides:${plannerId}`;
+    const value = await loadStateValue(STATE_NAMESPACE, key, {});
+    taskOverrides =
+      value && typeof value === "object" ? value : {};
   }
 
   function normalizeTasks(tasks) {
@@ -149,6 +148,46 @@
       .filter((task) => task.id.length > 0);
   }
 
+  async function loadStateValue(namespace, key, fallback) {
+    try {
+      const response = await fetch(
+        `${API_BASE}/state?householdId=${encodeURIComponent(
+          householdId
+        )}&personId=${encodeURIComponent(
+          personId
+        )}&namespace=${encodeURIComponent(
+          namespace
+        )}&key=${encodeURIComponent(key)}`,
+        { cache: "no-store" }
+      );
+      if (!response.ok) {
+        return fallback;
+      }
+      const data = await response.json();
+      return typeof data?.value === "undefined" ? fallback : data.value;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  async function saveStateValue(namespace, key, value) {
+    try {
+      await fetch(`${API_BASE}/state`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          householdId,
+          personId,
+          namespace,
+          key,
+          value,
+        }),
+      });
+    } catch (error) {
+      return;
+    }
+  }
+
   function saveTaskOverrides(tasks) {
     const payload = tasks.reduce((acc, task) => {
       acc[task.id] = {
@@ -157,51 +196,21 @@
       };
       return acc;
     }, {});
-    try {
-      localStorage.setItem(taskStorageKey, JSON.stringify(payload));
-    } catch (error) {
-      return;
-    }
+    taskOverrides = payload;
+    saveStateValue(STATE_NAMESPACE, `overrides:${plannerId}`, payload);
   }
 
   function loadAuth() {
-    if (sessionAuth) {
-      return sessionAuth;
-    }
-    try {
-      const raw = localStorage.getItem(authStorageKey);
-      if (!raw) {
-        return null;
-      }
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") {
-        return null;
-      }
-      return parsed;
-    } catch (error) {
-      return null;
-    }
+    return sessionAuth;
   }
 
   function saveAuth(auth, remember) {
     sessionAuth = auth;
-    if (!remember) {
-      return;
-    }
-    try {
-      localStorage.setItem(authStorageKey, JSON.stringify(auth));
-    } catch (error) {
-      return;
-    }
+    return;
   }
 
   function clearAuth() {
     sessionAuth = null;
-    try {
-      localStorage.removeItem(authStorageKey);
-    } catch (error) {
-      return;
-    }
   }
 
   function getRole() {
@@ -514,7 +523,7 @@
       const now = new Date();
       const today = now.toISOString().slice(0, 10);
       const response = await fetch(
-        `/api/tasks?plannerId=${encodeURIComponent(
+        `${API_BASE}/tasks?plannerId=${encodeURIComponent(
           plannerId
         )}&date=${encodeURIComponent(today)}`,
         { cache: "no-store" }
@@ -531,6 +540,7 @@
       tasks = normalizeTasks(fallbackTasks);
     }
 
+    await loadTaskOverrides();
     taskState = applyTaskOverrides(tasks);
     renderSchedule();
     setInterval(renderSchedule, 60000);

@@ -7,6 +7,7 @@ import { EmotionStore } from '../storage/emotionStore.js';
 import { SafetyNoteStore } from '../storage/safetyNoteStore.js';
 import { SchoolCheckinStore } from '../storage/schoolCheckinStore.js';
 import { WeeklyMissionStore } from '../storage/weeklyMissionStore.js';
+import { UserStateStore } from '../storage/userStateStore.js';
 import { registerTaskRoutes } from './routes/tasks.js';
 import { registerSyncRoutes } from './routes/sync.js';
 import { registerGoogleRoutes } from './routes/google.js';
@@ -15,6 +16,8 @@ import { registerEmotionRoutes } from './routes/emotion.js';
 import { registerSafetyNoteRoutes } from './routes/safetyNotes.js';
 import { registerSchoolRoutes } from './routes/school.js';
 import { registerWeeklyMissionRoutes } from './routes/weeklyMissions.js';
+import { registerStateRoutes } from './routes/state.js';
+import { registerHabitsRoutes } from './routes/habits.js';
 import { requireAuth } from './auth/authMiddleware.js';
 
 class Router {
@@ -72,7 +75,8 @@ export default {
       emotionStore: new EmotionStore(db),
       safetyNoteStore: new SafetyNoteStore(db),
       schoolCheckinStore: new SchoolCheckinStore(db),
-      weeklyMissionStore: new WeeklyMissionStore(db)
+      weeklyMissionStore: new WeeklyMissionStore(db),
+      userStateStore: new UserStateStore(db)
     };
 
     registerTaskRoutes(router, deps);
@@ -82,6 +86,8 @@ export default {
     registerSafetyNoteRoutes(router, deps);
     registerSchoolRoutes(router, deps);
     registerWeeklyMissionRoutes(router, deps);
+    registerStateRoutes(router, deps);
+    registerHabitsRoutes(router, deps);
     registerHealthRoutes(router);
 
     const url = new URL(request.url);
@@ -98,7 +104,8 @@ export default {
     }
 
     let actor = null;
-    if (url.pathname !== '/health') {
+    const publicPaths = new Set(['/health', '/state', '/state/list', '/habits']);
+    if (!publicPaths.has(url.pathname)) {
       try {
         actor = await requireAuth(request, env);
       } catch (err) {
