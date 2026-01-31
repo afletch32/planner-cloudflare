@@ -1303,6 +1303,8 @@
         if (levelBadgeEl) levelBadgeEl.textContent = `LVL ${state.player.level}`;
         const crystalEl = document.getElementById("cookie-crystals");
         if (crystalEl) crystalEl.textContent = state.player.crystals;
+        const crystalTopEl = document.getElementById("crystal-balance-top");
+        if (crystalTopEl) crystalTopEl.textContent = `💎 ${state.player.crystals}`;
         const avatarEl = document.getElementById("cookie-avatar");
         if (avatarEl) renderCookieAvatar(avatarEl, 44, state.player.profileCookie);
         const mainAvatarEl = document.getElementById("main-avatar");
@@ -2649,6 +2651,12 @@
             >
               Collection
             </button>
+            <div
+              id="crystal-balance-top"
+              class="kingdom-pill text-xs font-bold"
+            >
+              💎 0
+            </div>
           </div>
           <button
             id="admin-toggle"
