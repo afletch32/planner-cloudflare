@@ -5,7 +5,7 @@
       "time": "08:00",
       "task": "Wake up, make bed, Brush teeth",
       "completed": false,
-      "type": "personal",
+      "type": "hygiene",
       "points": 5,
       "isBasic": true
     },
@@ -132,7 +132,7 @@
       "time": "21:30",
       "task": "Wash face, Brush teeth, Wipe bathroom counter, Take medicine",
       "completed": false,
-      "type": "personal",
+      "type": "hygiene",
       "endTime": "22:00",
       "points": 5
     },
