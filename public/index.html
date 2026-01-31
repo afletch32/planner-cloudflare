@@ -1976,19 +1976,20 @@
           <h2 class="text-2xl md:text-3xl font-bold cookie-title mt-2 mb-3">
             Live Schedule &amp; Unfinished Tasks
           </h2>
-          <p class="text-amber-800 max-w-2xl mx-auto">
-            The schedule updates automatically based on the current time.
-            Unfinished tasks collect anything earlier today that isn't marked
-            complete, plus anytime tasks.
-          </p>
           <div class="flex flex-wrap items-center justify-center gap-2 mt-5">
-            <button
-              id="refactor-schedule"
-              class="kingdom-pill text-sm"
-              title="Rearranges remaining tasks and carries unfinished items to tomorrow."
-            >
-              Refactor Schedule
-            </button>
+            <div class="relative group">
+              <button
+                id="refactor-schedule"
+                class="kingdom-pill text-sm"
+              >
+                Refactor Schedule
+              </button>
+              <div
+                class="hidden group-hover:block group-focus-within:block pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-64 max-w-[80vw] -translate-x-1/2 rounded-lg bg-[#1e1b3a] px-3 py-2 text-xs text-white shadow-lg"
+              >
+                Rearranges remaining tasks and carries unfinished items to tomorrow.
+              </div>
+            </div>
             <button
               id="edit-schedule"
               class="admin-only kingdom-pill text-sm"
