@@ -1523,8 +1523,14 @@
       function updateGachaButtons() {
         const pullOne = document.getElementById("gacha-pull-1");
         const pullTen = document.getElementById("gacha-pull-10");
-        if (pullOne) pullOne.disabled = userDiamonds < gachaPricing[1];
-        if (pullTen) pullTen.disabled = userDiamonds < gachaPricing[10];
+        if (pullOne) {
+          pullOne.disabled = false;
+          pullOne.classList.toggle("opacity-60", userDiamonds < gachaPricing[1]);
+        }
+        if (pullTen) {
+          pullTen.disabled = false;
+          pullTen.classList.toggle("opacity-60", userDiamonds < gachaPricing[10]);
+        }
       }
 
       function renderGachaResults(results) {
