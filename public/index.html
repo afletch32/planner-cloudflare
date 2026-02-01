@@ -1263,6 +1263,7 @@
         }
       }
 
+
       async function listStateValues(namespace, prefix = "") {
         try {
           const data = await apiGetJson(
@@ -1324,6 +1325,18 @@
         }
       }
 
+      function syncDiamondsFromState() {
+        if (
+          state?.player &&
+          typeof state.player.crystals === "number" &&
+          userDiamonds === 0 &&
+          state.player.crystals !== userDiamonds
+        ) {
+          userDiamonds = state.player.crystals;
+          updatePointsDisplay();
+        }
+      }
+
       async function checkFirstTime() {
         try {
           const response = await fetch(KINGDOM_API_URL);
@@ -1335,6 +1348,7 @@
             } else {
               state = normalizeCookieState(data);
               renderUI();
+              syncDiamondsFromState();
             }
           } else {
             renderUI();
@@ -1525,10 +1539,12 @@
         const pullTen = document.getElementById("gacha-pull-10");
         if (pullOne) {
           pullOne.disabled = false;
+          pullOne.removeAttribute("disabled");
           pullOne.classList.toggle("opacity-60", userDiamonds < gachaPricing[1]);
         }
         if (pullTen) {
           pullTen.disabled = false;
+          pullTen.removeAttribute("disabled");
           pullTen.classList.toggle("opacity-60", userDiamonds < gachaPricing[10]);
         }
       }
@@ -1659,8 +1675,9 @@
         const resultsEl = document.getElementById("gacha-results");
         if (!count || !gachaPricing[count]) return;
         if (userDiamonds < gachaPricing[count]) {
+          const needed = gachaPricing[count] - userDiamonds;
           if (statusEl) {
-            statusEl.textContent = "Not enough diamonds for that pull.";
+            statusEl.textContent = `You need ${needed} more diamonds to pull.`;
           }
           return;
         }
@@ -2261,13 +2278,13 @@
       }
 
       const blockDefinitions = {
-        "Morning Routine": { start: "07:00", end: "08:00" },
-        "Morning Block": { start: "08:30", end: "11:30" },
-        Lunch: { start: "12:00", end: "12:45" },
+        "Morning Routine": { start: "09:00", end: "10:00" },
+        "Morning Block": { start: "10:00", end: "12:00" },
+        Lunch: { start: "12:00", end: "13:00" },
         "Early Afternoon": { start: "13:00", end: "15:00" },
         "Late Afternoon": { start: "15:00", end: "17:00" },
-        Evening: { start: "17:30", end: "19:30" },
-        Nighttime: { start: "20:00", end: "21:00" },
+        Evening: { start: "17:00", end: "19:00" },
+        Nighttime: { start: "19:00", end: "22:00" },
       };
 
       async function loadDefaultTasks() {
@@ -3076,6 +3093,7 @@
                   <button
                     id="gacha-pull-1"
                     class="gacha-button"
+                    type="button"
                     onclick="performGachaPull(1)"
                   >
                     1 Pull (300 Diamonds)
@@ -3083,6 +3101,7 @@
                   <button
                     id="gacha-pull-10"
                     class="gacha-button secondary"
+                    type="button"
                     onclick="performGachaPull(10)"
                   >
                     <span class="gacha-badge">Best Value!</span>
@@ -5404,7 +5423,14 @@
         return { approved: matchesAcellusTracker(text), reason: text };
       }
 
+      function syncScheduleGlobals() {
+        window.scheduleItems = scheduleItems;
+        window.handleScheduleItemToggle = handleScheduleItemToggle;
+        window.showCelebration = showCelebration;
+      }
+
       function renderSchedule() {
+        syncScheduleGlobals();
         scheduleContainer.innerHTML = "";
         anytimeContainer.innerHTML = "";
         if (alertBannerContainer) {
@@ -6855,8 +6881,8 @@
         .getElementById("add-schedule-item")
         .addEventListener("click", () => {
           createScheduleEditorItem({
-            time: "12:00",
-            endTime: "12:30",
+            time: "09:00",
+            endTime: "09:30",
             task: "New task",
             type: "personal",
           });
@@ -6879,8 +6905,8 @@
         flow: [
           {
             blockLabel: "Morning Routine",
-            blockStart: "07:00",
-            blockEnd: "08:00",
+            blockStart: "09:00",
+            blockEnd: "10:00",
             items: [
               { task: "Brush teeth", type: "hygiene" },
               { task: "Wash face", type: "hygiene" },
@@ -6894,8 +6920,8 @@
           },
           {
             blockLabel: "Morning Block",
-            blockStart: "08:30",
-            blockEnd: "11:30",
+            blockStart: "10:00",
+            blockEnd: "12:00",
             items: [
               { task: "Schoolwork", type: "focus" },
               { task: "Chore", type: "chore" },
@@ -6904,7 +6930,7 @@
           {
             blockLabel: "Lunch",
             blockStart: "12:00",
-            blockEnd: "12:45",
+            blockEnd: "13:00",
             items: [
               { task: "Lunch", type: "personal", hasMealInput: true },
               { task: "Clean up after lunch", type: "family" },
@@ -6931,8 +6957,8 @@
           },
           {
             blockLabel: "Evening",
-            blockStart: "17:30",
-            blockEnd: "19:30",
+            blockStart: "17:00",
+            blockEnd: "19:00",
             items: [
               { task: "Dinner", type: "personal", hasMealInput: true },
               { task: "Chore", type: "chore" },
@@ -6941,8 +6967,8 @@
           },
           {
             blockLabel: "Nighttime",
-            blockStart: "20:00",
-            blockEnd: "21:00",
+            blockStart: "19:00",
+            blockEnd: "22:00",
             items: [
               { task: "Brush teeth", type: "hygiene" },
               { task: "Shower", type: "hygiene" },
@@ -6952,17 +6978,17 @@
           },
         ],
         morning: [
-          { time: "07:00", task: "Wake up", type: "personal" },
-          { time: "07:10", task: "Brush teeth", type: "hygiene" },
-          { time: "07:15", task: "Wash face", type: "hygiene" },
-          { time: "07:25", task: "Get dressed", type: "hygiene" },
+          { time: "09:00", task: "Wake up", type: "personal" },
+          { time: "09:10", task: "Brush teeth", type: "hygiene" },
+          { time: "09:15", task: "Wash face", type: "hygiene" },
+          { time: "09:25", task: "Get dressed", type: "hygiene" },
           {
-            time: "07:40",
+            time: "09:40",
             task: "Breakfast",
             type: "personal",
             hasMealInput: true,
           },
-          { time: "08:00", task: "Pack bag", type: "family" },
+          { time: "10:00", task: "Pack bag", type: "family" },
         ],
         school: [
           { time: "09:00", task: "Math", type: "focus" },
@@ -6970,19 +6996,19 @@
           { time: "10:30", task: "Language Arts", type: "focus" },
           { time: "11:15", task: "Science", type: "focus" },
           {
-            time: "12:00",
+            time: "12:30",
             task: "Lunch",
             type: "personal",
             hasMealInput: true,
           },
         ],
         bedtime: [
-          { time: "19:30", task: "Tidy room", type: "family" },
-          { time: "19:45", task: "Shower", type: "hygiene" },
-          { time: "20:00", task: "Brush teeth", type: "hygiene" },
-          { time: "20:10", task: "Pajamas", type: "hygiene" },
-          { time: "20:20", task: "Read a book", type: "personal" },
-          { time: "20:45", task: "Lights out", type: "personal" },
+          { time: "20:30", task: "Tidy room", type: "family" },
+          { time: "20:45", task: "Shower", type: "hygiene" },
+          { time: "21:00", task: "Brush teeth", type: "hygiene" },
+          { time: "21:10", task: "Pajamas", type: "hygiene" },
+          { time: "21:20", task: "Read a book", type: "personal" },
+          { time: "21:45", task: "Lights out", type: "personal" },
         ],
       };
 

@@ -1,5 +1,6 @@
 (function () {
   function parseNumber(value) {
+    if (value === null || value === undefined || value === '') return null;
     const n = parseInt(value, 10);
     return Number.isFinite(n) ? n : null;
   }
@@ -76,7 +77,8 @@
     const rewards = getRewards(card);
     setRewardLine(card, rewards);
 
-    const taskId = parseNumber(card.dataset.id);
+    const rawId = card.dataset.id;
+    const taskId = rawId !== undefined ? String(rawId) : null;
     const isCompleted = card.classList.contains('completed');
     updateButtonState(card, questBtn, isCompleted ? 'completed' : 'idle');
 
@@ -110,7 +112,7 @@
     floatCoins(card, rewards.coins);
 
     const item = Array.isArray(window.scheduleItems)
-      ? window.scheduleItems.find((task) => task.id === taskId)
+      ? window.scheduleItems.find((task) => String(task.id) === taskId)
       : null;
 
     setTimeout(() => {
@@ -128,6 +130,8 @@
             })
           );
         }
+      } else if (typeof window.showCelebration === 'function') {
+        window.showCelebration('Quest could not be completed.');
       }
     }, 200);
   }
