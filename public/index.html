@@ -744,6 +744,7 @@
         box-shadow: 0 30px 60px rgba(74, 42, 15, 0.18);
         border: 1px solid rgba(255, 255, 255, 0.75);
         backdrop-filter: blur(4px);
+        position: relative;
       }
       .kingdom-hero {
         position: relative;
@@ -2533,9 +2534,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background: rgba(0, 0, 0, 0.25);
       }
       .celebration-modal.hidden {
         display: none;
+      }
+      .celebration-card {
+        border: 2px solid rgba(93, 58, 26, 0.2);
+        box-shadow: 0 16px 32px rgba(30, 27, 58, 0.2);
       }
       .focus-block {
         border-left: 4px solid #3b82f6;
@@ -3792,9 +3798,9 @@
       <!-- Celebration Modal -->
       <div
         id="celebration-modal"
-        class="celebration-modal bg-black bg-opacity-50 hidden"
+        class="celebration-modal hidden"
       >
-        <div class="bg-white rounded-lg p-6 w-full max-w-md text-center">
+        <div class="celebration-card bg-white rounded-lg p-6 w-full max-w-md text-center">
           <div class="mb-4">
             <div class="text-5xl mb-2">🎉</div>
             <h3 class="text-2xl font-bold text-purple-800">Great Job!</h3>
