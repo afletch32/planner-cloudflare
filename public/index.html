@@ -4214,7 +4214,6 @@
       let userDiamonds = 0;
       let pendingDiamonds = 0;
       let isAdmin = false;
-      let scheduleRefactorActive = false;
       const adminPasscode = "1234";
       const maxDiamonds = 200;
       let dailyNotes = "";
@@ -4722,11 +4721,21 @@
         const tomorrowString = getTomorrowString();
         let cursorMinutes = startMinutes;
 
-        const sortedSchedule = sortScheduleByTime(items);
-        const incomplete = sortedSchedule.filter((item) => !item.completed);
-        const completed = sortedSchedule.filter((item) => item.completed);
+        const minimumDurationByType = {
+          focus: 20,
+          school: 20,
+          hygiene: 15,
+          chore: 15,
+          personal: 15,
+          family: 15,
+          break: 10,
+        };
 
-        const prioritized = [...incomplete].sort((a, b) => {
+        const sortedSchedule = sortScheduleByTime(items);
+        const prioritized = [...sortedSchedule].sort((a, b) => {
+          if (a.completed !== b.completed) {
+            return a.completed ? 1 : -1;
+          }
           const rankDiff =
             getSchedulePriorityRank(a.type) - getSchedulePriorityRank(b.type);
           if (rankDiff !== 0) return rankDiff;
@@ -4736,36 +4745,61 @@
           return (a.id || 0) - (b.id || 0);
         });
 
-        const baseDurations = prioritized.map((item) => {
-          let duration = getItemDurationMinutes(item);
-          if (item.type === "focus" || item.type === "school") {
-            duration = Math.max(duration, 20);
-          }
-          return duration;
-        });
+        const minDurations = prioritized.map(
+          (item) => minimumDurationByType[item.type] || 15
+        );
+        const desiredDurations = prioritized.map((item, index) =>
+          Math.max(getItemDurationMinutes(item), minDurations[index])
+        );
 
         const availableMinutes = Math.max(0, cutoffMinutes - startMinutes);
-        const totalMinutes = baseDurations.reduce(
+        const totalDesiredMinutes = desiredDurations.reduce(
           (sum, duration) => sum + duration,
           0
         );
-        const maxReduction = 0.4;
-        let scale = 1;
-        if (totalMinutes > availableMinutes && totalMinutes > 0) {
-          scale = Math.max(1 - maxReduction, availableMinutes / totalMinutes);
+        const totalMinimumMinutes = minDurations.reduce(
+          (sum, duration) => sum + duration,
+          0
+        );
+
+        let scaledDurations = [...desiredDurations];
+        if (
+          totalDesiredMinutes > availableMinutes &&
+          totalDesiredMinutes > totalMinimumMinutes
+        ) {
+          const reductionNeeded = totalDesiredMinutes - availableMinutes;
+          const reducibleMinutes = totalDesiredMinutes - totalMinimumMinutes;
+          const reductionRatio = Math.min(1, reductionNeeded / reducibleMinutes);
+
+          scaledDurations = desiredDurations.map((duration, index) => {
+            const minimum = minDurations[index];
+            const reducible = duration - minimum;
+            const reduced = duration - reducible * reductionRatio;
+            return Math.max(minimum, reduced);
+          });
         }
 
-        const scaledDurations = baseDurations.map((duration, index) => {
-          let scaled = Math.round(duration * scale);
-          scaled = Math.max(10, Math.round(scaled / 5) * 5);
-          if (
-            prioritized[index].type === "focus" ||
-            prioritized[index].type === "school"
-          ) {
-            scaled = Math.max(scaled, 20);
-          }
-          return scaled;
+        scaledDurations = scaledDurations.map((duration, index) => {
+          const minimum = minDurations[index];
+          const rounded = Math.round(duration / 5) * 5;
+          return Math.max(minimum, rounded);
         });
+
+        let totalScaledMinutes = scaledDurations.reduce(
+          (sum, duration) => sum + duration,
+          0
+        );
+        if (totalScaledMinutes > availableMinutes) {
+          for (let i = scaledDurations.length - 1; i >= 0; i--) {
+            while (
+              scaledDurations[i] - 5 >= minDurations[i] &&
+              totalScaledMinutes > availableMinutes
+            ) {
+              scaledDurations[i] -= 5;
+              totalScaledMinutes -= 5;
+            }
+          }
+        }
 
         const refactored = [];
         const carryoverCandidates = [];
@@ -4776,14 +4810,15 @@
             const start = cursorMinutes;
             const end = cursorMinutes + duration;
             cursorMinutes = end;
-            const updated = { ...item, time: minutesToTime(start) };
-            if (item.endTime) {
-              updated.endTime = minutesToTime(end);
-            }
-            refactored.push(updated);
+            refactored.push({
+              ...item,
+              time: minutesToTime(start),
+              endTime: minutesToTime(end),
+            });
             return;
           }
-          if (item.type === "hygiene") {
+
+          if (item.type === "hygiene" || item.completed) {
             const updated = { ...item, time: "" };
             if (updated.endTime) {
               delete updated.endTime;
@@ -4791,6 +4826,7 @@
             refactored.push(updated);
             return;
           }
+
           carryoverCandidates.push(item);
         });
 
@@ -4826,7 +4862,7 @@
           }
         }
 
-        return [...refactored, ...completed];
+        return sortScheduleByTime(refactored);
       }
 
       function slugify(text) {
@@ -5461,11 +5497,7 @@
             item.proofDate = null;
           }
         });
-        if (scheduleRefactorActive) {
-          itemsForToday = reorderScheduleForNow(itemsForToday);
-        } else {
-          itemsForToday = sortScheduleByTime(itemsForToday);
-        }
+        itemsForToday = sortScheduleByTime(itemsForToday);
 
         const renderScheduleItems = (
           items,
@@ -6603,12 +6635,49 @@
       document
         .getElementById("refactor-schedule")
         .addEventListener("click", () => {
-          const itemsForToday = getScheduleItemsForDate(getTodayString());
-          reorderScheduleForNow(itemsForToday, { applyCarryover: true });
-          scheduleRefactorActive = true;
+          const shouldApplyCarryover = window.confirm(
+            "Carry unfinished tasks to tomorrow as part of this refactor?"
+          );
+          const todayString = getTodayString();
+          const itemsForToday = getScheduleItemsForDate(todayString);
+          const refactoredItems = reorderScheduleForNow(itemsForToday, {
+            applyCarryover: shouldApplyCarryover,
+          });
+          const refactoredById = new Map(
+            refactoredItems.map((item) => [item.id, item])
+          );
+
+          scheduleItems = scheduleItems.map((item) => {
+            if (item.scheduledDate !== todayString) {
+              return item;
+            }
+            const refactored = refactoredById.get(item.id);
+            if (!refactored) {
+              return item;
+            }
+
+            const updated = {
+              ...item,
+              time: refactored.time || "",
+              completed: refactored.completed,
+            };
+            if (refactored.endTime) {
+              updated.endTime = refactored.endTime;
+            } else {
+              delete updated.endTime;
+            }
+            return updated;
+          });
+
+          saveScheduleToServer();
           renderSchedule();
           updateProgress();
-          showCelebration("Schedule refactored with tomorrow carry-overs!");
+          updateCurrentTask();
+          showCelebration(
+            shouldApplyCarryover
+              ? "Schedule refactored and unfinished tasks carried to tomorrow."
+              : "Schedule refactored for today without carry-over."
+          );
         });
 
       document.getElementById("edit-schedule").addEventListener("click", () => {
