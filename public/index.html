@@ -6644,11 +6644,11 @@
             applyCarryover: shouldApplyCarryover,
           });
           const refactoredById = new Map(
-            refactoredItems.map((item) => [item.id, item])
+            refactoredItems.map((item) => [String(item.id), item])
           );
 
           scheduleItems = scheduleItems.map((item) => {
-            const refactored = refactoredById.get(item.id);
+            const refactored = refactoredById.get(String(item.id));
             if (!refactored) {
               return item;
             }
