@@ -6648,9 +6648,6 @@
           );
 
           scheduleItems = scheduleItems.map((item) => {
-            if (item.scheduledDate !== todayString) {
-              return item;
-            }
             const refactored = refactoredById.get(item.id);
             if (!refactored) {
               return item;
