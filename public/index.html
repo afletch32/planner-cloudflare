@@ -6604,11 +6604,22 @@
         .getElementById("refactor-schedule")
         .addEventListener("click", () => {
           const itemsForToday = getScheduleItemsForDate(getTodayString());
-          reorderScheduleForNow(itemsForToday, { applyCarryover: true });
+          const applyCarryover = window.confirm(
+            "Carry unfinished tasks to tomorrow while refactoring today's schedule?"
+          );
+          if (applyCarryover) {
+            reorderScheduleForNow(itemsForToday, { applyCarryover: true });
+          } else {
+            reorderScheduleForNow(itemsForToday);
+          }
           scheduleRefactorActive = true;
           renderSchedule();
           updateProgress();
-          showCelebration("Schedule refactored with tomorrow carry-overs!");
+          showCelebration(
+            applyCarryover
+              ? "Schedule refactored with tomorrow carry-overs!"
+              : "Schedule refactored without carry-overs."
+          );
         });
 
       document.getElementById("edit-schedule").addEventListener("click", () => {
