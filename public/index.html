@@ -4572,7 +4572,6 @@
       let userDiamonds = 0;
       let pendingDiamonds = 0;
       let isAdmin = false;
-      let scheduleRefactorActive = false;
       const adminPasscode = "1234";
       const maxDiamonds = 200;
       let dailyNotes = "";
@@ -5354,6 +5353,41 @@
         );
       }
 
+      function isLikelyRoutineTask(item) {
+        const taskText = String(item?.task || "").toLowerCase();
+        return [
+          "wake up",
+          "breakfast",
+          "brush teeth",
+          "wash face",
+          "get dressed",
+          "dress",
+          "pack bag",
+          "morning",
+        ].some((keyword) => taskText.includes(keyword));
+      }
+
+      function isNonRefactorableTask(item) {
+        if (!item) return false;
+        if (item.noRefactor || item.fixedTime || item.isFixedCommitment) {
+          return true;
+        }
+        const taskText = String(item.task || "").toLowerCase();
+        const fixedCommitmentKeywords = [
+          "pick up kids from the bus",
+          "pickup kids from the bus",
+          "school bus",
+          "bus pickup",
+          "musical theater",
+          "musical theatre",
+          "theater practice",
+          "theatre practice",
+        ];
+        return fixedCommitmentKeywords.some((keyword) =>
+          taskText.includes(keyword)
+        );
+      }
+
       function reorderScheduleForNow(items, options = {}) {
         const { applyCarryover = false } = options;
         const now = new Date();
@@ -5368,17 +5402,14 @@
 
         const sortedSchedule = sortScheduleByTime(items);
         const incomplete = sortedSchedule.filter((item) => !item.completed);
+        const fixedCommitments = incomplete.filter((item) =>
+          isNonRefactorableTask(item)
+        );
         const completed = sortedSchedule.filter((item) => item.completed);
 
-        const prioritized = [...incomplete].sort((a, b) => {
-          const rankDiff =
-            getSchedulePriorityRank(a.type) - getSchedulePriorityRank(b.type);
-          if (rankDiff !== 0) return rankDiff;
-          const aTime = a.time || "99:99";
-          const bTime = b.time || "99:99";
-          if (aTime !== bTime) return aTime.localeCompare(bTime);
-          return (a.id || 0) - (b.id || 0);
-        });
+        const prioritized = incomplete.filter(
+          (item) => !isNonRefactorableTask(item)
+        );
 
         const baseDurations = prioritized.map((item) => {
           let duration = getItemDurationMinutes(item);
@@ -5411,10 +5442,20 @@
           return scaled;
         });
 
-        const refactored = [];
+        const refactored = fixedCommitments.map((item) => ({ ...item }));
         const carryoverCandidates = [];
 
         prioritized.forEach((item, index) => {
+          const itemMinutes = timeToMinutes(item.time);
+          const overdueRoutine =
+            isLikelyRoutineTask(item) &&
+            itemMinutes !== null &&
+            itemMinutes < startMinutes &&
+            now.getHours() >= 12;
+          if (overdueRoutine) {
+            carryoverCandidates.push(item);
+            return;
+          }
           const duration = scaledDurations[index];
           if (cursorMinutes + duration <= cutoffMinutes && duration > 0) {
             const start = cursorMinutes;
@@ -5483,6 +5524,100 @@
           return aTime.localeCompare(bTime);
         });
         return combined;
+      }
+
+      function getLikelyCompletedTaskCandidates(items, referenceDate = new Date()) {
+        if (!Array.isArray(items) || !items.length) return [];
+        const nowMinutes =
+          referenceDate.getHours() * 60 + referenceDate.getMinutes();
+        return items
+          .filter((item) => {
+            if (!item || item.completed || item.pendingApproval) return false;
+            const itemMinutes = timeToMinutes(item.time);
+            return itemMinutes !== null && itemMinutes <= nowMinutes;
+          })
+          .sort((a, b) => {
+            const aTime = a.time || "";
+            const bTime = b.time || "";
+            if (!aTime && !bTime) return (a.id || 0) - (b.id || 0);
+            if (!aTime) return 1;
+            if (!bTime) return -1;
+            if (aTime !== bTime) return aTime.localeCompare(bTime);
+            return (a.id || 0) - (b.id || 0);
+          });
+      }
+
+      async function confirmLikelyCompletedTasks(items) {
+        const candidates = getLikelyCompletedTaskCandidates(items);
+        if (!candidates.length) return 0;
+
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.className =
+            "fixed inset-0 z-[1200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4";
+          const optionsHtml = candidates
+            .map((item, index) => {
+              const timeLabel = item.time ? `${formatTime(item.time)} - ` : "";
+              return `<label class="flex items-start gap-3 p-2 rounded-md hover:bg-amber-50">
+                  <input type="checkbox" data-index="${index}" checked class="mt-1">
+                  <span class="text-sm text-gray-800">${timeLabel}${item.task}</span>
+                </label>`;
+            })
+            .join("");
+          overlay.innerHTML = `
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-lg border border-amber-200">
+              <div class="p-4 border-b border-amber-100">
+                <h3 class="text-lg font-bold text-amber-900">Before Refactor</h3>
+                <p class="text-sm text-amber-800 mt-1">These tasks are past their scheduled time. Select any already completed.</p>
+              </div>
+              <div class="p-4 max-h-[50vh] overflow-y-auto space-y-1">${optionsHtml}</div>
+              <div class="p-4 border-t border-amber-100 flex justify-between gap-2">
+                <button type="button" id="refactor-select-none" class="text-xs text-amber-700 underline">Select none</button>
+                <div class="flex gap-2">
+                  <button type="button" id="refactor-continue" class="px-4 py-2 rounded-md bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700">Continue</button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+
+          const selectNoneBtn = overlay.querySelector("#refactor-select-none");
+          const continueBtn = overlay.querySelector("#refactor-continue");
+          const checkboxes = () =>
+            Array.from(overlay.querySelectorAll('input[type="checkbox"][data-index]'));
+
+          if (selectNoneBtn) {
+            selectNoneBtn.addEventListener("click", () => {
+              checkboxes().forEach((box) => {
+                box.checked = false;
+              });
+            });
+          }
+
+          continueBtn?.addEventListener("click", () => {
+            let markedComplete = 0;
+            checkboxes().forEach((box) => {
+              if (!box.checked) return;
+              const index = parseInt(box.dataset.index || "", 10);
+              const item = Number.isFinite(index) ? candidates[index] : null;
+              if (!item) return;
+              item.completed = true;
+              item.completedDate = getTodayString();
+              markedComplete += 1;
+            });
+            overlay.remove();
+            resolve(markedComplete);
+          });
+        });
+      }
+
+      function persistScheduleForDate(dateString, itemsForDate) {
+        const dateIds = new Set(
+          getScheduleItemsForDate(dateString).map((item) => item.id)
+        );
+        const preserved = scheduleItems.filter((item) => !dateIds.has(item.id));
+        scheduleItems = [...preserved, ...itemsForDate];
+        saveScheduleToServer();
       }
 
       function slugify(text) {
@@ -6128,11 +6263,7 @@
             item.proofDate = null;
           }
         });
-        if (scheduleRefactorActive) {
-          itemsForToday = reorderScheduleForNow(itemsForToday);
-        } else {
-          itemsForToday = sortScheduleByTime(itemsForToday);
-        }
+        itemsForToday = sortScheduleByTime(itemsForToday);
 
         const renderScheduleItems = (
           items,
@@ -6383,13 +6514,11 @@
           sortTime: item.time || "99:99",
           item,
         }));
-        const blockEntries = scheduleRefactorActive
-          ? []
-          : Array.from(blocks.values()).map((block) => ({
-              type: "block",
-              sortTime: block.start || "99:99",
-              block,
-            }));
+        const blockEntries = Array.from(blocks.values()).map((block) => ({
+          type: "block",
+          sortTime: block.start || "99:99",
+          block,
+        }));
         const timeline = [...taskEntries, ...blockEntries].sort((a, b) =>
           a.sortTime.localeCompare(b.sortTime)
         );
@@ -7300,6 +7429,9 @@
           const mealInput = itemEl.querySelector(".meal-input");
           const photoInput = itemEl.querySelector(".photo-input");
           const basicInput = itemEl.querySelector(".basic-input");
+          const fixedCommitmentInput = itemEl.querySelector(
+            ".fixed-commitment-input"
+          );
           const alertInput = itemEl.querySelector(".alert-input");
           const alertMessageInput = itemEl.querySelector(".alert-message");
           const pointsInput = itemEl.querySelector(".points-value");
@@ -7352,6 +7484,9 @@
                   : settings.defaultDiamonds.dailyTask,
               requiresPhoto: photoInput ? photoInput.checked : false,
               isBasic: basicInput ? basicInput.checked : false,
+              isFixedCommitment: fixedCommitmentInput
+                ? fixedCommitmentInput.checked
+                : false,
               alertEnabled: alertInput ? alertInput.checked : false,
               alertMessage: alertMessageInput
                 ? alertMessageInput.value.trim()
@@ -7553,18 +7688,31 @@
       // Event listeners
       document
         .getElementById("refactor-schedule")
-        .addEventListener("click", (event) => {
+        .addEventListener("click", async (event) => {
           event.preventDefault();
           event.stopPropagation();
           if (editModal) {
             editModal.classList.add("hidden");
           }
-          const itemsForToday = getScheduleItemsForDate(getTodayString());
-          reorderScheduleForNow(itemsForToday, { applyCarryover: true });
-          scheduleRefactorActive = true;
+          const todayString = getTodayString();
+          const itemsForToday = getScheduleItemsForDate(todayString);
+          const markedCount = await confirmLikelyCompletedTasks(itemsForToday);
+          const refactored = reorderScheduleForNow(itemsForToday, {
+            applyCarryover: true,
+          });
+          persistScheduleForDate(todayString, refactored);
+          if (markedCount > 0) {
+            saveCompletedTasks();
+          }
           renderSchedule();
           updateProgress();
-          showCelebration("Schedule refactored with tomorrow carry-overs!");
+          showCelebration(
+            markedCount > 0
+              ? `Schedule refactored. Marked ${markedCount} likely completed task${
+                  markedCount === 1 ? "" : "s"
+                }.`
+              : "Schedule refactored with tomorrow carry-overs!"
+          );
         });
 
       function openEditScheduleModal() {
@@ -7601,6 +7749,8 @@
         const itemTime = data.time || "";
         const itemEnd = data.endTime || "";
         const isAnytime = !itemTime;
+        const isFixedCommitment =
+          !!data.isFixedCommitment || !!data.noRefactor || !!data.fixedTime;
 
         let pointsInput = "";
         if (settings.diamondsEnabled) {
@@ -7691,6 +7841,12 @@
                       data.isBasic ? "checked" : ""
                     }>
                     <label class="text-sm text-gray-600">Basic requirement (unlocks paid tasks)</label>
+                </div>
+                <div class="flex items-center mt-1">
+                    <input type="checkbox" class="fixed-commitment-input mr-2" ${
+                      isFixedCommitment ? "checked" : ""
+                    }>
+                    <label class="text-sm text-gray-600">Fixed commitment (do not refactor)</label>
                 </div>
                 <div class="flex items-center mt-1 gap-2">
                     <label class="flex items-center gap-2 text-sm text-gray-600">
