@@ -58,15 +58,16 @@
   }
 
   function updateButtonState(card, questBtn, state) {
+    const flow = card.dataset.questFlow === 'two-step' ? 'two-step' : 'instant';
     card.dataset.questState = state;
     if (state === 'completed') {
       questBtn.textContent = 'Completed';
       questBtn.disabled = true;
       questBtn.classList.add('opacity-60', 'cursor-not-allowed');
-    } else if (state === 'started') {
+    } else if (flow === 'two-step' && state === 'started') {
       questBtn.textContent = 'Complete Quest';
     } else {
-      questBtn.textContent = 'Start Quest';
+      questBtn.textContent = flow === 'two-step' ? 'Start Quest' : 'Complete Task';
     }
   }
 
@@ -101,9 +102,10 @@
 
   function handleQuestAction(card, questBtn, rewards, taskId) {
     const state = card.dataset.questState || 'idle';
+    const flow = card.dataset.questFlow === 'two-step' ? 'two-step' : 'instant';
     if (state === 'completed') return;
 
-    if (state === 'idle') {
+    if (flow === 'two-step' && state === 'idle') {
       updateButtonState(card, questBtn, 'started');
       return;
     }

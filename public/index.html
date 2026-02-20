@@ -921,7 +921,30 @@
       const API_BASE = window.PLANNER_API_BASE || "/api";
       window.PLANNER_API_BASE = API_BASE;
       const KINGDOM_API_URL =
+        window.KINGDOM_API_URL ||
         "https://planner-cloudflare-api.afletcherr32.workers.dev";
+      const DEFAULT_ASSET_BASE =
+        "https://planner-cloudflare-assets.afletcherr32.workers.dev";
+      const ASSET_BASE = window.PLANNER_ASSET_BASE || DEFAULT_ASSET_BASE;
+      window.PLANNER_ASSET_BASE = ASSET_BASE;
+
+      function assetPath(path) {
+        return `${ASSET_BASE}/${String(path || "").replace(/^\/+/, "")}`;
+      }
+
+      function normalizeAssetUrl(url) {
+        if (typeof url !== "string" || !url) return url;
+        return url.replace(DEFAULT_ASSET_BASE, ASSET_BASE);
+      }
+
+      const DEFAULT_OUTFIT = {
+        body: assetPath("assets/cookie/slices/cookiebody/01.png"),
+        head: assetPath("assets/cookie/slices/hair/05.png"),
+        eyes: assetPath("assets/cookie/slices/eyesmouths/03.png"),
+        arms: assetPath("assets/cookie/slices/bodyposes/01.png"),
+        legs: assetPath("assets/cookie/slices/bodyposes/03.png"),
+        accessory: null,
+      };
 
       const cookieSubjects = [
         "Math",
@@ -953,14 +976,7 @@
           activeCookie: "brave-default",
           profileCookie: null,
           inventory: [],
-          current_outfit: {
-            body: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/cookiebody/01.png",
-            head: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/hair/05.png",
-            eyes: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/eyesmouths/03.png",
-            arms: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/01.png",
-            legs: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/03.png",
-            accessory: null,
-          },
+          current_outfit: { ...DEFAULT_OUTFIT },
         },
         weekly_stars: buildWeeklyStars(),
         inventory: [],
@@ -1200,6 +1216,7 @@
           const rarity = normalizeRarity(cookie.rarity);
           return {
             ...cookie,
+            image: normalizeAssetUrl(cookie.image),
             rarity,
             cost:
               typeof cookie.cost === "number"
@@ -1864,30 +1881,23 @@
           merged.player.profileCookie = merged.player.activeCookie;
         }
         if (!merged.player.current_outfit) {
-          merged.player.current_outfit = {
-            body: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/cookiebody/01.png",
-            head: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/hair/05.png",
-            eyes: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/eyesmouths/03.png",
-            arms: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/01.png",
-            legs: "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/03.png",
-            accessory: null,
-          };
+          merged.player.current_outfit = { ...DEFAULT_OUTFIT };
         }
         merged.player.current_outfit.body =
-          merged.player.current_outfit.body ||
-          "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/cookiebody/01.png";
+          normalizeAssetUrl(merged.player.current_outfit.body) ||
+          DEFAULT_OUTFIT.body;
         merged.player.current_outfit.head =
-          merged.player.current_outfit.head ||
-          "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/hair/05.png";
+          normalizeAssetUrl(merged.player.current_outfit.head) ||
+          DEFAULT_OUTFIT.head;
         merged.player.current_outfit.eyes =
-          merged.player.current_outfit.eyes ||
-          "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/eyesmouths/03.png";
+          normalizeAssetUrl(merged.player.current_outfit.eyes) ||
+          DEFAULT_OUTFIT.eyes;
         merged.player.current_outfit.arms =
-          merged.player.current_outfit.arms ||
-          "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/01.png";
+          normalizeAssetUrl(merged.player.current_outfit.arms) ||
+          DEFAULT_OUTFIT.arms;
         merged.player.current_outfit.legs =
-          merged.player.current_outfit.legs ||
-          "https://planner-cloudflare-assets.afletcherr32.workers.dev/assets/cookie/slices/bodyposes/03.png";
+          normalizeAssetUrl(merged.player.current_outfit.legs) ||
+          DEFAULT_OUTFIT.legs;
         return merged;
       }
 
@@ -2331,6 +2341,51 @@
           });
       }
 
+      async function loadScheduleCompletionLog() {
+        const saved = await loadStateValue(
+          "achievements",
+          "schedule-completions",
+          {}
+        );
+        scheduleCompletionLog =
+          saved && typeof saved === "object" ? saved : {};
+      }
+
+      function saveScheduleCompletionLog() {
+        saveStateValue(
+          "achievements",
+          "schedule-completions",
+          scheduleCompletionLog
+        );
+      }
+
+      function markScheduleTaskCompletion(taskId, dateString = getTodayString()) {
+        const key = String(taskId);
+        if (!key || !dateString) return;
+        const dayMap = scheduleCompletionLog[dateString] || {};
+        if (dayMap[key]) return;
+        dayMap[key] = true;
+        scheduleCompletionLog[dateString] = dayMap;
+        saveScheduleCompletionLog();
+      }
+
+      function unmarkScheduleTaskCompletion(
+        taskId,
+        dateString = getTodayString()
+      ) {
+        const key = String(taskId);
+        if (!key || !dateString) return;
+        const dayMap = scheduleCompletionLog[dateString];
+        if (!dayMap || !dayMap[key]) return;
+        delete dayMap[key];
+        if (!Object.keys(dayMap).length) {
+          delete scheduleCompletionLog[dateString];
+        } else {
+          scheduleCompletionLog[dateString] = dayMap;
+        }
+        saveScheduleCompletionLog();
+      }
+
       function formatTaskType(type) {
         const labels = {
           focus: "School",
@@ -2392,20 +2447,9 @@
       };
 
       async function loadDefaultTasks() {
-        try {
-          const resp = await fetch("/data/default-tasks.json", {
-            headers: { "cache-control": "no-cache" },
-          });
-          if (!resp.ok) {
-            throw new Error("Failed to load default tasks");
-          }
-          const data = await resp.json();
-          scheduleItems = Array.isArray(data.scheduleItems)
-            ? data.scheduleItems
-            : [];
-        } catch (error) {
-          console.warn("Unable to load default tasks", error);
-        }
+        // Legacy pre-block default schedule intentionally disabled.
+        // New users should start from saved state or build/edit using block tools.
+        scheduleItems = [];
       }
 
       async function loadScheduleFromServer() {
@@ -3641,6 +3685,12 @@
                 class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <div id="mission-quick-add" class="hidden">
+              <div class="text-sm font-semibold text-gray-700 mb-2">
+                Quick Add Presets
+              </div>
+              <div id="mission-quick-add-buttons" class="flex flex-wrap gap-2"></div>
+            </div>
             <div id="chore-points-container">
               <label class="block text-gray-700 mb-1">Diamonds</label>
               <input
@@ -4578,6 +4628,7 @@
       let mealNotes = "";
       let selectedMood = null;
       const completedTaskCache = new Map();
+      let scheduleCompletionLog = {};
 
       // DOM Elements
       const currentDateEl = document.getElementById("current-date");
@@ -4746,10 +4797,9 @@
       });
 
       async function bootstrapApp() {
-        await loadDefaultTasks();
         const scheduleLoaded = await loadScheduleFromServer();
         if (!scheduleLoaded) {
-          await saveScheduleToServer();
+          await loadDefaultTasks();
         }
         await loadDefaultMissions();
         const missionsLoaded = await loadMissionsFromServerState();
@@ -4758,6 +4808,7 @@
         }
         await loadCookieCatalog();
         await loadMoodAndJournalHistory();
+        await loadScheduleCompletionLog();
         updateDateTime();
         updatePointsDisplay();
         await loadDiamondsFromServer();
@@ -5144,6 +5195,13 @@
         ).length;
       }
 
+      function countCompletedScheduleTasksAllTime() {
+        return Object.values(scheduleCompletionLog).reduce((sum, dayMap) => {
+          if (!dayMap || typeof dayMap !== "object") return sum;
+          return sum + Object.keys(dayMap).length;
+        }, 0);
+      }
+
       function getBestHabitStreak() {
         let best = 0;
         habitCategories.forEach((category) => {
@@ -5160,6 +5218,34 @@
 
       function getAchievementDefinitions() {
         return [
+          {
+            id: "first_task",
+            title: "Task Rookie",
+            desc: "Complete your first schedule task.",
+            icon: "✅",
+            unlocked: (stats) => stats.taskTotal >= 1,
+          },
+          {
+            id: "task_runner",
+            title: "Task Runner",
+            desc: "Complete 10 schedule tasks.",
+            icon: "🏃",
+            unlocked: (stats) => stats.taskTotal >= 10,
+          },
+          {
+            id: "task_veteran",
+            title: "Task Veteran",
+            desc: "Complete 25 schedule tasks.",
+            icon: "🎯",
+            unlocked: (stats) => stats.taskTotal >= 25,
+          },
+          {
+            id: "task_legend",
+            title: "Task Legend",
+            desc: "Complete 50 schedule tasks.",
+            icon: "🏆",
+            unlocked: (stats) => stats.taskTotal >= 50,
+          },
           {
             id: "first_mood",
             title: "Mood Scout",
@@ -5389,7 +5475,10 @@
       }
 
       function reorderScheduleForNow(items, options = {}) {
-        const { applyCarryover = false } = options;
+        const {
+          applyCarryover = false,
+          lockedItemIds = new Set(),
+        } = options;
         const now = new Date();
         const cutoffMinutes = 21 * 60;
         const startMinutes = Math.min(
@@ -5446,6 +5535,10 @@
         const carryoverCandidates = [];
 
         prioritized.forEach((item, index) => {
+          if (lockedItemIds.has(item.id)) {
+            refactored.push({ ...item });
+            return;
+          }
           const itemMinutes = timeToMinutes(item.time);
           const overdueRoutine =
             isLikelyRoutineTask(item) &&
@@ -5603,10 +5696,97 @@
               if (!item) return;
               item.completed = true;
               item.completedDate = getTodayString();
+              markScheduleTaskCompletion(item.id, item.completedDate);
               markedComplete += 1;
             });
             overlay.remove();
             resolve(markedComplete);
+          });
+        });
+      }
+
+      async function selectRefactorLockedTasks(items) {
+        const currentById = new Map(
+          items
+            .filter((item) => item && !item.completed)
+            .map((item) => [item.id, item])
+        );
+        const proposed = reorderScheduleForNow(items, {
+          applyCarryover: false,
+        });
+        const changed = proposed
+          .filter((item) => {
+            const current = currentById.get(item.id);
+            if (!current || isNonRefactorableTask(current)) return false;
+            const currentTime = current.time || "";
+            const proposedTime = item.time || "";
+            const currentEnd = current.endTime || "";
+            const proposedEnd = item.endTime || "";
+            return currentTime !== proposedTime || currentEnd !== proposedEnd;
+          })
+          .sort((a, b) => {
+            const aTime = (currentById.get(a.id)?.time || "99:99").toString();
+            const bTime = (currentById.get(b.id)?.time || "99:99").toString();
+            return aTime.localeCompare(bTime);
+          });
+
+        if (!changed.length) return new Set();
+
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.className =
+            "fixed inset-0 z-[1200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4";
+          const rows = changed
+            .map((item, index) => {
+              const current = currentById.get(item.id);
+              const oldTime = current?.time ? formatTime(current.time) : "Anytime";
+              const newTime = item.time ? formatTime(item.time) : "Anytime";
+              return `
+                <label class="flex items-center gap-3 p-2 rounded-md hover:bg-slate-50">
+                  <input type="checkbox" data-lock-index="${index}" class="mt-1">
+                  <div class="text-sm text-gray-800">
+                    <div class="font-semibold">${item.task}</div>
+                    <div class="text-xs text-gray-600">${oldTime} → ${newTime}</div>
+                  </div>
+                </label>
+              `;
+            })
+            .join("");
+          overlay.innerHTML = `
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-xl border border-slate-200">
+              <div class="p-4 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Refactor Preview</h3>
+                <p class="text-sm text-slate-700 mt-1">Check tasks to lock at their current time.</p>
+              </div>
+              <div class="p-4 max-h-[55vh] overflow-y-auto space-y-1">${rows}</div>
+              <div class="p-4 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" id="refactor-preview-cancel" class="px-3 py-2 rounded-md text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">Cancel</button>
+                <button type="button" id="refactor-preview-apply" class="px-4 py-2 rounded-md text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700">Apply Refactor</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+
+          const cancelBtn = overlay.querySelector("#refactor-preview-cancel");
+          const applyBtn = overlay.querySelector("#refactor-preview-apply");
+          const checkboxes = () =>
+            Array.from(overlay.querySelectorAll('input[type="checkbox"][data-lock-index]'));
+
+          cancelBtn?.addEventListener("click", () => {
+            overlay.remove();
+            resolve(null);
+          });
+
+          applyBtn?.addEventListener("click", () => {
+            const locked = new Set();
+            checkboxes().forEach((box) => {
+              if (!box.checked) return;
+              const index = parseInt(box.dataset.lockIndex || "", 10);
+              const item = Number.isFinite(index) ? changed[index] : null;
+              if (item) locked.add(item.id);
+            });
+            overlay.remove();
+            resolve(locked);
           });
         });
       }
@@ -6090,6 +6270,7 @@
       function requestApproval(item) {
         item.pendingApproval = true;
         item.completed = false;
+        unmarkScheduleTaskCompletion(item.id);
         if (settings.diamondsEnabled) {
           pendingDiamonds += getEffectivePoints(item);
           updatePointsDisplay();
@@ -6102,6 +6283,7 @@
       function approveTask(item, label) {
         item.pendingApproval = false;
         item.completed = true;
+        markScheduleTaskCompletion(item.id);
         if (item.requiresHomeworkCheck) {
           item.completedDate = item.proofDate || getTodayString();
         }
@@ -6144,6 +6326,7 @@
           showCelebration(`"${label}" approved!`);
         }
         releasePendingRewards();
+        renderQuestStats();
         if (scheduleItems.includes(item)) {
           saveCompletedTasks();
         }
@@ -6152,6 +6335,7 @@
       function denyTask(item, label) {
         item.pendingApproval = false;
         item.completed = false;
+        unmarkScheduleTaskCompletion(item.id);
         item.proofImage = "";
         item.proofDate = null;
         item.proofCoversYesterday = false;
@@ -6167,6 +6351,7 @@
         showCelebration(
           `"${label}" needs another try. Please upload a new photo.`
         );
+        renderQuestStats();
         if (scheduleItems.includes(item)) {
           saveCompletedTasks();
         }
@@ -6377,6 +6562,11 @@
             if (questBadge) {
               itemEl.dataset.questType = questBadge;
             }
+            const usesTwoStepQuestFlow =
+              item.type === "focus" || item.type === "school";
+            itemEl.dataset.questFlow = usesTwoStepQuestFlow
+              ? "two-step"
+              : "instant";
 
             itemEl.innerHTML = `
                         <div class="flex-shrink-0 w-24 text-center">
@@ -6407,7 +6597,13 @@
                             <button class="quest-action px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 transition ${
                               isPending ? "opacity-50 cursor-not-allowed" : ""
                             }" ${isPending ? 'aria-disabled="true"' : ""}>
-                              ${item.completed ? "Completed" : "Start Quest"}
+                              ${
+                                item.completed
+                                  ? "Completed"
+                                  : usesTwoStepQuestFlow
+                                  ? "Start Quest"
+                                  : "Complete Task"
+                              }
                             </button>
                             ${isAdmin ? approvalActions : ""}
                         </div>
@@ -6641,6 +6837,7 @@
             return;
           }
           item.completed = true;
+          markScheduleTaskCompletion(item.id);
           if (item.requiresHomeworkCheck) {
             item.completedDate = getTodayString();
           }
@@ -6669,11 +6866,13 @@
           renderSchedule();
           updateProgress();
           releasePendingRewards();
+          renderQuestStats();
           saveCompletedTasks();
           return;
         }
 
         item.completed = false;
+        unmarkScheduleTaskCompletion(item.id);
         if (settings.diamondsEnabled) {
           userDiamonds = Math.max(0, userDiamonds - itemPoints);
           updatePointsDisplay();
@@ -6686,6 +6885,7 @@
         item.proofImage = "";
         renderSchedule();
         updateProgress();
+        renderQuestStats();
         saveCompletedTasks();
       }
 
@@ -6997,10 +7197,12 @@
         const completedTasks = sorted.filter(
           (task) => getBountyTaskLifetimeCount(task.id) > 0
         ).length;
+        const scheduleTaskTotal = countCompletedScheduleTasksAllTime();
         const moodTotal = countMoodEntriesAllTime();
         const journalTotal = countJournalEntriesAllTime();
         const bestStreak = getBestHabitStreak();
         const statsSnapshot = {
+          taskTotal: scheduleTaskTotal,
           bountyTotal: totalCompletions,
           moodTotal,
           journalTotal,
@@ -7012,6 +7214,7 @@
         }));
         const unlockedCount = achievements.filter((a) => a.isUnlocked).length;
         const hasAnyStats =
+          scheduleTaskTotal > 0 ||
           totalCompletions > 0 ||
           moodTotal > 0 ||
           journalTotal > 0 ||
@@ -7026,10 +7229,15 @@
             <div class="flex items-center justify-between mb-3">
               <div class="text-sm font-semibold text-gray-800">Hall of Legends</div>
               <div class="text-xs text-gray-500">Lifetime feats: ${
-                totalCompletions + moodTotal + journalTotal
+                scheduleTaskTotal + totalCompletions + moodTotal + journalTotal
               }</div>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
+              <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                <div class="text-[11px] uppercase text-indigo-700">Tasks Completed</div>
+                <div class="text-lg font-semibold text-indigo-900">${scheduleTaskTotal}</div>
+                <div class="text-[11px] text-indigo-700">All-time schedule</div>
+              </div>
               <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
                 <div class="text-[11px] uppercase text-amber-700">Monsters Slain</div>
                 <div class="text-lg font-semibold text-amber-900">${totalCompletions}</div>
@@ -7697,8 +7905,14 @@
           const todayString = getTodayString();
           const itemsForToday = getScheduleItemsForDate(todayString);
           const markedCount = await confirmLikelyCompletedTasks(itemsForToday);
+          const lockedItemIds = await selectRefactorLockedTasks(itemsForToday);
+          if (lockedItemIds === null) {
+            showCelebration("Refactor cancelled.");
+            return;
+          }
           const refactored = reorderScheduleForNow(itemsForToday, {
             applyCarryover: true,
+            lockedItemIds,
           });
           persistScheduleForDate(todayString, refactored);
           if (markedCount > 0) {
@@ -8187,6 +8401,7 @@
           document
             .getElementById("chore-points-container")
             .classList.add("hidden");
+          renderMissionQuickAddPresets("weekly");
 
           choreModal.classList.remove("hidden");
         });
@@ -8212,6 +8427,7 @@
           document
             .getElementById("chore-points-container")
             .classList.add("hidden");
+          renderMissionQuickAddPresets("daily");
           choreModal.classList.remove("hidden");
         });
 
@@ -8237,6 +8453,7 @@
           document
             .getElementById("chore-points-container")
             .classList.add("hidden");
+          renderMissionQuickAddPresets("monthly");
 
           choreModal.classList.remove("hidden");
         });
@@ -8469,6 +8686,7 @@
             return;
           }
           item.completed = true;
+          markScheduleTaskCompletion(item.id);
           if (settings.diamondsEnabled) {
             const itemPoints = getEffectivePoints(item);
             if (itemPoints > 0) {
@@ -8495,6 +8713,7 @@
           renderSchedule();
           updateProgress();
           releasePendingRewards();
+          renderQuestStats();
           saveCompletedTasks();
         }
 
@@ -8665,6 +8884,110 @@
       if (saveJournalButton) {
         saveJournalButton.addEventListener("click", () => {
           saveJournal();
+        });
+      }
+
+      const missionQuickAddPresets = {
+        daily: [
+          {
+            label: "Mood x2",
+            title: "Mood Momentum",
+            req1: { type: "mood", target: 2 },
+          },
+          {
+            label: "Journal + Mood",
+            title: "Reflect & Reset",
+            req1: { type: "journal", target: 1 },
+            req2: { type: "mood", target: 1 },
+          },
+          {
+            label: "Journal x2",
+            title: "Double Journal",
+            req1: { type: "journal", target: 2 },
+          },
+        ],
+        weekly: [
+          {
+            label: "Mood x7",
+            title: "Mood Master Week",
+            req1: { type: "mood", target: 7 },
+          },
+          {
+            label: "Journal x5",
+            title: "Journal Sprint",
+            req1: { type: "journal", target: 5 },
+          },
+          {
+            label: "Mood + Journal",
+            title: "Balanced Growth",
+            req1: { type: "mood", target: 4 },
+            req2: { type: "journal", target: 3 },
+          },
+        ],
+      };
+
+      function applyMissionPreset(preset) {
+        if (!preset) return;
+        const choreName = document.getElementById("chore-name");
+        if (choreName) choreName.value = preset.title || "";
+
+        const req1Type = document.getElementById("mission-req-1-type");
+        const req1Target = document.getElementById("mission-req-1-target");
+        const req2Type = document.getElementById("mission-req-2-type");
+        const req2Target = document.getElementById("mission-req-2-target");
+
+        if (req1Type) req1Type.value = preset.req1?.type || "mood";
+        if (req1Target) req1Target.value = preset.req1?.target || 1;
+        if (req2Type) req2Type.value = preset.req2?.type || "";
+        if (req2Target) req2Target.value = preset.req2?.target || 1;
+        syncMissionRequirementVisibility();
+        populateMissionTaskOptions();
+      }
+
+      function renderMissionQuickAddPresets(type) {
+        const wrapper = document.getElementById("mission-quick-add");
+        const container = document.getElementById("mission-quick-add-buttons");
+        if (!wrapper || !container) return;
+        const presets = missionQuickAddPresets[type] || [];
+        if (!presets.length) {
+          wrapper.classList.add("hidden");
+          container.innerHTML = "";
+          return;
+        }
+        wrapper.classList.remove("hidden");
+        container.innerHTML = presets
+          .map(
+            (preset, index) => `
+            <button
+              type="button"
+              class="px-2 py-1 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-800 hover:bg-indigo-200 transition"
+              data-mission-preset-type="${type}"
+              data-mission-preset-index="${index}"
+            >
+              ${preset.label}
+            </button>
+          `
+          )
+          .join("");
+      }
+
+      const missionQuickAddButtons = document.getElementById(
+        "mission-quick-add-buttons"
+      );
+      if (missionQuickAddButtons) {
+        missionQuickAddButtons.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-mission-preset-type]");
+          if (!button) return;
+          const type = button.getAttribute("data-mission-preset-type");
+          const index = parseInt(
+            button.getAttribute("data-mission-preset-index") || "",
+            10
+          );
+          const preset =
+            Number.isFinite(index) && missionQuickAddPresets[type]
+              ? missionQuickAddPresets[type][index]
+              : null;
+          applyMissionPreset(preset);
         });
       }
 
