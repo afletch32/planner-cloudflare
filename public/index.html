@@ -5791,6 +5791,43 @@
         });
       }
 
+      async function confirmRefactorCarryover() {
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.className =
+            "fixed inset-0 z-[1200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4";
+          overlay.innerHTML = `
+            <div class="bg-white rounded-xl shadow-xl w-full max-w-md border border-slate-200">
+              <div class="p-4 border-b border-slate-100">
+                <h3 class="text-lg font-bold text-slate-900">Carry Over Tasks?</h3>
+                <p class="text-sm text-slate-700 mt-1">Move unfinished tasks that do not fit today into tomorrow?</p>
+              </div>
+              <div class="p-4 border-t border-slate-100 flex justify-end gap-2">
+                <button type="button" id="carryover-cancel" class="px-3 py-2 rounded-md text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">Cancel</button>
+                <button type="button" id="carryover-no" class="px-3 py-2 rounded-md text-sm bg-amber-100 text-amber-900 hover:bg-amber-200">No carry-over</button>
+                <button type="button" id="carryover-yes" class="px-3 py-2 rounded-md text-sm font-semibold bg-amber-600 text-white hover:bg-amber-700">Carry over</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+
+          const close = (result) => {
+            overlay.remove();
+            resolve(result);
+          };
+
+          overlay
+            .querySelector("#carryover-cancel")
+            ?.addEventListener("click", () => close(null));
+          overlay
+            .querySelector("#carryover-no")
+            ?.addEventListener("click", () => close(false));
+          overlay
+            .querySelector("#carryover-yes")
+            ?.addEventListener("click", () => close(true));
+        });
+      }
+
       function persistScheduleForDate(dateString, itemsForDate) {
         const dateIds = new Set(
           getScheduleItemsForDate(dateString).map((item) => item.id)
@@ -7837,14 +7874,116 @@
         const select = document.getElementById("chore-week");
         if (!select) return;
         const now = new Date();
+        const todayStart = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
         const options = getWeekLabelsForMonth(now.getFullYear(), now.getMonth());
         select.innerHTML = "";
         options.forEach((entry) => {
+          const { endDate } = getWeekRange(
+            now.getFullYear(),
+            now.getMonth(),
+            entry.week
+          );
+          if (endDate < todayStart) return;
           const option = document.createElement("option");
           option.value = entry.label;
           option.textContent = entry.label;
           select.appendChild(option);
         });
+      }
+
+      function populateDayOptions() {
+        const select = document.getElementById("chore-day");
+        if (!select) return;
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        const now = new Date();
+        const todayIndex = now.getDay();
+        const ordered = [];
+        for (let offset = 0; offset < 7; offset++) {
+          const idx = (todayIndex + offset) % 7;
+          ordered.push(days[idx]);
+        }
+        select.innerHTML = "";
+        ordered.forEach((day) => {
+          const option = document.createElement("option");
+          option.value = day;
+          option.textContent = day;
+          select.appendChild(option);
+        });
+      }
+
+      function populateMonthOptions() {
+        const select = document.getElementById("chore-month");
+        if (!select) return;
+        const months = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        const now = new Date();
+        const startMonth = now.getMonth();
+        select.innerHTML = "";
+        for (let index = startMonth; index < months.length; index++) {
+          const option = document.createElement("option");
+          option.value = months[index];
+          option.textContent = months[index];
+          select.appendChild(option);
+        }
+      }
+
+      function isMissionDateChoiceAllowed(type, value) {
+        const now = new Date();
+        if (type === "daily") {
+          const select = document.getElementById("chore-day");
+          return Array.from(select?.options || []).some(
+            (option) => option.value === value
+          );
+        }
+        if (type === "weekly") {
+          const select = document.getElementById("chore-week");
+          return Array.from(select?.options || []).some(
+            (option) => option.value === value
+          );
+        }
+        if (type === "monthly") {
+          const months = [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December",
+          ];
+          const selectedIndex = months.indexOf(value);
+          return selectedIndex >= now.getMonth();
+        }
+        return true;
       }
 
       function createConfetti() {
@@ -7910,8 +8049,13 @@
             showCelebration("Refactor cancelled.");
             return;
           }
+          const applyCarryover = await confirmRefactorCarryover();
+          if (applyCarryover === null) {
+            showCelebration("Refactor cancelled.");
+            return;
+          }
           const refactored = reorderScheduleForNow(itemsForToday, {
-            applyCarryover: true,
+            applyCarryover,
             lockedItemIds,
           });
           persistScheduleForDate(todayString, refactored);
@@ -7925,7 +8069,9 @@
               ? `Schedule refactored. Marked ${markedCount} likely completed task${
                   markedCount === 1 ? "" : "s"
                 }.`
-              : "Schedule refactored with tomorrow carry-overs!"
+              : applyCarryover
+              ? "Schedule refactored with tomorrow carry-overs!"
+              : "Schedule refactored without carry-overs."
           );
         });
 
@@ -8427,6 +8573,7 @@
           document
             .getElementById("chore-points-container")
             .classList.add("hidden");
+          populateDayOptions();
           renderMissionQuickAddPresets("daily");
           choreModal.classList.remove("hidden");
         });
@@ -8453,6 +8600,7 @@
           document
             .getElementById("chore-points-container")
             .classList.add("hidden");
+          populateMonthOptions();
           renderMissionQuickAddPresets("monthly");
 
           choreModal.classList.remove("hidden");
@@ -8498,6 +8646,12 @@
         if (name) {
           if (type === "daily") {
             const day = document.getElementById("chore-day").value;
+            if (!isMissionDateChoiceAllowed("daily", day)) {
+              showCelebration(
+                "That day has already passed. Choose today or a future day."
+              );
+              return;
+            }
             const newId =
               dailyBonusMissions.length > 0
                 ? Math.max(...dailyBonusMissions.map((c) => c.id)) + 1
@@ -8513,6 +8667,12 @@
             renderDailyBonusMissions();
           } else if (type === "weekly") {
             const week = document.getElementById("chore-week").value;
+            if (!isMissionDateChoiceAllowed("weekly", week)) {
+              showCelebration(
+                "That week has already passed. Choose the current or next week."
+              );
+              return;
+            }
             const newId =
               weeklyChores.length > 0
                 ? Math.max(...weeklyChores.map((c) => c.id)) + 1
@@ -8528,6 +8688,12 @@
             renderWeeklyChores();
           } else if (type === "monthly") {
             const month = document.getElementById("chore-month").value;
+            if (!isMissionDateChoiceAllowed("monthly", month)) {
+              showCelebration(
+                "That month has already passed. Choose the current or a future month."
+              );
+              return;
+            }
             const newId =
               monthlyChores.length > 0
                 ? Math.max(...monthlyChores.map((c) => c.id)) + 1
