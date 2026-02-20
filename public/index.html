@@ -3013,6 +3013,9 @@
                 tomorrow.
               </div>
             </div>
+            <button id="kid-add-task" class="kingdom-pill text-sm" type="button">
+              Add Task
+            </button>
             <button id="edit-schedule" class="admin-only kingdom-pill text-sm">
               Edit Adventure
             </button>
@@ -3641,6 +3644,95 @@
               class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
             >
               Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kid Add Task Modal -->
+      <div
+        id="kid-task-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 overflow-y-auto py-6 px-4"
+      >
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Add Task</h3>
+            <button
+              id="close-kid-task-modal"
+              class="text-gray-500 hover:text-gray-700"
+              type="button"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-gray-700 mb-1">Task Name</label>
+              <input
+                type="text"
+                id="kid-task-name"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="New task"
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Task Type</label>
+              <select
+                id="kid-task-type"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="personal">Personal</option>
+                <option value="hygiene">Hygiene</option>
+                <option value="chore">Mission</option>
+                <option value="family">Family</option>
+                <option value="focus">School</option>
+                <option value="break">Break</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-gray-700 mb-1">Time (optional)</label>
+              <input
+                type="time"
+                id="kid-task-time"
+                class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" id="kid-task-lock" />
+              Lock this task at the entered time
+            </label>
+            <p class="text-xs text-gray-500">
+              Adding this task will refactor the schedule. Locking keeps this
+              task at its entered time.
+            </p>
+          </div>
+          <div class="mt-6 flex justify-end gap-2">
+            <button
+              id="cancel-kid-task"
+              class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              id="save-kid-task"
+              class="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition"
+              type="button"
+            >
+              Add Task
             </button>
           </div>
         </div>
@@ -4675,6 +4767,7 @@
       const rewardModal = document.getElementById("reward-modal");
       const pointsModal = document.getElementById("points-modal");
       const mealModal = document.getElementById("meal-modal");
+      const kidTaskModal = document.getElementById("kid-task-modal");
 
       function handleMissionDelete(event) {
         const button = event.target.closest(".delete-mission");
@@ -6654,6 +6747,27 @@
             if (questBtn) {
               questBtn.addEventListener("click", (event) => {
                 event.stopPropagation();
+                if (typeof window.questifyScheduleTasks === "function") {
+                  return;
+                }
+                if (
+                  questBtn.disabled ||
+                  questBtn.getAttribute("aria-disabled") === "true"
+                ) {
+                  return;
+                }
+                if (item.completed) {
+                  return;
+                }
+                if (
+                  usesTwoStepQuestFlow &&
+                  questBtn.dataset.started !== "true"
+                ) {
+                  questBtn.dataset.started = "true";
+                  questBtn.textContent = "Complete Quest";
+                  return;
+                }
+                handleScheduleItemToggle(item);
               });
             }
 
@@ -8094,6 +8208,99 @@
       document.getElementById("close-modal").addEventListener("click", () => {
         editModal.classList.add("hidden");
       });
+
+      function resetKidTaskModal() {
+        const nameInput = document.getElementById("kid-task-name");
+        const typeInput = document.getElementById("kid-task-type");
+        const timeInput = document.getElementById("kid-task-time");
+        const lockInput = document.getElementById("kid-task-lock");
+        if (nameInput) nameInput.value = "";
+        if (typeInput) typeInput.value = "personal";
+        if (timeInput) timeInput.value = "";
+        if (lockInput) {
+          lockInput.checked = false;
+          lockInput.disabled = true;
+        }
+      }
+
+      function openKidTaskModal() {
+        resetKidTaskModal();
+        kidTaskModal?.classList.remove("hidden");
+      }
+
+      function closeKidTaskModal() {
+        kidTaskModal?.classList.add("hidden");
+      }
+
+      document
+        .getElementById("kid-add-task")
+        ?.addEventListener("click", openKidTaskModal);
+      document
+        .getElementById("close-kid-task-modal")
+        ?.addEventListener("click", closeKidTaskModal);
+      document
+        .getElementById("cancel-kid-task")
+        ?.addEventListener("click", closeKidTaskModal);
+
+      document.getElementById("kid-task-time")?.addEventListener("input", () => {
+        const timeValue = document.getElementById("kid-task-time")?.value || "";
+        const lockInput = document.getElementById("kid-task-lock");
+        if (!lockInput) return;
+        const hasTime = !!timeValue;
+        lockInput.disabled = !hasTime;
+        if (!hasTime) {
+          lockInput.checked = false;
+        }
+      });
+
+      document
+        .getElementById("save-kid-task")
+        ?.addEventListener("click", async () => {
+          const nameInput = document.getElementById("kid-task-name");
+          const typeInput = document.getElementById("kid-task-type");
+          const timeInput = document.getElementById("kid-task-time");
+          const lockInput = document.getElementById("kid-task-lock");
+          const name = nameInput?.value.trim() || "";
+          const type = typeInput?.value || "personal";
+          const time = timeInput?.value || "";
+          const shouldLock = !!lockInput?.checked;
+
+          if (!name) {
+            showCelebration("Add a task name first.");
+            return;
+          }
+          if (shouldLock && !time) {
+            showCelebration("Enter a time to lock this task.");
+            return;
+          }
+
+          const todayString = getTodayString();
+          const newItemId = getNextScheduleId() + 1;
+          scheduleItems.push({
+            id: newItemId,
+            task: name,
+            type,
+            time,
+            scheduledDate: todayString,
+            points: getDefaultDiamondsForType(type),
+            isFixedCommitment: shouldLock && !!time,
+          });
+
+          const itemsForToday = getScheduleItemsForDate(todayString);
+          const lockedItemIds =
+            shouldLock && time ? new Set([newItemId]) : new Set();
+          const refactored = reorderScheduleForNow(itemsForToday, {
+            applyCarryover: true,
+            lockedItemIds,
+          });
+          persistScheduleForDate(todayString, refactored);
+          showCelebration("Task added and schedule refactored.");
+
+          closeKidTaskModal();
+          renderSchedule();
+          updateProgress();
+          renderQuestStats();
+        });
 
       function createScheduleEditorItem(data = {}, options = {}) {
         const editContainer =
