@@ -4826,7 +4826,13 @@
           }
         }
 
-        return [...refactored, ...completed];
+        const completedTimeless = completed.map((item) => ({
+          ...item,
+          time: "",
+          endTime: "",
+        }));
+
+        return sortScheduleByTime([...refactored, ...completedTimeless]);
       }
 
       function slugify(text) {
