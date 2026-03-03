@@ -5593,37 +5593,75 @@
           (item) => !isNonRefactorableTask(item)
         );
 
-        const baseDurations = prioritized.map((item) => {
-          let duration = getItemDurationMinutes(item);
-          if (item.type === "focus" || item.type === "school") {
-            duration = Math.max(duration, 20);
-          }
-          return duration;
-        });
+        const minimumDurationByType = {
+          focus: 20,
+          school: 20,
+          hygiene: 10,
+          chore: 15,
+          personal: 15,
+          family: 15,
+        };
+        const getMinimumDurationForType = (type) =>
+          minimumDurationByType[type] || 10;
+
+        const baseDurations = prioritized.map((item) =>
+          getItemDurationMinutes(item)
+        );
+        const minimumDurations = prioritized.map((item) =>
+          getMinimumDurationForType(item.type)
+        );
 
         const availableMinutes = Math.max(0, cutoffMinutes - startMinutes);
-        const totalMinutes = baseDurations.reduce(
+        const totalMinimumMinutes = minimumDurations.reduce(
           (sum, duration) => sum + duration,
           0
         );
-        const maxReduction = 0.4;
-        let scale = 1;
-        if (totalMinutes > availableMinutes && totalMinutes > 0) {
-          scale = Math.max(1 - maxReduction, availableMinutes / totalMinutes);
-        }
+        const totalDiscretionaryMinutes = baseDurations.reduce(
+          (sum, duration, index) =>
+            sum + Math.max(0, duration - minimumDurations[index]),
+          0
+        );
+        const discretionaryBudget = Math.max(
+          0,
+          availableMinutes - totalMinimumMinutes
+        );
+        const discretionaryScale =
+          totalDiscretionaryMinutes > 0
+            ? Math.min(1, discretionaryBudget / totalDiscretionaryMinutes)
+            : 0;
 
         const scaledDurations = baseDurations.map((duration, index) => {
-          let scaled = Math.round(duration * scale);
-          scaled = Math.max(10, Math.round(scaled / 5) * 5);
-          if (
-            prioritized[index].type === "focus" ||
-            prioritized[index].type === "school"
-          ) {
-            scaled = Math.max(scaled, 20);
-          }
+          const minimum = minimumDurations[index];
+          const discretionary = Math.max(0, duration - minimum);
+          const scaledDiscretionary = discretionary * discretionaryScale;
+          let scaled = minimum + scaledDiscretionary;
+          scaled = Math.round(scaled / 5) * 5;
+          scaled = Math.max(minimum, scaled);
           return scaled;
         });
 
+        let totalScaledMinutes = scaledDurations.reduce(
+          (sum, duration) => sum + duration,
+          0
+        );
+        if (totalScaledMinutes > availableMinutes && totalMinimumMinutes <= availableMinutes) {
+          for (
+            let index = scaledDurations.length - 1;
+            index >= 0 && totalScaledMinutes > availableMinutes;
+            index -= 1
+          ) {
+            const minimum = minimumDurations[index];
+            while (
+              scaledDurations[index] - 5 >= minimum &&
+              totalScaledMinutes > availableMinutes
+            ) {
+              scaledDurations[index] -= 5;
+              totalScaledMinutes -= 5;
+            }
+          }
+        }
+
+        const refactored = [];
         const refactored = fixedCommitments.map((item) => ({ ...item }));
         const carryoverCandidates = [];
 
